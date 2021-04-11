@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-    <id>http://yuncheng1998.github.io</id>
+    <id>https://yuncheng1998.github.io</id>
     <title>Gridea</title>
-    <updated>2021-04-11T14:33:32.114Z</updated>
+    <updated>2021-04-11T14:38:45.474Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
-    <link rel="alternate" href="http://yuncheng1998.github.io"/>
-    <link rel="self" href="http://yuncheng1998.github.io/atom.xml"/>
+    <link rel="alternate" href="https://yuncheng1998.github.io"/>
+    <link rel="self" href="https://yuncheng1998.github.io/atom.xml"/>
     <subtitle>温故而知新</subtitle>
-    <logo>http://yuncheng1998.github.io/images/avatar.png</logo>
-    <icon>http://yuncheng1998.github.io/favicon.ico</icon>
+    <logo>https://yuncheng1998.github.io/images/avatar.png</logo>
+    <icon>https://yuncheng1998.github.io/favicon.ico</icon>
     <rights>All rights reserved 2021, Gridea</rights>
     <entry>
         <title type="html"><![CDATA[Clean Code]]></title>
-        <id>http://yuncheng1998.github.io/post/clean-code/</id>
-        <link href="http://yuncheng1998.github.io/post/clean-code/">
+        <id>https://yuncheng1998.github.io/post/clean-code/</id>
+        <link href="https://yuncheng1998.github.io/post/clean-code/">
         </link>
         <updated>2021-04-11T14:29:15.000Z</updated>
         <content type="html"><![CDATA[<p>在一家公司实习，接手了一个权限相关的模块，正处一个新版本上线的时机，这个模块也是从其他模块中拆分出来的，上一任从老代码搬运过来并进行重构，后又由我接手来继续接受重构并进行新权限功能的开发。在重构期间开始读 <em>Robert C. Martin</em> 所著的 <em>代码整洁之道</em> 。在此期间对我起到了很大的指导作用。</p>
@@ -101,19 +101,19 @@
     </entry>
     <entry>
         <title type="html"><![CDATA[跳跃表]]></title>
-        <id>http://yuncheng1998.github.io/post/tiao-yue-biao/</id>
-        <link href="http://yuncheng1998.github.io/post/tiao-yue-biao/">
+        <id>https://yuncheng1998.github.io/post/tiao-yue-biao/</id>
+        <link href="https://yuncheng1998.github.io/post/tiao-yue-biao/">
         </link>
         <updated>2021-04-11T14:25:23.000Z</updated>
         <content type="html"><![CDATA[<p>最早在Redis设计与实现这本书中看到关于Redis中跳跃表的介绍，后来又在Java中使用跳表实现的ConcurrentSkipListMap，才发现这种数据结构有着广泛的应用。</p>
 <h2 id="redis中的跳跃表">Redis中的跳跃表</h2>
 <p>Redis中实现了skiplist这种有序的数据结构，以Redis的设计与实现中图示为例<br>
-<img src="http://yuncheng1998.github.io/post-images/1618151152233.png" alt="Redis-skip-list" loading="lazy"><br>
+<img src="https://yuncheng1998.github.io/post-images/1618151152233.png" alt="Redis-skip-list" loading="lazy"><br>
 这表示一个如下所示的跳跃表<br>
-<img src="http://yuncheng1998.github.io/post-images/1618151184016.png" alt="redis-skip-list-2" loading="lazy"><br>
+<img src="https://yuncheng1998.github.io/post-images/1618151184016.png" alt="redis-skip-list-2" loading="lazy"><br>
 其中第一列为表头节点，有32层，但在此跳跃表中只有用到了5层，第一层是所有节点，每一个节点都有50%的概率会在上一层中包含，这样可以提高每个节点的访问速度，相当于为链表增加了二分查找的功能。这样即有着省去了链表需要从头到尾遍历的过程，也有着链表插入和删除很快的优点。<br>
 下面是跳跃表的插入和删除的过程<br>
-<img src="http://yuncheng1998.github.io/post-images/1618151211971.png" alt="skip-list-add-and-delete" loading="lazy"><br>
+<img src="https://yuncheng1998.github.io/post-images/1618151211971.png" alt="skip-list-add-and-delete" loading="lazy"><br>
 跳跃表相当于为链表增加了一层索引，先通过索引确定大概位置，然后在进行逐步的细化，是一种空间换时间的方式。<br>
 Redis中的跳跃表是实现有序集合对象的一种数据结构，适应的Redis需要快速增删改查的需求。</p>
 <h2 id="concurrentskiplistmap中的跳跃表">ConcurrentSkipListMap中的跳跃表</h2>
@@ -199,8 +199,8 @@ Redis中的跳跃表是实现有序集合对象的一种数据结构，适应的
     </entry>
     <entry>
         <title type="html"><![CDATA[增强try-catch]]></title>
-        <id>http://yuncheng1998.github.io/post/try-catch/</id>
-        <link href="http://yuncheng1998.github.io/post/try-catch/">
+        <id>https://yuncheng1998.github.io/post/try-catch/</id>
+        <link href="https://yuncheng1998.github.io/post/try-catch/">
         </link>
         <updated>2019-07-11T16:00:00.000Z</updated>
         <content type="html"><![CDATA[<p>在传统的 <code>try-catch-finally</code> 语句中，需要将一些必须执行的步骤放在 <em>finally</em> 语句块中，诸如关闭资源，释放连接等。例如下面代码是将对象序列化到文件中后再反序列化读取出来的步骤，在 <em>finally</em> 语句块中，要判断两个文件流是否成功创建，然后再执行关闭操作，这样造成了代码的啰嗦。</p>
@@ -274,8 +274,8 @@ class Student implements Serializable {
     </entry>
     <entry>
         <title type="html"><![CDATA[蓄水池采样、Rand7和洗牌算法]]></title>
-        <id>http://yuncheng1998.github.io/post/about/</id>
-        <link href="http://yuncheng1998.github.io/post/about/">
+        <id>https://yuncheng1998.github.io/post/about/</id>
+        <link href="https://yuncheng1998.github.io/post/about/">
         </link>
         <updated>2019-01-25T11:09:48.000Z</updated>
         <content type="html"><![CDATA[<p>[TOC]</p>
