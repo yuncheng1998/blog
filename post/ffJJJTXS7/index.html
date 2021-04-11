@@ -1,0 +1,421 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>算法周记 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1618154477978">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="算法周记 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="两数之和
+对于链表问题，有时候可以自己设置一个head节点，然后在返回时返回head.next，虽然在程序中多出了一个节点，但可以很好的简化程序的逻辑。另外对于相加问题，要考虑好最后一位的进位问题。
+class Solution {
+   ..." />
+    <meta name="keywords" content="算法" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1618154477978" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    The Art Without Borders
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              算法周记
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-04-11
+              </span>
+              <span>
+                9 min read
+              </span>
+              
+                <a href="https://yuncheng1998.github.io/tag/ILRRyhAa_/" class="post-tag">
+                  # 算法
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h3 id="两数之和">两数之和</h3>
+<p>对于链表问题，有时候可以自己设置一个head节点，然后在返回时返回head.next，虽然在程序中多出了一个节点，但可以很好的简化程序的逻辑。另外对于相加问题，要考虑好最后一位的进位问题。</p>
+<pre><code class="language-java">class Solution {
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        int carry = 0;
+        int sum = 0;
+        ListNode head = new ListNode(0);
+        ListNode p = head;
+        int val1, val2;
+        while (l1 != null || l2 != null) {
+            if (l1 == null) {
+                val1 = 0;
+            } else {
+                val1 = l1.val;
+                l1 = l1.next;
+            }
+            if (l2 == null) {
+                val2 = 0;
+            } else {
+                val2 = l2.val;
+                l2 = l2.next;
+            }
+            sum = val1 + val2 + carry;
+            carry = sum/10;
+            p.next = new ListNode(sum%10);
+            p = p.next;
+        }
+        if (carry &gt; 0) {
+            p.next = new ListNode(carry);
+        }
+        return head.next;
+    }
+}
+</code></pre>
+<h3 id="整数反转">整数反转</h3>
+<p>注意对边界条件的判断，本题要求的是超过表示范围后返回0，对边界的判断应该在计算出结果之前来检验。对于本题目中计算s的表达式 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>=</mo><mi>s</mi><mo>∗</mo><mn>10</mn><mo>+</mo><mi>p</mi><mi>o</mi><mi>p</mi></mrow><annotation encoding="application/x-tex">s=s* 10 + pop</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">s</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.46528em;vertical-align:0em;"></span><span class="mord mathdefault">s</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">1</span><span class="mord">0</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">p</span><span class="mord mathdefault">o</span><span class="mord mathdefault">p</span></span></span></span> ，如果计算后的结果满足<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>&gt;</mo><mi>v</mi><mi>a</mi><mi>l</mi><mi>u</mi><msub><mi>e</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub></mrow><annotation encoding="application/x-tex">s&gt;value_{max}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathdefault">s</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mord mathdefault">a</span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">u</span><span class="mord"><span class="mord mathdefault">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">m</span><span class="mord mathdefault mtight">a</span><span class="mord mathdefault mtight">x</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，那么计算前需要满足下面两个条件之一<br>
+<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>10</mn><mo>∗</mo><mi>s</mi><mo>&gt;</mo><mi>v</mi><mi>a</mi><mi>l</mi><mi>u</mi><msub><mi>e</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub></mrow><annotation encoding="application/x-tex">10*s&gt;value_{max}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">0</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathdefault">s</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mord mathdefault">a</span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">u</span><span class="mord"><span class="mord mathdefault">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">m</span><span class="mord mathdefault mtight">a</span><span class="mord mathdefault mtight">x</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><br>
+<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>=</mo><mi>v</mi><mi>a</mi><mi>l</mi><mi>u</mi><msub><mi>e</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub><mi mathvariant="normal">/</mi><mn>10</mn><mo separator="true">,</mo><mi>p</mi><mi>o</mi><mi>p</mi><mo>&gt;</mo><mn>7</mn></mrow><annotation encoding="application/x-tex">s=value_{max}/10, pop&gt;7</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">s</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mord mathdefault">a</span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">u</span><span class="mord"><span class="mord mathdefault">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">m</span><span class="mord mathdefault mtight">a</span><span class="mord mathdefault mtight">x</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mord">1</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">p</span><span class="mord mathdefault">o</span><span class="mord mathdefault">p</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">7</span></span></span></span><br>
+同理要满足<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>&lt;</mo><mi>v</mi><mi>a</mi><mi>l</mi><mi>u</mi><msub><mi>e</mi><mrow><mi>m</mi><mi>i</mi><mi>n</mi></mrow></msub></mrow><annotation encoding="application/x-tex">s&lt;value_{min}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathdefault">s</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mord mathdefault">a</span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">u</span><span class="mord"><span class="mord mathdefault">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">m</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，满计算前需要满足下面两个条件之一<br>
+<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>10</mn><mo>∗</mo><mi>s</mi><mo>&lt;</mo><mi>v</mi><mi>a</mi><mi>l</mi><mi>u</mi><msub><mi>e</mi><mrow><mi>m</mi><mi>i</mi><mi>n</mi></mrow></msub></mrow><annotation encoding="application/x-tex">10*s&lt;value_{min}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">0</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathdefault">s</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mord mathdefault">a</span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">u</span><span class="mord"><span class="mord mathdefault">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">m</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><br>
+<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>=</mo><mi>v</mi><mi>a</mi><mi>l</mi><mi>u</mi><msub><mi>e</mi><mrow><mi>m</mi><mi>i</mi><mi>n</mi></mrow></msub><mi mathvariant="normal">/</mi><mn>10</mn><mo separator="true">,</mo><mi>p</mi><mi>o</mi><mi>p</mi><mo>&lt;</mo><mo>−</mo><mn>8</mn></mrow><annotation encoding="application/x-tex">s=value_{min}/10, pop&lt;-8</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">s</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mord mathdefault">a</span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">u</span><span class="mord"><span class="mord mathdefault">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">m</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mord">1</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">p</span><span class="mord mathdefault">o</span><span class="mord mathdefault">p</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">8</span></span></span></span></p>
+<pre><code class="language-java">class Solution {
+    public int reverse(int x) {
+        int s = 0;
+        int pop = 0;
+        while (x != 0) {
+            pop = x%10;
+            x = x/10;
+            if (s &gt; Integer.MAX_VALUE/10 || (s == Integer.MAX_VALUE/10 &amp;&amp; pop &gt; 7)) {
+                return 0;
+            }
+            if (s &lt; Integer.MIN_VALUE/10 || (s == Integer.MIN_VALUE/10 &amp;&amp; pop &lt; -8)) {
+                return 0;
+            }
+            s = s*10 + pop;
+        }
+        return s;
+    }
+}
+</code></pre>
+<h3 id="最接近的三数之和">最接近的三数之和</h3>
+<p>本题目与三数之和解法近似，使用双指针法，先将数组排序，然后每次选定一个数为基准，头尾指针向内移动比较与目标值的接近度。如果大于目标值，则移动尾指针，否则移动头指针。</p>
+<pre><code class="language-java">public int threeSumClosest(int[] nums, int target) {
+        if (nums.length &lt; 3) {
+            return 0;
+        }
+        Arrays.sort(nums);
+        int temp = nums[0] + nums[1] + nums[2];
+        for (int i = 0; i &lt; nums.length - 2; i++) {
+            int difference = target - nums[i];
+            int start = i + 1, end = nums.length - 1;
+            while (start &lt; end) {
+                // 如果num[i] + num[start] + num[end] 更接近target 更新temp
+                if (Math.abs(target - temp) &gt; Math.abs(difference - nums[start] - nums[end])) {
+                    temp = nums[i] + nums[start] + nums[end];
+                }
+                // 大于则end--，小于则start++
+                if (nums[start] + nums[end] &gt; difference) {
+                    end--;
+                } else {
+                    start++;
+                }
+            }
+
+        }
+        return temp;
+    }
+</code></pre>
+<h3 id="盛水最多的容器">盛水最多的容器</h3>
+<figure data-type="image" tabindex="1"><img src="https://yuncheng1998.github.io/post-images/1618154398481.png" alt="盛水最多的容器" loading="lazy"></figure>
+<p>如下图所示，容量的计算公式如下所示<br>
+<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>c</mi><mi>a</mi><mi>p</mi><mi>a</mi><mi>c</mi><mi>i</mi><mi>t</mi><mi>y</mi><mo>=</mo><mi>m</mi><mi>i</mi><mi>n</mi><mo>(</mo><mi>n</mi><mi>u</mi><mi>m</mi><mo>[</mo><mi>i</mi><mo>]</mo><mo separator="true">,</mo><mi>n</mi><mi>u</mi><mi>m</mi><mo>[</mo><mi>j</mi><mo>]</mo><mo>)</mo><mo>∗</mo><mo>(</mo><mi>j</mi><mo>−</mo><mi>i</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">capacity=min(num[i], num[j])*(j-i)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">c</span><span class="mord mathdefault">a</span><span class="mord mathdefault">p</span><span class="mord mathdefault">a</span><span class="mord mathdefault">c</span><span class="mord mathdefault">i</span><span class="mord mathdefault">t</span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">m</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mord mathdefault">u</span><span class="mord mathdefault">m</span><span class="mopen">[</span><span class="mord mathdefault">i</span><span class="mclose">]</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">n</span><span class="mord mathdefault">u</span><span class="mord mathdefault">m</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mclose">]</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">i</span><span class="mclose">)</span></span></span></span><br>
+也可以使用双指针来进行求解，头尾指针向内移动，由于容量由最短的柱子决定，因此先移动较短的柱子，每次重新计算容量，判断是否要更新最大值</p>
+<pre><code class="language-java">class Solution {
+    public int maxArea(int[] height) {
+        int capacity = 0;
+        int left = 0;
+        int right = height.length - 1;
+        while (left &lt; right) {
+            int temp = Math.min(height[left], height[right]) * (right - left);
+            capacity = Math.max(temp, capacity);
+            // 如果右边的比左边的矮，让右边向内移动
+            if (height[left] &gt; height[right]) {
+                right--;
+            } else {
+                left++;
+            }
+        }
+        return capacity;
+    }
+}
+</code></pre>
+<h3 id="全排列">全排列</h3>
+<p>全排列算法是回溯法的应用，全排列计算时本质是俩俩数的交换。将整个全排列树画出后如下图所示（来源 leetCode）<br>
+<img src="https://yuncheng1998.github.io/post-images/1618154427131.png" alt="全排列树" loading="lazy"><br>
+可以看出第一层是将第一个位置与后面位置上的数依次交换后得到的结果，第二次是第二个数与后面位置上的数依次交换后得到的结果，第三层是第三个数与后面数依次交换的结果，知道要交换的数的位置等于数组的长度，停止交换得到的所有数组就是全排列。<br>
+如果使用回溯法，首先由<code>swap(0,0), swap(1,1), swap(2,2)</code><br>
+求得[1,2,3]后下一次递归的层数为3，和len相等，因此收入最终结果。<br>
+回溯需要还原之前的交换来得到原来的排列，前面的回溯为<code>swap(2,2), swap(1,1)</code>还原到层数后继续下一步应进行的是<code>swap(1,2)</code>，这样依次递归将所有的全排列得到。</p>
+<pre><code class="language-java">class Solution {
+    public List&lt;List&lt;Integer&gt;&gt; permute(int[] nums) {
+        List&lt;List&lt;Integer&gt;&gt; result = new LinkedList&lt;&gt;();
+        List&lt;Integer&gt; list = new LinkedList&lt;&gt;();
+        for (int i : nums) {
+            list.add(i);
+        }
+        int len = nums.length;
+        backtrack(len, list, result, 0);
+        return result;
+    }
+
+    private void backtrack(int len, List&lt;Integer&gt; list, List&lt;List&lt;Integer&gt;&gt; result, int first) {
+        if (len == first) {
+            result.add(new ArrayList&lt;&gt;(list));
+        }
+        for (int i = first; i &lt; len; i++) {
+            Collections.swap(list, first, i);
+            backtrack(len, list, result, first + 1);
+            Collections.swap(list, first, i);
+        }
+    }
+}
+</code></pre>
+<h3 id="最长公共前缀">最长公共前缀</h3>
+<p>给定一组字符串，求这组字符串最长公共子前缀。</p>
+<blockquote>
+<p>输入: [&quot;flower&quot;,&quot;flow&quot;,&quot;flight&quot;]<br>
+输出: &quot;fl&quot;</p>
+</blockquote>
+<p>首先需要理解前缀的含义，即 <em>prefix</em> 在 <em>str</em> 中第一次出现的索引为0，即以 <code>str.index(prefix) == 0</code> 为判断条件。如果不为0，则去掉 <em>prefix</em> 的最后一位字母继续比较。另外一个要点时，先用strs[0]作为prefix，然后做减量，这个思想在本题中使用很重要。</p>
+<pre><code class="language-java">class Solution {
+    public String longestCommonPrefix(String[] strs) {
+        if (strs.length == 0) {
+            return &quot;&quot;;
+        }
+        String prefix = strs[0];
+        if (strs.length == 1) {
+            return prefix;
+        }
+        // 以strs[0]作为前缀，然后查看其他的字符串中是否包含该字符串
+
+        for (int i = 1; i &lt; strs.length; i++) {
+            // 该字符串中第一次出现前缀的索引，如果为0，则说明是前缀
+            while (strs[i].indexOf(prefix) != 0) {
+                prefix = prefix.substring(0, prefix.length() - 1);
+                if (prefix.isEmpty()) {
+                    return &quot;&quot;;
+                }
+            }
+        }
+        return prefix;
+    }
+}
+</code></pre>
+<h3 id="爬楼梯">爬楼梯</h3>
+<p>可以一步上1个或2个台阶，一共有N个台阶，问有几种走法。显而易见，1级台阶1种，2级台阶两种，3级台阶最后一步可以是走了2级或1级，那么就是1级台阶的走法+2级台阶的走法。同理4级台阶是3级台阶的走法+2级台阶的走法...，很容易想到使用递归的方法解决问题</p>
+<pre><code class="language-java">public int climbStairs(int n) {
+    if (n == 1) {
+        return 1;
+    }
+    if (n == 2) {
+        return 2;
+    }
+    return climbStairs(n - 1) + climbStairs(n - 2);
+}
+</code></pre>
+<p>但是这样会做了很多的重复计算，如下图所示<br>
+<img src="https://yuncheng1998.github.io/post-images/1618154453666.png" alt="递归树" loading="lazy"><br>
+因此最好使用备忘录将每个节点的方法数记录下来，可以申请一个数组dp[]，该数组的填充计算方法为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>d</mi><mi>p</mi><mo>[</mo><mi>n</mi><mo>]</mo><mo>=</mo><mi>d</mi><mi>p</mi><mo>[</mo><mi>n</mi><mo>−</mo><mn>1</mn><mo>]</mo><mo>+</mo><mi>d</mi><mi>p</mi><mo>[</mo><mi>n</mi><mo>−</mo><mn>2</mn><mo>]</mo></mrow><annotation encoding="application/x-tex">dp[n] = dp[n-1]+dp[n-2]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">d</span><span class="mord mathdefault">p</span><span class="mopen">[</span><span class="mord mathdefault">n</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">d</span><span class="mord mathdefault">p</span><span class="mopen">[</span><span class="mord mathdefault">n</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">d</span><span class="mord mathdefault">p</span><span class="mopen">[</span><span class="mord mathdefault">n</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mclose">]</span></span></span></span></p>
+<pre><code class="language-java">class Solution {
+    public int climbStairs(int n) {
+        if (n == 1) {
+            return 1;
+        }
+	
+        int[] dp = new int[n+1];
+        dp[1] = 1;
+        dp[2] = 2;
+        for (int i = 3; i &lt;= n; i++) {
+            dp[i] = dp[i-1] + dp[i-2];
+        }
+        return dp[n];
+    }
+}
+</code></pre>
+<p>经过观察可以发现，每次只会使用第n个台阶的前两级的方法数来计算，因此只需申请两个变量即可。每次迭代，step变为a和b的和，同时更新a和b</p>
+<pre><code class="language-java">class Solution {
+    public int climbStairs(int n) {
+        if (n &lt; 0) {
+            return 0;
+        }
+        if (n == 1) {
+            return 1;
+        }
+        if (n == 2) {
+            return 2;
+        }
+        int a = 1;
+        int b = 2;
+        int step = 0;
+        // 每一次迭代，step为对应台阶数的步数方法，同时更新a和b
+        for (int i = 3; i &lt;= n; i++) {
+            step = a + b;
+            a = b;
+            b = step;
+        }
+        return step;
+    }
+}
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#%E4%B8%A4%E6%95%B0%E4%B9%8B%E5%92%8C">两数之和</a></li>
+<li><a href="#%E6%95%B4%E6%95%B0%E5%8F%8D%E8%BD%AC">整数反转</a></li>
+<li><a href="#%E6%9C%80%E6%8E%A5%E8%BF%91%E7%9A%84%E4%B8%89%E6%95%B0%E4%B9%8B%E5%92%8C">最接近的三数之和</a></li>
+<li><a href="#%E7%9B%9B%E6%B0%B4%E6%9C%80%E5%A4%9A%E7%9A%84%E5%AE%B9%E5%99%A8">盛水最多的容器</a></li>
+<li><a href="#%E5%85%A8%E6%8E%92%E5%88%97">全排列</a></li>
+<li><a href="#%E6%9C%80%E9%95%BF%E5%85%AC%E5%85%B1%E5%89%8D%E7%BC%80">最长公共前缀</a></li>
+<li><a href="#%E7%88%AC%E6%A5%BC%E6%A2%AF">爬楼梯</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/clean-code/">
+              <h3 class="post-title">
+                Clean Code
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
