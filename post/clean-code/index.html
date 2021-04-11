@@ -1,98 +1,100 @@
+<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" >
+
 <title>Clean Code | Gridea</title>
-<link rel="shortcut icon" href="http://yuncheng1998.github.io/favicon.ico?v=1618151432074">
-<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="http://yuncheng1998.github.io/favicon.ico?v=1618151590228">
 <link rel="stylesheet" href="http://yuncheng1998.github.io/styles/main.css">
-<link rel="alternate" type="application/atom+xml" title="Clean Code | Gridea - Atom Feed" href="http://yuncheng1998.github.io/atom.xml">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 
 
 
     <meta name="description" content="在一家公司实习，接手了一个权限相关的模块，正处一个新版本上线的时机，这个模块也是从其他模块中拆分出来的，上一任从老代码搬运过来并进行重构，后又由我接手来继续接受重构并进行新权限功能的开发。在重构期间开始读 Robert C. Martin ..." />
     <meta name="keywords" content="读书笔记" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
-    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
   </head>
   <body>
-    <div class="main">
-      <div class="main-content">
-        <div class="site-header">
-  <a href="http://yuncheng1998.github.io">
-  <img class="avatar" src="http://yuncheng1998.github.io/images/avatar.png?v=1618151432074" alt="">
-  </a>
-  <h1 class="site-title">
-    Gridea
-  </h1>
-  <p class="site-description">
-    温故而知新
-  </p>
-  <div class="menu-container">
-    
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="http://yuncheng1998.github.io">
+        <img src="http://yuncheng1998.github.io/images/avatar.png?v=1618151590228" class="site-logo">
+        <h1 class="site-title">Gridea</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
       
-        <a href="/" class="menu">
-          首页
-        </a>
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
       
-    
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
       
-        <a href="/archives" class="menu">
-          归档
-        </a>
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
       
-    
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
       
-        <a href="/tags" class="menu">
-          标签
-        </a>
-      
-    
-      
-        <a href="/post/about" class="menu">
-          关于
-        </a>
-      
-    
+    </div>
   </div>
-  <div class="social-container">
-    
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
       
-    
+        
       
-    
+        
       
-    
+        
       
-    
+        
       
-    
+        
+      
+    </div>
+    <div class="site-description">
+      温故而知新
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="http://yuncheng1998.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
   </div>
 </div>
 
-        <div class="post-detail">
-          <article class="post">
-            <h2 class="post-title">
-              Clean Code
-            </h2>
-            <div class="post-info">
-              <span>
-                2021-04-11
-              </span>
-              <span>
-                10 min read
-              </span>
-              
-                <a href="http://yuncheng1998.github.io/tag/WrIED4MPc/" class="post-tag">
-                  # 读书笔记
-                </a>
-              
-            </div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Clean Code</h2>
+            <div class="post-date">2021-04-11</div>
             
-            <div class="post-content-wrapper">
-              <div class="post-content">
-                <p>在一家公司实习，接手了一个权限相关的模块，正处一个新版本上线的时机，这个模块也是从其他模块中拆分出来的，上一任从老代码搬运过来并进行重构，后又由我接手来继续接受重构并进行新权限功能的开发。在重构期间开始读 <em>Robert C. Martin</em> 所著的 <em>代码整洁之道</em> 。在此期间对我起到了很大的指导作用。</p>
+            <div class="post-content" v-pre>
+              <p>在一家公司实习，接手了一个权限相关的模块，正处一个新版本上线的时机，这个模块也是从其他模块中拆分出来的，上一任从老代码搬运过来并进行重构，后又由我接手来继续接受重构并进行新权限功能的开发。在重构期间开始读 <em>Robert C. Martin</em> 所著的 <em>代码整洁之道</em> 。在此期间对我起到了很大的指导作用。</p>
 <h2 id="方法应该是什么样的">方法应该是什么样的</h2>
 <h3 id="短小只做一件事">短小，只做一件事</h3>
 <p>方法之所以写的冗长因为它做了太多的事情，一个好的方法应该短小清晰，过于长的代码是难以理解和维护的，因此应尽可能的将长方法进行拆分，首先要理解原方法的含义，然后将它所做的任务拆分成若干子任务，每个子任务进行以面向对象的思想进行封装。并且要规范的命名和写清楚 <em>javadoc</em> 注释。</p>
@@ -174,118 +176,53 @@
 <li>使用策略模式</li>
 </ol>
 
-              </div>
-              <div class="toc-container">
-                <ul class="markdownIt-TOC">
-<li>
-<ul>
-<li><a href="#%E6%96%B9%E6%B3%95%E5%BA%94%E8%AF%A5%E6%98%AF%E4%BB%80%E4%B9%88%E6%A0%B7%E7%9A%84">方法应该是什么样的</a>
-<ul>
-<li><a href="#%E7%9F%AD%E5%B0%8F%E5%8F%AA%E5%81%9A%E4%B8%80%E4%BB%B6%E4%BA%8B">短小，只做一件事</a></li>
-<li><a href="#%E6%8A%BD%E8%B1%A1%E5%B1%82%E7%BA%A7">抽象层级</a></li>
-<li><a href="#%E4%B8%8D%E8%A6%81%E8%BF%94%E5%9B%9E-null">不要返回 <em>null</em></a></li>
-<li><a href="#%E5%8F%82%E6%95%B0">参数</a></li>
-<li><a href="#%E6%97%A0%E5%89%AF%E4%BD%9C%E7%94%A8">无副作用</a></li>
-<li><a href="#%E4%B8%8D%E8%A6%81%E6%9C%89%E8%BE%93%E5%87%BA%E5%8F%82%E6%95%B0">不要有输出参数</a></li>
-<li><a href="#%E5%88%86%E9%9A%94%E6%8C%87%E4%BB%A4%E4%B8%8E%E8%AF%A2%E9%97%AE">分隔指令与询问</a></li>
-<li><a href="#%E5%BC%82%E5%B8%B8">异常</a></li>
-<li><a href="#%E7%BB%93%E6%9E%84%E5%8C%96%E7%BC%96%E7%A8%8B">结构化编程</a></li>
-<li><a href="#%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86-switch">如何处理 <em>switch</em></a></li>
-</ul>
-</li>
-<li><a href="#%E5%AF%B9%E8%B1%A1%E4%B8%8E%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84">对象与数据结构</a></li>
-<li><a href="#%E5%BC%82%E5%B8%B8-2">异常</a>
-<ul>
-<li><a href="#%E4%B8%8D%E5%8F%AF%E6%8E%A7%E5%BC%82%E5%B8%B8">不可控异常</a></li>
-<li><a href="#%E5%A5%BD%E7%9A%84%E5%BC%82%E5%B8%B8%E6%8D%95%E8%8E%B7">好的异常捕获</a></li>
-<li><a href="#%E7%89%B9%E4%BE%8B%E6%A8%A1%E5%BC%8F">特例模式</a></li>
-</ul>
-</li>
-<li><a href="#%E7%B1%BB%E5%BA%94%E8%AF%A5%E6%98%AF%E4%BB%80%E4%B9%88%E6%A0%B7%E7%9A%84">类应该是什么样的</a>
-<ul>
-<li><a href="#%E8%87%AA%E4%B8%8A%E8%80%8C%E4%B8%8B%E7%9A%84%E5%8E%9F%E5%88%99">自上而下的原则</a></li>
-<li><a href="#%E5%8D%95%E4%B8%80%E6%9D%83%E8%B4%A3">单一权责</a></li>
-<li><a href="#%E5%BC%80%E9%97%AD%E5%8E%9F%E5%88%99">开闭原则</a></li>
-</ul>
-</li>
-<li><a href="#%E7%B3%BB%E7%BB%9F%E5%B1%82%E7%BA%A7%E7%9A%84%E6%95%B4%E6%B4%81">系统层级的整洁</a>
-<ul>
-<li><a href="#%E5%88%86%E7%A6%BB%E6%9E%84%E9%80%A0%E5%92%8C%E4%BD%BF%E7%94%A8">分离构造和使用</a></li>
-<li><a href="#%E5%88%87%E9%9D%A2">切面</a></li>
-<li><a href="#%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E4%BB%A3%E7%A0%81%E4%B8%AD%E5%A4%A7%E9%87%8F%E7%9A%84if-else%E5%BE%85%E8%A1%A5%E5%85%85">如何处理代码中大量的if-else(待补充)</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-              </div>
             </div>
-          </article>
-        </div>
+            
+              <div class="tag-container">
+                
+                  <a href="http://yuncheng1998.github.io/tag/WrIED4MPc/" class="tag">
+                    读书笔记
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="http://yuncheng1998.github.io/post/tiao-yue-biao/">
+                  <h3 class="post-title">
+                    跳跃表
+                  </h3>
+                </a>
+              </div>
+            
 
-        
-          <div class="next-post">
-            <div class="next">下一篇</div>
-            <a href="http://yuncheng1998.github.io/post/tiao-yue-biao/">
-              <h3 class="post-title">
-                跳跃表
-              </h3>
-            </a>
+            
+
           </div>
-        
 
-        
-
-        <div class="site-footer">
-  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
-  <a class="rss" href="http://yuncheng1998.github.io/atom.xml" target="_blank">
-    <i class="ri-rss-line"></i> RSS
-  </a>
-</div>
-
+        </div>
       </div>
     </div>
 
-    <script>
-      hljs.initHighlightingOnLoad()
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
 
-      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+AOS.init();
 
-      // This should probably be throttled.
-      // Especially because it triggers during smooth scrolling.
-      // https://lodash.com/docs/4.17.10#throttle
-      // You could do like...
-      // window.addEventListener("scroll", () => {
-      //    _.throttle(doThatStuff, 100);
-      // });
-      // Only not doing it here to keep this Pen dependency-free.
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
 
-      window.addEventListener("scroll", event => {
-        let fromTop = window.scrollY;
+</script>
 
-        mainNavLinks.forEach((link, index) => {
-          let section = document.getElementById(decodeURI(link.hash).substring(1));
-          let nextSection = null
-          if (mainNavLinks[index + 1]) {
-            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
-          }
-          if (section.offsetTop <= fromTop) {
-            if (nextSection) {
-              if (nextSection.offsetTop > fromTop) {
-                link.classList.add("current");
-              } else {
-                link.classList.remove("current");    
-              }
-            } else {
-              link.classList.add("current");
-            }
-          } else {
-            link.classList.remove("current");
-          }
-        });
-      });
 
-    </script>
+
+
+
+
   </body>
 </html>
