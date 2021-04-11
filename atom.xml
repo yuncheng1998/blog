@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>http://yuncheng1998.github.io</id>
     <title>Gridea</title>
-    <updated>2021-04-11T13:51:40.916Z</updated>
+    <updated>2021-04-11T13:53:39.407Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="http://yuncheng1998.github.io"/>
     <link rel="self" href="http://yuncheng1998.github.io/atom.xml"/>
@@ -11,35 +11,78 @@
     <icon>http://yuncheng1998.github.io/favicon.ico</icon>
     <rights>All rights reserved 2021, Gridea</rights>
     <entry>
-        <title type="html"><![CDATA[Hello Gridea]]></title>
-        <id>http://yuncheng1998.github.io/post/hello-gridea/</id>
-        <link href="http://yuncheng1998.github.io/post/hello-gridea/">
+        <title type="html"><![CDATA[增强try-catch]]></title>
+        <id>http://yuncheng1998.github.io/post/try-catch/</id>
+        <link href="http://yuncheng1998.github.io/post/try-catch/">
         </link>
         <updated>2018-12-11T16:00:00.000Z</updated>
-        <summary type="html"><![CDATA[<p>👏  欢迎使用 <strong>Gridea</strong> ！<br>
-✍️  <strong>Gridea</strong> 一个静态博客写作客户端。你可以用它来记录你的生活、心情、知识、笔记、创意... ...</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>👏  欢迎使用 <strong>Gridea</strong> ！<br>
-✍️  <strong>Gridea</strong> 一个静态博客写作客户端。你可以用它来记录你的生活、心情、知识、笔记、创意... ...</p>
-<!-- more -->
-<p><a href="https://github.com/getgridea/gridea">Github</a><br>
-<a href="https://gridea.dev/">Gridea 主页</a><br>
-<a href="http://fehey.com/">示例网站</a></p>
-<h2 id="特性">特性👇</h2>
-<p>📝  你可以使用最酷的 <strong>Markdown</strong> 语法，进行快速创作</p>
-<p>🌉  你可以给文章配上精美的封面图和在文章任意位置插入图片</p>
-<p>🏷️  你可以对文章进行标签分组</p>
-<p>📋  你可以自定义菜单，甚至可以创建外部链接菜单</p>
-<p>💻  你可以在 <strong>Windows</strong>，<strong>MacOS</strong> 或 <strong>Linux</strong> 设备上使用此客户端</p>
-<p>🌎  你可以使用 <strong>𝖦𝗂𝗍𝗁𝗎𝖻 𝖯𝖺𝗀𝖾𝗌</strong> 或 <strong>Coding Pages</strong> 向世界展示，未来将支持更多平台</p>
-<p>💬  你可以进行简单的配置，接入 <a href="https://github.com/gitalk/gitalk">Gitalk</a> 或 <a href="https://github.com/SukkaW/DisqusJS">DisqusJS</a> 评论系统</p>
-<p>🇬🇧  你可以使用<strong>中文简体</strong>或<strong>英语</strong></p>
-<p>🌁  你可以任意使用应用内默认主题或任意第三方主题，强大的主题自定义能力</p>
-<p>🖥  你可以自定义源文件夹，利用 OneDrive、百度网盘、iCloud、Dropbox 等进行多设备同步</p>
-<p>🌱 当然 <strong>Gridea</strong> 还很年轻，有很多不足，但请相信，它会不停向前 🏃</p>
-<p>未来，它一定会成为你离不开的伙伴</p>
-<p>尽情发挥你的才华吧！</p>
-<p>😘 Enjoy~</p>
+        <content type="html"><![CDATA[<p>在传统的 <code>try-catch-finally</code> 语句中，需要将一些必须执行的步骤放在 <em>finally</em> 语句块中，诸如关闭资源，释放连接等。例如下面代码是将对象序列化到文件中后再反序列化读取出来的步骤，在 <em>finally</em> 语句块中，要判断两个文件流是否成功创建，然后再执行关闭操作，这样造成了代码的啰嗦。</p>
+<pre><code class="language-java">public class App {
+    private static final String PATH = &quot;/Users/yuncheng/IdeaProjects/leetcode-log/src/main/java/top/wangych/file.in&quot;;
+    public static void main(String[] args) {
+        ObjectInputStream objectInputStream = null;
+        ObjectOutputStream objectOutputStream = null;
+        try {
+            objectOutputStream = new ObjectOutputStream(new FileOutputStream(PATH));
+            objectInputStream= new ObjectInputStream(new FileInputStream(PATH));
+            Student student = new Student();
+            student.setName(&quot;test&quot;);
+            objectOutputStream.writeObject(student);
+            student = (Student) objectInputStream.readObject();
+            System.out.println(student.getName());
+
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            if (objectInputStream != null) {
+                try {
+                    objectInputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (objectOutputStream != null) {
+                try {
+                    objectOutputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+}
+
+@Data
+class Student implements Serializable {
+
+    private static final long serialVersionUID = -8955603390013362711L;
+    private String name;
+}
+</code></pre>
+<p>在Java7中提供了增强try语句来释放资源，如下所示</p>
+<pre><code class="language-java">public class App {
+    private static final String PATH = &quot;/Users/yuncheng/IdeaProjects/leetcode-log/src/main/java/top/wangych/file.in&quot;;
+    public static void main(String[] args) {
+        try (
+          ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(PATH));
+          ObjectInputStream objectInputStream= new ObjectInputStream(new FileInputStream(PATH))
+        ) {
+
+            Student student = new Student();
+            student.setName(&quot;test&quot;);
+            objectOutputStream.writeObject(student);
+            student = (Student) objectInputStream.readObject();
+            System.out.println(student.getName());
+
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+<p>增强try语句是一种语法糖，查看编译后的的代码如下，仍然生成finally语句块来释放资源。释放的方式是调用括号内对象的close()方法，这就要求该类必须实现了 <em>Closeable</em> 接口。<br>
+<img src="http://www.wangych.top/upload/2019/7/%E5%A2%9E%E5%BC%BAtry-27866803a9f846d39d87ae63a6e21457.png" alt="增强try" loading="lazy"></p>
+<p><a href="https://docs.oracle.com/javase/7/docs/technotes/guides/language/try-with-resources.html">The try-with-resources Statement</a></p>
 ]]></content>
     </entry>
 </feed>
