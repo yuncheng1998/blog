@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>蓄水池采样、Rand7和洗牌算法 | Gridea</title>
-<link rel="shortcut icon" href="http://yuncheng1998.github.io/favicon.ico?v=1618149365437">
+<link rel="shortcut icon" href="http://yuncheng1998.github.io/favicon.ico?v=1618151432074">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="http://yuncheng1998.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="蓄水池采样、Rand7和洗牌算法 | Gridea - Atom Feed" href="http://yuncheng1998.github.io/atom.xml">
@@ -13,10 +13,9 @@
 
     <meta name="description" content="[TOC]
 蓄水池采样
-
 给定一个无限的数据流，要求随机取出 k 个数。也就是说当数据流有 N 个数据时，不论 N 为多少，每个数被取出的概率都为 k/Nk/Nk/N
 采样方法
-先取出先 k 个数，从 k+1 个数开始以 k/ik/ik/i..." />
+先取出先 k 个数，从 k+1 个数开始以 k/ik/ik/i ..." />
     <meta name="keywords" content="" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
     <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
@@ -26,7 +25,7 @@
       <div class="main-content">
         <div class="site-header">
   <a href="http://yuncheng1998.github.io">
-  <img class="avatar" src="http://yuncheng1998.github.io/images/avatar.png?v=1618149365437" alt="">
+  <img class="avatar" src="http://yuncheng1998.github.io/images/avatar.png?v=1618151432074" alt="">
   </a>
   <h1 class="site-title">
     Gridea
@@ -95,8 +94,7 @@
               <div class="post-content">
                 <p>[TOC]</p>
 <h3 id="蓄水池采样">蓄水池采样</h3>
-<p><img src="http://www.wangych.top/upload/2019/10/Reservoir-sampling-55752e3642d64f6ba03b47f7683a961a.png" alt="Reservoir-sampling" loading="lazy"><br>
-给定一个无限的数据流，要求随机取出 k 个数。也就是说当数据流有 N 个数据时，不论 N 为多少，每个数被取出的概率都为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>k</mi><mi mathvariant="normal">/</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">k/N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord">/</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span></span></span></span></p>
+<p>给定一个无限的数据流，要求随机取出 k 个数。也就是说当数据流有 N 个数据时，不论 N 为多少，每个数被取出的概率都为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>k</mi><mi mathvariant="normal">/</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">k/N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord">/</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span></span></span></span></p>
 <p><strong>采样方法</strong><br>
 先取出先 k 个数，从 k+1 个数开始以 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>k</mi><mi mathvariant="normal">/</mi><mi>i</mi></mrow><annotation encoding="application/x-tex">k/i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord">/</span><span class="mord mathdefault">i</span></span></span></span> 的概率取出这个数，随机替换掉k个数中的一个数。</p>
 <p><strong>证明</strong><br>
@@ -188,15 +186,6 @@
           </article>
         </div>
 
-        
-          <div class="next-post">
-            <div class="next">下一篇</div>
-            <a href="http://yuncheng1998.github.io/post/try-catch/">
-              <h3 class="post-title">
-                增强try-catch
-              </h3>
-            </a>
-          </div>
         
 
         
