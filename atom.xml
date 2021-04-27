@@ -2,16 +2,2058 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://yuncheng1998.github.io</id>
     <title>云程的BLOG</title>
-    <updated>2021-04-11T15:23:17.706Z</updated>
+    <updated>2021-04-27T05:34:37.461Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://yuncheng1998.github.io"/>
     <link rel="self" href="https://yuncheng1998.github.io/atom.xml"/>
-    <subtitle>The Art Without Borders</subtitle>
+    <subtitle>潜龙勿用</subtitle>
     <logo>https://yuncheng1998.github.io/images/avatar.png</logo>
     <icon>https://yuncheng1998.github.io/favicon.ico</icon>
     <rights>All rights reserved 2021, 云程的BLOG</rights>
     <entry>
-        <title type="html"><![CDATA[算法周记]]></title>
+        <title type="html"><![CDATA[朋友圈问题]]></title>
+        <id>https://yuncheng1998.github.io/post/mArWjG4B0/</id>
+        <link href="https://yuncheng1998.github.io/post/mArWjG4B0/">
+        </link>
+        <updated>2021-04-17T09:56:23.000Z</updated>
+        <content type="html"><![CDATA[<p><a href="https://leetcode-cn.com/problems/number-of-provinces/comments/">省份数量</a></p>
+<h1 id="dfsbfs搜索">DFS/BFS搜索</h1>
+<p>使用一个<strong>标记数组</strong>，依次判断每个节点，如果其未访问：朋友圈数+1并对该节点进行DFS/BFS标记所有访问到的节点。</p>
+<pre><code class="language-java">class Solution {
+      public int findCircleNum(int[][] isConnected) {
+    int ans = 0;
+    boolean[] flag = new boolean[isConnected.length];
+    for (int i = 0; i &lt; flag.length; i++) {
+      // 没有被访问
+      if (!flag[i]) {
+        ans++;
+        flag[i] = true;
+        dfs(isConnected, flag, i);
+      }
+    }
+    System.out.println(ans);
+    return ans;
+  }
+
+  /**
+   * 以i为中心开始深度优先遍历
+   */
+  private void dfs(int[][] isConnected, boolean[] flag, int i) {
+    for (int j = 0; j &lt; flag.length; j++) {
+      if (isConnected[i][j] == 1) {
+        if (!flag[j]) {
+          flag[i] = true;
+          dfs(isConnected, flag, j);
+        }
+      }
+    }
+  }
+}
+</code></pre>
+<h1 id="查并集">查并集</h1>
+<pre><code class="language-java">class Solution {
+    int[] cities;
+    public void union(int i, int j) {
+        cities[i] = j;
+    }
+    public int find(int i) {
+        if (cities[i] == -1) {
+        return i;
+        } else {
+        int p = cities[i];
+        while (cities[p] != -1) {
+            p = cities[p];
+        }
+        return p;
+        }
+    }
+    public int findCircleNum(int[][] isConnected) {
+    cities = new int[isConnected.length];
+    // 初始化
+    Arrays.fill(cities, -1);
+    for (int i = 0; i &lt; isConnected.length; i++) {
+      for (int j = i + 1; j &lt; isConnected.length; j++) {
+        if (isConnected[i][j] == 1) {
+          int ip = find(i);
+          int jp = find(j);
+          if (ip != jp) {
+            union(ip, j);
+          }
+        }
+      }
+    }
+    return (int)Arrays.stream(cities).filter(x -&gt; x == -1).count();
+  }
+}
+</code></pre>
+<h2 id="查并集的优化方法">查并集的优化方法</h2>
+<p>降低树的高度：将树上每个节点都指向根节点</p>
+<pre><code class="language-java">public int find(int i) {
+    if (cities[i] == -1) {
+      return i;
+    } else {
+      int parent = cities[i];
+      while (cities[parent] != -1) {
+        parent = cities[parent];
+      }
+      // 将[i,p)都指向parent
+      while (cities[i] != -1) {
+        int tmp = cities[i];
+        cities[cities[tmp]] = parent;
+        i = tmp;
+      }
+      return parent;
+    }
+  }
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[复用类]]></title>
+        <id>https://yuncheng1998.github.io/post/Qe7mvB1pJ/</id>
+        <link href="https://yuncheng1998.github.io/post/Qe7mvB1pJ/">
+        </link>
+        <updated>2021-04-12T05:35:36.000Z</updated>
+        <content type="html"><![CDATA[<p>复用代码是 <em>Java</em> 众多引人注目的功能之一，如何实现对已有类更加灵巧的复用是程序设计中需要考虑的重要问题。本文是在研读 <em>Thinking in Java</em> 复用类一章后的思考与总结。</p>
+<h4 id="复用的方法">复用的方法</h4>
+<p>要使用现有类而不破坏现有代码主要有两种方式，组合与继承。前者直接在新的类中产生现有类的对象，后者则是在现有类的形式中添加代码。二者均是利用现有类型产生新类型，均在新类中包含了现有类的引用，对于组合这种引用是显式的，而对于继承则是隐式的。</p>
+<h4 id="组合">组合</h4>
+<p>在新类中显式地产生现有类的对象，新类是由现有类组合而成的。现有类的对象默认初始化为 <em>null</em>，若我们需要进行初始化，有以下四种方式</p>
+<ol>
+<li>
+<p>在定义对象的地方</p>
+</li>
+<li>
+<p>在类的构造器中</p>
+</li>
+<li>
+<p>使用对象前进行惰性初始化</p>
+<p>当不必要每次都生成对象时，使用惰性初始化可以减少负担</p>
+</li>
+<li>
+<p>使用实例初始化</p>
+<p>实例初始化是在类内部的一个代码块，在创建对象时执行，为该类的实例对象赋值</p>
+</li>
+</ol>
+<h4 id="继承">继承</h4>
+<p>使用 <em>extends</em> 关键字实现类的继承，子类会自动得到超类中可以继承的所有的域和方法。可以认为在子类中包含了一个超类的引用 <em>super</em>，在子类中可以通过 <em>super</em> 关键字可以使用超类。</p>
+<p>要明确的是，在继承中 <em>JVM</em> 先加载超类，然后加载子类。创建子类对象时，会在子类对象的构造器中默认调用超类的无参构造器 <em>super()</em>（若要使用有参构造器则必须进行覆盖）。这个超类对象以 <em>super</em> 关键字来指代。<br>
+<img src="https://yuncheng1998.github.io/post-images/1618205840756.png" alt="超类子类" loading="lazy"><br>
+一个有继承关系的子类如上图所示，其中包括了子类特有的方法，子类重写超类中的方法和超类中提供的调用接口。超类中提供的接口会自动被子类继承，若要在子类中调用现有类的方法需要使用 <em>super</em> 进行指代。</p>
+<h4 id="代理">代理</h4>
+<p>代理是一种复用类的设计模式，是继承与组合的中庸之道，<em>Java</em> 中并没有直接提供对代理的支持。代理的思想是建立一个包含了现有对象（目标对象）的代理对象，在代理对象中对目标对象进行包装和扩展。即对目标类加一层包装，对于目标对象的方法进行选择性的提供，这样就可以让用户调用代理对象来避免其使用目标对象中不希望暴露给使用者的方法。<br>
+<img src="https://yuncheng1998.github.io/post-images/1618205799288.png" alt="复用类" loading="lazy"></p>
+<h4 id="组合与继承的选择">组合与继承的选择</h4>
+<p>组合与继承是实现复用类功能的两个主要方式，我们常听说设计模式中强调少用继承来降低程序的耦合性，因此在选择组合与继承时常常偏向于组合。但我们需要理解组合与继承的设计思想，才能做出更好的选择。</p>
+<ul>
+<li>
+<p>组合的意义在于使用现有类的功能能让新类产生新的功能，新类的用户只能看到新类定义的接口。</p>
+</li>
+<li>
+<p>继承的意义在于使用一个通用类，为了需要可以将其特殊化，新类与现有类是 <em>is-a</em> 关系。</p>
+</li>
+</ul>
+<p>另外，如果必须实现向上转型，那么继承是必要的</p>
+<h4 id="总结">总结</h4>
+<p>继承和组合都能从现有类型中产生新的类型，组合将现有类型作为新类型底层实现的一部分加以复用，而继承复用的是接口。对于继承、组合或代理的选择需要综合程序耦合性、灵活性、是否需要多态机制等多方面考虑，需要理解这几种方式的设计思想才能做出更好的选择。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[重读深入理解Java虚拟机（三）—— 读深入理解JVM之类文件结构]]></title>
+        <id>https://yuncheng1998.github.io/post/gzTjEwfjN/</id>
+        <link href="https://yuncheng1998.github.io/post/gzTjEwfjN/">
+        </link>
+        <updated>2021-04-12T05:28:00.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="类文件结构">类文件结构</h1>
+<p>最近在读 <a href="https://book.douban.com/subject/24722612/"><em>深入理解 Java虚拟机</em></a>，这里列出类文件结构部分大纲，还需配合该书进行学习。</p>
+<h3 id="无关性">无关性</h3>
+<ul>
+<li>字节码存储格式
+<ul>
+<li>虚拟机只与字节码文件进行绑定</li>
+<li>安全性：对字节码文件有很多强制性约束</li>
+</ul>
+</li>
+<li>虚拟机
+<ul>
+<li>虚拟机只执行字节码文件，而不关心它的来源</li>
+<li>字节码文件描述能力比Java语言更强大</li>
+</ul>
+</li>
+</ul>
+<h3 id="class类文件的结构">Class类文件的结构</h3>
+<h4 id="注意">注意</h4>
+<ul>
+<li>每一个Class文件都对应唯一的类或接口，但这个类或接口不一定在文件中，可以通过类加载器直接生成</li>
+<li>以8字节为基础单位的二进制流
+<ul>
+<li>占用8位以上空间的数据项需要分割
+<ul>
+<li>分割方式：高位在前</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>使用伪结构来存储数据</li>
+</ul>
+<h4 id="两种数据类型">两种数据类型</h4>
+<ul>
+<li>无符号数
+<ul>
+<li>基本数据类型</li>
+<li>分类
+<ul>
+<li>u1</li>
+<li>u2</li>
+<li>u4</li>
+<li>u8</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>表
+<ul>
+<li>复合数据类型
+<ul>
+<li>有层次</li>
+</ul>
+</li>
+<li>由多个无符号数组成</li>
+</ul>
+</li>
+</ul>
+<h4 id="集合">集合</h4>
+<ul>
+<li>有同一类型但数量不定的多个数据时
+<ul>
+<li>前置容量计数器</li>
+</ul>
+</li>
+</ul>
+<h4 id="文件格式">文件格式</h4>
+<ul>
+<li>magic
+<ul>
+<li>魔数：CAFE BABE</li>
+<li>标识文件类型</li>
+<li>u4</li>
+</ul>
+</li>
+<li>版本
+<ul>
+<li>minor_version
+<ul>
+<li>Class文件的次版本号</li>
+<li>u2</li>
+</ul>
+</li>
+<li>major_version
+<ul>
+<li>Class文件主版本号</li>
+<li>u2</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>常量集合
+<ul>
+<li>constant_pool_count
+<ul>
+<li>常量池中常量个数计数</li>
+<li>u2</li>
+</ul>
+</li>
+<li>constant_pool
+<ul>
+<li>常量池</li>
+<li>长度为constant_pool_count - 1
+<ul>
+<li>第0号常量池表示指向常量池的索引值数据表达不引用任何一个常量池项目</li>
+</ul>
+</li>
+<li>常量池的两大类常量
+<ul>
+<li>字面量
+<ul>
+<li>字符串，声明为final的常量值</li>
+<li>运行期不发生动态链接</li>
+</ul>
+</li>
+<li>符号引用
+<ul>
+<li>包含的三类常量
+<ul>
+<li>类和接口的全限定名</li>
+<li>字段的名称和描述符</li>
+<li>方法的名称和描述符</li>
+</ul>
+</li>
+<li>符号引用在运行期间经过转换得到真正的内存入口地址</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>常量池中的常量
+<ul>
+<li>每个常量都是表结构
+<ul>
+<li>表结构第一项都是tag，表示常量的类型</li>
+</ul>
+</li>
+<li>14中常量有自己的表结构
+<ul>
+<li>即有不同的表示</li>
+</ul>
+</li>
+<li>在字段表、方法表、属性表中存在对这些常量的引用</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>access_flags
+<ul>
+<li>访问标志</li>
+<li>标识
+<ul>
+<li>是否public</li>
+<li>是否final</li>
+<li>是否允许使用invokespecial字节码指令的新语意
+<ul>
+<li>JDK 1.0.2后都为真</li>
+<li>改指令语意发生过改变</li>
+</ul>
+</li>
+<li>是否是接口</li>
+<li>是否是abstract</li>
+<li>标识该类不是由用户代码产生</li>
+<li>标识是注解</li>
+<li>标识是枚举</li>
+</ul>
+</li>
+<li>u2</li>
+</ul>
+</li>
+<li>this_class
+<ul>
+<li>类索引</li>
+<li>u2</li>
+</ul>
+</li>
+<li>super_class
+<ul>
+<li>父类索引</li>
+<li>u2</li>
+</ul>
+</li>
+<li>接口索引集合
+<ul>
+<li>interfaces_count
+<ul>
+<li>接口索引计数</li>
+<li>u2</li>
+</ul>
+</li>
+<li>interfaces
+<ul>
+<li>接口索引集合</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>字段表集合
+<ul>
+<li>fields_count
+<ul>
+<li>字段表集合中字段的个数</li>
+<li>u2</li>
+</ul>
+</li>
+<li>fields
+<ul>
+<li>字段表集合
+<ul>
+<li>字段是接口或类中声明的变量</li>
+<li>在Class文件中字段以字段表的形式存储</li>
+<li>除属性表集合外其他均为u2类型</li>
+</ul>
+</li>
+<li>字段包含的信息
+<ul>
+<li>作用域</li>
+<li>实例变量还是类变量</li>
+<li>可变性</li>
+<li>并发可见性</li>
+<li>可否序列化</li>
+<li>字段数据类型</li>
+<li>字段名称</li>
+</ul>
+</li>
+<li>字段表结构
+<ul>
+<li>access_flag
+<ul>
+<li>访问类型</li>
+</ul>
+</li>
+<li>name_index
+<ul>
+<li>字段名称</li>
+<li>指向常量池</li>
+</ul>
+</li>
+<li>descrptor_index
+<ul>
+<li>方法描述</li>
+<li>指向常量池</li>
+</ul>
+</li>
+<li>attribute_count</li>
+<li>attributes</li>
+</ul>
+</li>
+<li>描述符规则
+<ul>
+<li>基本数据类型使用大写字母表示</li>
+<li>对象类型使用L加对象全限定名</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>方法表集合
+<ul>
+<li>methods_count
+<ul>
+<li>方法集合的计数</li>
+<li>u2</li>
+</ul>
+</li>
+<li>methods
+<ul>
+<li>方法表集合
+<ul>
+<li>方法在Class文件中以方法表的形式存储</li>
+</ul>
+</li>
+<li>方法表结构
+<ul>
+<li>access_flag</li>
+<li>name_index
+<ul>
+<li>指向常量池</li>
+<li>常量池中存方法名</li>
+</ul>
+</li>
+<li>descriptor_index
+<ul>
+<li>(方法参数)返回值类型</li>
+</ul>
+</li>
+<li>attribute_count</li>
+<li>attributes
+<ul>
+<li>Code属性存放了方法体字节码指令</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>注意
+<ul>
+<li>若没有重写，不会出现父类方法信息</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>属性表集合
+<ul>
+<li>attributes_count</li>
+<li>attributes
+<ul>
+<li>属性表结构
+<ul>
+<li>attribute_name_index
+<ul>
+<li>u2</li>
+<li>指向常量池来获取名称</li>
+</ul>
+</li>
+<li>attribute_length
+<ul>
+<li>u4</li>
+<li>使用该字段指定长度</li>
+<li>以字节为单位</li>
+</ul>
+</li>
+<li>info
+<ul>
+<li>u1</li>
+<li>数量为attribute_length定义的数量</li>
+<li>属性结构完全自定义</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>预定义的属性
+<ul>
+<li>Code
+<ul>
+<li>Code属性表的结构
+<ul>
+<li>attribute_name_index</li>
+<li>attribute_length</li>
+<li>max_stack
+<ul>
+<li>操作数栈最大深度</li>
+<li>用来分配栈帧中操作数栈深度</li>
+</ul>
+</li>
+<li>max_locals
+<ul>
+<li>局部变量表所需的存储空间</li>
+<li>单位slot</li>
+<li>并不是所有变量所占slot的和
+<ul>
+<li>注意slot可以重用，当代码执行超过该局部变量范围时，slot可以重新赋值</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>code_length
+<ul>
+<li>Java源程序编译后的字节码指令长度</li>
+<li>u4类型</li>
+<li>但只能使用u2的长度</li>
+</ul>
+</li>
+<li>code
+<ul>
+<li>存储字节码指令一系列字节流
+<ul>
+<li>每个指令都是u1的单字节</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>异常表集合
+<ul>
+<li>不是必须存在</li>
+<li>异常表结构
+<ul>
+<li>start_pc
+<ul>
+<li>开始行
+<ul>
+<li>字节码相对于方法体的偏移量</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>end_pc
+<ul>
+<li>结束行</li>
+</ul>
+</li>
+<li>handler_pc
+<ul>
+<li>出现异常跳转行</li>
+</ul>
+</li>
+<li>catch_type
+<ul>
+<li>异常类型
+<ul>
+<li>指向一个CONSTANT_Class_info型常量的索引</li>
+<li>当该值为0时，表示任意异常都要转到handler_pc进行处理</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>使用异常表而不是跳转来完成异常处理</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Exceptions属性
+<ul>
+<li>列举方法中可能抛出的受检查的异常
+<ul>
+<li>throws关键字后的异常</li>
+</ul>
+</li>
+<li>属性表结构
+<ul>
+<li>attribute_name_index</li>
+<li>attribute_length</li>
+<li>number_of_exceptions
+<ul>
+<li>抛出受检查异常的种类数</li>
+</ul>
+</li>
+<li>exception_index_table
+<ul>
+<li>指向常量池中CONSTANT_Class_info型常量的索引
+<ul>
+<li>代表受查异常的类型</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>LineNumberTable属性
+<ul>
+<li>Java源码行号与字节码行号的对应关系
+<ul>
+<li>行号：偏移量</li>
+</ul>
+</li>
+<li>属性结构
+<ul>
+<li>attribute_name_index
+<ul>
+<li>属性名</li>
+</ul>
+</li>
+<li>attribute_length
+<ul>
+<li>属性长度</li>
+</ul>
+</li>
+<li>line_number_table_length
+<ul>
+<li>映射表长度</li>
+</ul>
+</li>
+<li>line_number_table
+<ul>
+<li>集合
+<ul>
+<li>大小：line_number_table_length</li>
+<li>类型：line_number_info
+<ul>
+<li>line_number_info包括start_pc和line_number两个u2类型的数据项</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>LocalVariableTable属性
+<ul>
+<li>栈帧中局部变量表中的变量与Java源码中定义的变量之间的关系
+<ul>
+<li>缺失时IDE会使用args0等占位符来代替</li>
+</ul>
+</li>
+<li>属性结构
+<ul>
+<li>attribute_name_index
+<ul>
+<li>属性名</li>
+<li>指向常量池</li>
+</ul>
+</li>
+<li>attribute_length
+<ul>
+<li>属性长度</li>
+</ul>
+</li>
+<li>local_variable_table_length
+<ul>
+<li>映射表表长</li>
+</ul>
+</li>
+<li>local_variable_table
+<ul>
+<li>大小：local_variable_table_length指定</li>
+<li>类型：local_variable_info
+<ul>
+<li>结构
+<ul>
+<li>start_pc
+<ul>
+<li>局部变量生命周期开始的字节码偏移量</li>
+</ul>
+</li>
+<li>length
+<ul>
+<li>局部变量作用范围覆盖的长度</li>
+</ul>
+</li>
+<li>name_index
+<ul>
+<li>局部变量的名称</li>
+<li>指向常量池</li>
+</ul>
+</li>
+<li>descriptor_index
+<ul>
+<li>局部变量的描述符</li>
+<li>指向常量池</li>
+</ul>
+</li>
+<li>index
+<ul>
+<li>局部变量在栈帧局部变量表中Slot的位置</li>
+<li>若为64位类型时，占用index和index+1两个位置</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>与LocalVariableTypeTable的区分
+<ul>
+<li>描述泛型</li>
+<li>描述符中泛型的参数化类型被擦除，描述符不能准确描述泛型类型</li>
+<li>将descriptor_index换为字段的特征签名Signature</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>SourceFile属性
+<ul>
+<li>记录生成Class文件的源码文件的名称</li>
+<li>可选属性</li>
+<li>结构
+<ul>
+<li>attribute_name_index</li>
+<li>attribute_length</li>
+<li>sourcefile_index
+<ul>
+<li>指向常量池</li>
+<li>源码文件名</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>ConstantValue属性
+<ul>
+<li>通知虚拟机为静态变量赋值</li>
+<li>变量的赋值方式
+<ul>
+<li>非静态变量
+<ul>
+<li>实例构造器方法进行</li>
+</ul>
+</li>
+<li>静态变量
+<ul>
+<li>类构造器中</li>
+<li>使用Constant属性
+<ul>
+<li>使用final来修饰，并且数据类型是基本数据类型或String类型</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>结构
+<ul>
+<li>attribute_name_index</li>
+<li>attribute_length
+<ul>
+<li>定长属性，值为2</li>
+</ul>
+</li>
+<li>constantvalue_index
+<ul>
+<li>常量池中一个字面量的引用</li>
+<li>u2数据类型</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>InnerClasses属性
+<ul>
+<li>记录内部类与宿主类之间的关联</li>
+<li>对外部类和它的内部类生成该属性</li>
+<li>结构
+<ul>
+<li>attribute_name_index</li>
+<li>attribute_length</li>
+<li>number_of_classes
+<ul>
+<li>表示要记录多少个内部类信息</li>
+</ul>
+</li>
+<li>inner_classes
+<ul>
+<li>类型：inner_class_info
+<ul>
+<li>inner_class_info_index
+<ul>
+<li>指向常量池</li>
+<li>内部类的符号引用：CONSTANT_Class_info型常量</li>
+</ul>
+</li>
+<li>outer_class_info_index
+<ul>
+<li>指向常量池</li>
+<li>外部类的符号引用</li>
+</ul>
+</li>
+<li>inner_name_index
+<ul>
+<li>指向常量池</li>
+<li>内部类的名字
+<ul>
+<li>匿名类值为0</li>
+<li>即常量池的0号</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>inner_class_access_flags
+<ul>
+<li>内部类的访问标志</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>大小：number_of_classes指定</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Deprecated属性
+<ul>
+<li>过时标志</li>
+<li>有或没有，没有属性值</li>
+<li>结构
+<ul>
+<li>attribute_name_index</li>
+<li>attribute_length</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Synthetic属性
+<ul>
+<li>表示该类、字段或方法是由编译期自动产生的</li>
+</ul>
+</li>
+<li>StackMapTable
+<ul>
+<li>位于Code属性表中的变长属性</li>
+<li>虚拟机类加载的字节码验证阶段被新类型检查验证器使用</li>
+<li>在编译期间将一系列验证信息直接记录在Class文件中</li>
+<li>结构
+<ul>
+<li>attribute_name_index</li>
+<li>attribute_length</li>
+<li>number_of_entries</li>
+<li>stack_map_frame entries
+<ul>
+<li>大小：number_of_entries指定</li>
+<li>类型：stack_map_frame
+<ul>
+<li>显式或隐式代表一个字节码偏移量</li>
+<li>表示执行该字节码时局部变量表和操作数栈的验证类型</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Signature属性
+<ul>
+<li>可选的定长属性</li>
+<li>记录泛型中指定的类型变量或参数化类型</li>
+<li>由于Java中泛型时伪泛型，使用这个属性可以使用反射获取泛型类型</li>
+<li>结构
+<ul>
+<li>attribute_name_index</li>
+<li>attribute_length</li>
+<li>signature_index
+<ul>
+<li>指向常量池中的签名</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>BootstrapMethods属性
+<ul>
+<li>变长属性，位于类文件属性表中</li>
+<li>保存invokedynamic指令引用的引导方法限定符</li>
+<li>类文件结构的常量池中出现CONSTANT_InvokeDynamic_info类型的常量</li>
+<li>结构
+<ul>
+<li>attribute_name_index</li>
+<li>attribute_length</li>
+<li>num_bootstrap_methods
+<ul>
+<li>引导方法限定符的数量</li>
+</ul>
+</li>
+<li>bootstrap_methods
+<ul>
+<li>大小：num_bootstrap_methods指定</li>
+<li>类型：bootstrap_method
+<ul>
+<li>bootstrap_method_ref
+<ul>
+<li>对常量池中CONSTANT_MethodHandle_info结构的指向</li>
+</ul>
+</li>
+<li>num_bootsrap_arguments
+<ul>
+<li>指出静态参数个数</li>
+</ul>
+</li>
+<li>bootstrap_arguments
+<ul>
+<li>大小：num_bootsrap_argumnets指出</li>
+<li>类型：对常量池的有效索引</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[重读深入理解Java虚拟机（二）—— 垃圾收集器与内存分配]]></title>
+        <id>https://yuncheng1998.github.io/post/9kojaJwjx/</id>
+        <link href="https://yuncheng1998.github.io/post/9kojaJwjx/">
+        </link>
+        <updated>2021-04-12T02:27:14.000Z</updated>
+        <content type="html"><![CDATA[<p>重读深入理解Java虚拟机计划 <strong>垃圾收集器与内存分配</strong></p>
+<h2 id="线程独占和线程共享区域">线程独占和线程共享区域</h2>
+<h3 id="线程独立区域随线程结束回收">线程独立区域随线程结束回收</h3>
+<ul>
+<li>程序计数器</li>
+<li>虚拟机栈</li>
+<li>本地方法栈</li>
+</ul>
+<h3 id="java堆和方法区是垃圾回收器关注的内存">Java堆和方法区是垃圾回收器关注的内存</h3>
+<ul>
+<li>堆上关注对象的回收</li>
+<li>方法区关注常量和无用类</li>
+</ul>
+<h2 id="判断对象是否需要回收">判断对象是否需要回收</h2>
+<h3 id="引用计数法">引用计数法</h3>
+<ul>
+<li>引用计数，当为0时判断需要回收</li>
+<li>难以解决对象间的循环引用问题</li>
+</ul>
+<h3 id="可达性分析法">可达性分析法</h3>
+<ul>
+<li>
+<p>以GC Root为起点，向下搜索，不再引用链上的对象可以回收</p>
+</li>
+<li>
+<p>GC Root判定</p>
+<ul>
+<li>JVM栈中的引用对象</li>
+<li>方法区中类静态属性引用的对象</li>
+<li>方法区中常量引用的对象</li>
+<li>本地方法栈中JNI引用的对象</li>
+</ul>
+</li>
+</ul>
+<figure data-type="image" tabindex="1"><img src="http://www.wangych.top/upload/2019/7/%E5%AF%B9%E8%B1%A1%E5%9B%9E%E6%94%B6-5693b7d0bf864fe096213eeaa802e201.jpg" alt="对象回收" loading="lazy"></figure>
+<h3 id="引用">引用</h3>
+<ul>
+<li>
+<p>为了在进行垃圾回收时更好的为对象分类，将其引用类型进行区分</p>
+</li>
+<li>
+<p>四种引用强度</p>
+<ul>
+<li>
+<p>强引用</p>
+<ul>
+<li>new出来的对象，只要强引用还在，就不会回收该对象</li>
+</ul>
+</li>
+<li>
+<p>软引用</p>
+<ul>
+<li>有用但非必须的对象，在即将内存溢出时进行一次回收，如果空间还不够，才将其划分到第二次回收的范围中</li>
+</ul>
+</li>
+<li>
+<p>弱引用</p>
+<ul>
+<li>第一次垃圾回收会直接回收掉</li>
+</ul>
+</li>
+<li>
+<p>虚引用</p>
+<ul>
+<li>对象被回收会得到一个系统通知</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>判断对象生存还是死亡</p>
+</li>
+</ul>
+<h2 id="方法区的回收">方法区的回收</h2>
+<h3 id="回收对象废弃常量和无用的类">回收对象：废弃常量和无用的类</h3>
+<h3 id="废弃常量">废弃常量</h3>
+<ul>
+<li>如果没有引用指向这个常量，就将其回收</li>
+</ul>
+<h3 id="无用的类">无用的类</h3>
+<ul>
+<li>该类所有实例都被回收</li>
+<li>类加载器被回收</li>
+<li>Class对象没有被引用过，不能通过反射来访问该类的方法</li>
+</ul>
+<h2 id="垃圾收集算法">垃圾收集算法</h2>
+<h3 id="标记清除算法">标记清除算法</h3>
+<ul>
+<li>
+<p>效率问题</p>
+</li>
+<li>
+<p>空间问题</p>
+<ul>
+<li>标记清除产生大量不连续的内存碎片，导致分配大对象时没有足够的连续的内存</li>
+</ul>
+</li>
+</ul>
+<h3 id="复制算法">复制算法</h3>
+<ul>
+<li>针对新生代（对象存活时间较短）</li>
+<li>较大的Eden区和两块Survivor区8:1比例</li>
+<li>每次将Eden和Survivor存活的对象一次性复制到另外一块Survivor中</li>
+<li>为防止Survivor的空间不够用需要老年代进行分配担保</li>
+</ul>
+<h3 id="标记整理算法">标记整理算法</h3>
+<ul>
+<li>针对老年代（对象存活时间较长）</li>
+<li>让存活对象向一端移动，然后清理掉端边界以外的内存</li>
+</ul>
+<h3 id="分代收集算法">分代收集算法</h3>
+<ul>
+<li>根据对象存活周期不同将内存划分为新生代和老年代</li>
+<li>新生代使用复制算法</li>
+<li>老年代使用标记清除或标记整理</li>
+</ul>
+<h2 id="hotspot算法实现">HotSpot算法实现</h2>
+<h3 id="枚举根节点">枚举根节点</h3>
+<ul>
+<li>
+<p>GC Root主要存在于全局引用和执行上下文中，检查消耗时间</p>
+</li>
+<li>
+<p>在确保一致性的快照中执行</p>
+<ul>
+<li>stop the world</li>
+<li>枚举根节点时必须停顿</li>
+</ul>
+</li>
+<li>
+<p>准确式GC</p>
+<ul>
+<li>OopMap来获得对象引用存在的位置</li>
+<li>在类加载完成时，HotSpot将对象在内存上偏移量以及数据类型计算出来</li>
+</ul>
+</li>
+</ul>
+<h3 id="安全点">安全点</h3>
+<ul>
+<li>
+<p>引起引用变化的指令较多，为每一条指令都生成对应OopMap需要大量额外空间</p>
+</li>
+<li>
+<p>只在特定位置上记录，到达安全点才会GC</p>
+</li>
+<li>
+<p>选定标准：程序长时间执行，例如方法调用、循环跳转、异常跳转等</p>
+</li>
+<li>
+<p>让所有线程都跑到最近安全点后停顿</p>
+<ul>
+<li>
+<p>抢先式中断</p>
+<ul>
+<li>不需要代码主动配合，所有线程中断，有线程没有中断在安全点上就恢复线程到安全点</li>
+</ul>
+</li>
+<li>
+<p>主动式中断</p>
+<ul>
+<li>线程轮询中断标志，需要中断时将其挂起在经过的安全点上</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="安全区域">安全区域</h3>
+<ul>
+<li>一块代码片段内，引用关系不会发生变化，该区域内的GC是安全的</li>
+<li>对安全点的扩展</li>
+<li>线程执行到Safe Region中的代码时，表示自己，GC时不需要考虑这些线程，当离开时检查枚举根节点是否正在执行，等待完成信号后离开</li>
+</ul>
+<figure data-type="image" tabindex="2"><img src="http://www.wangych.top/upload/2019/7/%E5%AE%89%E5%85%A8%E5%8C%BA-5e578f8c5e3b46269b602ebede205231.jpg" alt="安全区" loading="lazy"></figure>
+<h2 id="垃圾收集器">垃圾收集器</h2>
+<h3 id="新生代">新生代</h3>
+<ul>
+<li>
+<p>Serial</p>
+<ul>
+<li>单线程的收集器</li>
+<li>采用复制算法</li>
+</ul>
+</li>
+<li>
+<p>ParNew</p>
+<ul>
+<li>Serial的多线程版本</li>
+</ul>
+</li>
+<li>
+<p>Parallel Scavenge</p>
+<ul>
+<li>吞吐量优先收集器</li>
+<li>目的为达到一个可控制的吞吐量</li>
+<li>吞吐量=用户代码时间/总时间</li>
+</ul>
+</li>
+</ul>
+<h3 id="老年代">老年代</h3>
+<ul>
+<li>
+<p>Serial Old</p>
+<ul>
+<li>Serial的老年代版本</li>
+<li>标记整理算法</li>
+</ul>
+</li>
+<li>
+<p>Parallel Old</p>
+<ul>
+<li>Serial Old的多线程版本</li>
+</ul>
+</li>
+<li>
+<p>CMS</p>
+<ul>
+<li>
+<p>目标为获取最短回收停顿时间，提高响应速度</p>
+</li>
+<li>
+<p>标记-清除算法 Mark sweep</p>
+</li>
+<li>
+<p>运作过程</p>
+<ul>
+<li>
+<p>初始标记</p>
+<ul>
+<li>stop the world，单线程</li>
+<li>标记GC Root直接关联的对象，时间短</li>
+</ul>
+</li>
+<li>
+<p>并发标记</p>
+<ul>
+<li>GC Roots Tracing</li>
+<li>时间较长，用户程序会导致标记变动</li>
+<li>与用户线程并发</li>
+</ul>
+</li>
+<li>
+<p>重新标记</p>
+<ul>
+<li>stop the world，多线程重新标记</li>
+<li>针对并发标记阶段产生的变动重新标记</li>
+</ul>
+</li>
+<li>
+<p>并发清除</p>
+<ul>
+<li>与用户线程并发执行</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>缺点</p>
+<ul>
+<li>
+<p>对CPU资源敏感</p>
+</li>
+<li>
+<p>无法处理浮动垃圾</p>
+<ul>
+<li>
+<p>并发清理阶段与用户线程并发执行，产生的新垃圾需要等到下一次GC时回收</p>
+</li>
+<li>
+<p>需要预留部分空间给并发收集时程序使用</p>
+</li>
+<li>
+<p>可能出现Concurrent Mode failure导致另一次Full GC</p>
+<ul>
+<li>临时启动Serial Old收集器重新进行Tenured generation的收集</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>空间碎片</p>
+<ul>
+<li>
+<p>由于采用标记清除算法导致</p>
+</li>
+<li>
+<p>可能缺乏足够连续内存存放大对象</p>
+</li>
+<li>
+<p>解决</p>
+<ul>
+<li>
+<p>-XX:+UseCMSCompactAtFullCollection参数</p>
+<ul>
+<li>在要进行Full GC时进行内存碎片整理合并</li>
+</ul>
+</li>
+<li>
+<p>-XX:CMSFullGCsBeforeCollection参数</p>
+<ul>
+<li>设置几次不压缩的Full GC后跟一次带压缩的</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="g1">G1</h3>
+<ul>
+<li>
+<p>特点</p>
+<ul>
+<li>并行与并发</li>
+<li>分代收集</li>
+<li>空间整合</li>
+<li>可预测的停顿</li>
+</ul>
+</li>
+<li>
+<p>Region</p>
+<ul>
+<li>
+<p>G1收集器不进行分代收集，将内存划分为大小相同的Region</p>
+</li>
+<li>
+<p>新生代和老年代是一部分Region的集合</p>
+</li>
+<li>
+<p>跟踪每个Region中垃圾堆积的价值大小，维护优先列表，每次根据允许收集的时间优先回收价值最大的Region</p>
+</li>
+<li>
+<p>Remembered Set</p>
+<ul>
+<li>每个Region都有自己的Set</li>
+<li>Region间存在对象的引用关系，使用Remembered Set避免在回收新生代过程中查找GC Roots时全堆扫描</li>
+<li>当程序对引用类型的数据进行写操作时，检查引用的对象是否在其他Region中，如果时通过CardTable将引用信息记录到Set中</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>运行过程</p>
+<ul>
+<li>
+<p>初始标记</p>
+<ul>
+<li>标记GC Root能直接关联到的对象</li>
+</ul>
+</li>
+<li>
+<p>并发标记</p>
+<ul>
+<li>从GC Root开始对堆中的对象进行可达性分析</li>
+<li>耗时长，与用户程序并发执行</li>
+</ul>
+</li>
+<li>
+<p>最终标记</p>
+<ul>
+<li>修正在并发标记期间因用户程序继续运作导致标记变动</li>
+</ul>
+</li>
+<li>
+<p>筛选回收</p>
+<ul>
+<li>对Region的回收价值和成本进行排序</li>
+<li>根据用户期望的停顿时间制定回收计划</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="内存分配与回收策略">内存分配与回收策略</h2>
+<h3 id="对象的分配">对象的分配</h3>
+<ul>
+<li>
+<p>主要在堆上</p>
+<ul>
+<li>
+<p>优先在新生代的Eden区分配</p>
+</li>
+<li>
+<p>大对象直接进入老年代</p>
+<ul>
+<li>-XX:PretenureSizeThreshold参数</li>
+<li>设置大于对象大于某个值后直接分配在老年代</li>
+</ul>
+</li>
+<li>
+<p>长期存活的对象进入老年代</p>
+<ul>
+<li>
+<p>使用对象年龄Age计数器</p>
+</li>
+<li>
+<p>对象在Eden出生，第一次Minor GC后放入Survivor，Age=1。没熬过一次Minor GC对象年龄+1，到达阈值（默认15）后进入老年代</p>
+<ul>
+<li>+XX:MaxTenuringThreshold=15</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>也可能被拆散为标量类型间接在栈上分配</p>
+</li>
+</ul>
+<h3 id="两种情况进入老年代">两种情况进入老年代</h3>
+<ul>
+<li>Age&gt;MaxTenuringThreshold</li>
+<li>Survivor空间中相同年龄所有对象大小的总和大于Survivor空间的一半，年龄大于或等于该年龄的对象直接进入老年代</li>
+</ul>
+<h3 id="空间分配担保">空间分配担保</h3>
+<figure data-type="image" tabindex="3"><img src="http://www.wangych.top/upload/2019/7/%E7%A9%BA%E9%97%B4%E5%88%86%E9%85%8D%E6%8B%85%E4%BF%9D-4038b245f9ee4f1c89ee63a27d822c3c.jpg" alt="空间分配担保" loading="lazy"></figure>
+<h3 id="minor-gc与full-gc">Minor GC与Full GC</h3>
+<ul>
+<li>Minor GC是新生代GC，对象朝生夕灭，回收频繁，速度较快</li>
+<li>Full GC/Major GC是老年代GC，慢</li>
+</ul>
+<p><em>XMind: ZEN - Trial Version</em></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[重读深入理解Java虚拟机（一）—— 读深入理解JVM之内存管理]]></title>
+        <id>https://yuncheng1998.github.io/post/BSpDNhcfw/</id>
+        <link href="https://yuncheng1998.github.io/post/BSpDNhcfw/">
+        </link>
+        <updated>2021-04-12T02:25:19.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="jvm内存管理">JVM内存管理</h1>
+<p>最近在读 <a href="https://book.douban.com/subject/24722612/"><em>深入理解 Java虚拟机</em></a>，这里列出一下JVM内存管理部分大纲，还需配合该书进行学习。</p>
+<h3 id="运行时数据区">运行时数据区</h3>
+<h4 id="线程隔离">线程隔离</h4>
+<ul>
+<li>程序计数器
+<ul>
+<li>Java方法
+<ul>
+<li>虚拟机字节码指令的地址</li>
+</ul>
+</li>
+<li>Native方法
+<ul>
+<li>计数值为空</li>
+</ul>
+</li>
+<li>唯一一个没有规定OutOfMemoryError的区域</li>
+</ul>
+</li>
+<li>Java虚拟机栈
+<ul>
+<li>描述方法执行的内存模型
+<ul>
+<li>方法执行时创建栈帧
+<ul>
+<li>局部变量表
+<ul>
+<li>编译期可知的基本数据类型和引用类型</li>
+<li>64位长度的long和double类型占用2个局部变量空间（2 slot）</li>
+<li>编译期间大小分配完成，运行期间不会再动态更改</li>
+</ul>
+</li>
+<li>操作数栈</li>
+<li>动态链接</li>
+<li>方法出口</li>
+</ul>
+</li>
+<li>每个方法对应一个栈帧入栈和出栈的过程</li>
+</ul>
+</li>
+<li>异常
+<ul>
+<li>StackOverflowError
+<ul>
+<li>线程请求的栈深度超过虚拟机允许的</li>
+</ul>
+</li>
+<li>OutOfMemoryError
+<ul>
+<li>虚拟机栈动态扩展时无法申请到足够的内存</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>本地方法栈
+<ul>
+<li>为Native方法服务</li>
+<li>Sun HotSpot将本地方法栈和虚拟机栈合二为一</li>
+</ul>
+</li>
+</ul>
+<h4 id="线程共享">线程共享</h4>
+<ul>
+<li>方法区
+<ul>
+<li>用于存储已被虚拟机加载的类信息、常量、静态变量、即时编译器编译后的代码</li>
+<li>Java虚拟机规范对方法区管理宽松
+<ul>
+<li>不需要连续内存</li>
+<li>可以固定大小或扩展</li>
+<li>可以不选择垃圾收集
+<ul>
+<li>对常量池的回收和对类型的卸载</li>
+<li>回收成绩难以令人满意</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>运行时常量池
+<ul>
+<li>存放class文件
+<ul>
+<li>Class文件有常量池信息，存放编译期生成的各种字面量和符号引用
+<ul>
+<li>在类加载后进入方法区的运行时常量池</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>发生区内存大小无法满足需要时
+<ul>
+<li>OutOfMemoryError</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>堆
+<ul>
+<li>存放对象实例</li>
+<li>垃圾收集的主要区域</li>
+<li>堆的划分
+<ul>
+<li>内存分配的角度
+<ul>
+<li>多个线程私有的分配缓冲区</li>
+</ul>
+</li>
+<li>内存回收的角度
+<ul>
+<li>根据分代收集法细分
+<ul>
+<li>新生代</li>
+<li>老年代</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>逻辑上连续即可</li>
+<li>可以固定大小也可以是可扩展的</li>
+</ul>
+</li>
+</ul>
+<h3 id="直接内存">直接内存</h3>
+<h4 id="堆外内存">堆外内存</h4>
+<h4 id="nio类">NIO类</h4>
+<ul>
+<li>基于通道与缓冲区的I/O方式</li>
+<li>使用Native函数直接分配堆外内存</li>
+<li>通过Java堆中的DirectByteBuffer对象作为堆外内存的引用</li>
+<li>避免在Java堆和Native堆中来回复制数据</li>
+</ul>
+<h3 id="对象的创建">对象的创建</h3>
+<h4 id="创建对象的过程">创建对象的过程</h4>
+<ul>
+<li>遇到new指令，检查该类是否已经被加载、解析、初始化</li>
+<li>加载后确定了内存大小，从Java堆中划出内存
+<ul>
+<li>内存分配方式
+<ul>
+<li>指针碰撞</li>
+<li>空闲列表</li>
+</ul>
+</li>
+<li>Java堆是否规整选择分配方式
+<ul>
+<li>根据垃圾收集器是否带有压缩决定</li>
+</ul>
+</li>
+<li>并发情况下修改指针
+<ul>
+<li>对分配内存空间的动作进行同步处理
+<ul>
+<li>采用CAS配上失败重试的方式保证原子性</li>
+</ul>
+</li>
+<li>将内存分配动作按照线程划分在不同的空间中
+<ul>
+<li>每个线程在Java堆中预先分配一小块内存，本地线程分配缓冲</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>将内存空间都初始化为零值
+<ul>
+<li>成员变量默认的数据类型</li>
+</ul>
+</li>
+<li>虚拟机对对象做设置，设置对象头
+<ul>
+<li>对应类</li>
+<li>怎样找到类的元数据信息</li>
+<li>对象的哈希码</li>
+<li>对象的CG分代年龄</li>
+</ul>
+</li>
+</ul>
+<h4 id="对象的内存布局">对象的内存布局</h4>
+<ul>
+<li>对象头
+<ul>
+<li>存储对象自身运行时数据（Mark Word）</li>
+<li>类型指针（指向类元数据的指针）
+<ul>
+<li>JVM通过类型指针确定对象是哪个类</li>
+<li>查找类时不需要经过对象本身</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>实例数据
+<ul>
+<li>对象真正存储的有效信息</li>
+<li>受到JVM分配参数策略和源码中字段定义顺序的影响</li>
+</ul>
+</li>
+<li>对齐填充
+<ul>
+<li>HotSpot中对象的起始地址必须是8字节的整数倍</li>
+<li>通过对齐填充来补全</li>
+</ul>
+</li>
+</ul>
+<h4 id="对象的访问定位">对象的访问定位</h4>
+<ul>
+<li>通过栈上的reference数据来操作堆上的具体对象</li>
+<li>引用定位堆上对象的方式
+<ul>
+<li>句柄访问
+<ul>
+<li>堆的划分
+<ul>
+<li>句柄池
+<ul>
+<li>句柄对象</li>
+</ul>
+</li>
+<li>实例池
+<ul>
+<li>实例对象</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>句柄对象
+<ul>
+<li>到对象实例数据的指针
+<ul>
+<li>指向实例池</li>
+</ul>
+</li>
+<li>到对象类型数据的指针
+<ul>
+<li>指向方法区</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>优点
+<ul>
+<li>稳定的句柄地址
+<ul>
+<li>移动对象只要改变句柄对象的实例数据指针</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>指针直接访问
+<ul>
+<li>堆中实例数据中存在到对象类型数据的指针
+<ul>
+<li>指向方法区的对象类型数据</li>
+</ul>
+</li>
+<li>优点
+<ul>
+<li>速度快</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[算法周记（启发式搜索、有限内存中大数据量中查找、找出数组中超过一半的数、不连续的整数中找出最大间隔））]]></title>
+        <id>https://yuncheng1998.github.io/post/lXK0TE-8V/</id>
+        <link href="https://yuncheng1998.github.io/post/lXK0TE-8V/">
+        </link>
+        <updated>2021-04-11T15:27:45.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="启发式搜索">启发式搜索</h3>
+<p>在 <em>《漫画算法》</em> 中看到 <code>A*寻路算法</code>，这是一种用于寻找最短路径的算法，例如在有障碍的图中找到从A到B的最短路径，就会应用这个算法。将地图以方格进行划分，A和B的位置分别占据一个方格，程序维持一个OpenList和CloseList来存储新获得的节点和已经检查过的节点，每个方格存储三个特性(到起点的距离s，到终点的距离e，二者只和h)。第一次将A周围的四个方格放到OpenList中，将A作为这四个方格的父节点，然后选出h最小的放到CloseList中，将这个方格周围的方格再进行相同的操作，直到将终点放到CloseList中。另外需要记录每一个方格的父节点，这样当只需要根据父节点从终点向上回溯就可以找到最短路径。</p>
+<h3 id="有限内存中大数据量中查找">有限内存中大数据量中查找</h3>
+<ul>
+<li>如何在20亿个整数中查找一个数是否存在<br>
+如果将每个整数都使用int来存储，那么需要使用大约要 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mn>2</mn><mn>31</mn></msup><mo>∗</mo><msup><mn>2</mn><mn>5</mn></msup></mrow><annotation encoding="application/x-tex">2^{31} * 2^{5}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">3</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">5</span></span></span></span></span></span></span></span></span></span></span></span> 共8G内存。那么若内存有限，这种使用int来存储的方法就不能使用，这就可以使用Bitmap来进行改进。根据整数的范围至多有 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mn>2</mn><mn>32</mn></msup></mrow><annotation encoding="application/x-tex">2^{32}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">3</span><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span> 个数，因此可以申请长度为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mn>2</mn><mn>32</mn></msup></mrow><annotation encoding="application/x-tex">2^{32}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">3</span><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span> bit的空间来存储这些数，每一个bit代替1个数，这样只需要 512MB的内存空间即可存入。</li>
+<li>如何在20亿个整数中找到出现次数最多的整数<br>
+要记录出现的次数就不能使用Bitmap，若要保证不会超过内存，那么需要对其进行分批处理。如果使用Hash表来进行记录，每条记录需要占用两个int的空间，即8Byte，这样需要16GB的内存。因此需要考虑进行分批处理，若内存只有2GB，则将其分为10份，让每份数据量只占用1.6GB，由于给出的数未必是均匀分布的，因此可以设计一个好的Hash映射函数，将其均匀的映射到20亿的数值范围内。</li>
+<li>如何在40亿个整数中找到出现次数最多的整数<br>
+当数据量达到10亿时，我们还需要考虑假如某个数据出现的次数太多，超过了int整数的表示范围应该如何处理，对于40亿级别，由于int类型表示最大整数在21亿左右，因此将其初值设置为int表示的最小负数值即可，即 <code>-2147483648</code></li>
+</ul>
+<h3 id="找出数组中超过一半的数">找出数组中超过一半的数</h3>
+<p>如果一个数组中有超过一半的数，那么将任意两个不相等的数相互抵消，最后剩下的数必然是超过一半的数。这个算法前提是必须保证存在这种数，如果不能保证，仍然需要排序后找出中间的数，然后与第一个数和最后一个数比较。如果n为奇数，那么需要保证<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">n/2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">n</span><span class="mord">/</span><span class="mord">2</span></span></span></span>，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord mathdefault">n</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>三个位置上的数有两个相等。如果n为偶数，那么需要保证<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">n/2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">n</span><span class="mord">/</span><span class="mord">2</span></span></span></span>和<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>相等或<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n/2-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">n</span><span class="mord">/</span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>与<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">n</span></span></span></span>相等。</p>
+<h3 id="不连续的整数中找出最大间隔">不连续的整数中找出最大间隔</h3>
+<p>若给出的数不多，可以使用计数排序，即使用下标进行计数。用每个数减去最小的数，然后使用bitmap来储存，然后根据0连续出现的次数来确定。如果数的间隔较大，那么可以使用桶排序，例如共有15个数，最小的数为0，最大数为10w，那么可以分成10个桶，分别存储0-1w，1-2w，...。现根据空桶进行查找，如都集中在某个桶那么就再次分桶计数，直到找出间隔最大的。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[算法周记（第K个最大元素、最长连续序列、螺旋矩阵、股票买卖、合并有序数组、被围绕的区域、分割回文串）]]></title>
+        <id>https://yuncheng1998.github.io/post/DX1hNN3hk/</id>
+        <link href="https://yuncheng1998.github.io/post/DX1hNN3hk/">
+        </link>
+        <updated>2021-04-11T15:24:52.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="数组中第k个最大的元素">数组中第k个最大的元素</h3>
+<p>找数组中第k大的元素</p>
+<pre><code class="language-java">class Solution {
+
+    /**
+     * 将其由小到大排序，选定一个位置作为分割
+     * 找第k大的数
+     * @param nums
+     * @param k
+     * @return
+     */
+    public int findKthLargest(int[] nums, int k) {
+        // 首先使用倒数k作为分割点进行查找
+        return findK(nums, 0, nums.length -1, nums.length - k);
+    }
+
+    /**
+     *
+     * @param nums 数组
+     * @param start 开始
+     * @param end 结束
+     * @param k 第k大
+     * @return
+     */
+    public int findK(int[] nums, int start, int end, int k) {
+        if (start == end) {
+            return nums[start];
+        }
+        int pivot = nums[(start + end)/2];
+        int i = start;
+        int j = end;
+        while (i &lt;= j) {
+            while (nums[i] &lt; pivot) {
+                i++;
+            }
+            while (nums[j] &gt; pivot) {
+                j--;
+            }
+            if (i &lt;= j) {
+                int temp = nums[i];
+                nums[i] = nums[j];
+                nums[j] = temp;
+                i++;
+                j--;
+            }
+        }
+        // 判断k在选定点前面还是后面，对选定的部分进行排序
+        if (k &gt;= (i-start)) {
+            return findK(nums, i, end, k-i+start);
+        } else {
+            return findK(nums, start, i-1, k);
+        }
+    }
+}
+</code></pre>
+<h3 id="最长连续序列">最长连续序列</h3>
+<pre><code class="language-java">class Solution {
+    /**
+     * 最长连续序列，注意最长连续序列中的任意一个数
+     * @param nums
+     * @return
+     */
+    public int longestConsecutive(int[] nums) {
+        // 记录该字符所在的最长子序列的序列长度
+        HashMap&lt;Integer, Integer&gt; map = new HashMap&lt;&gt;();
+        // 最长子序列长度
+        int res = 0;
+        for (int t : nums) {
+            // 如果map中包含说明已经计算过
+            if (map.containsKey(t)) {
+                continue;
+            }
+            // 获取t-1所在的最长连续序列的长度
+            int left = map.getOrDefault(t - 1, 0);
+            // 获取t+1所在的最长连续序列的长度
+            int right = map.getOrDefault(t + 1, 0);
+            // 最终长度
+            int count = left + right + 1;
+            // 更新t、t-1、t+1的值
+            map.put(t, count);
+            if (left &gt; 0) {
+                map.put(t - left, count);
+            }
+            if (right &gt; 0) {
+                map.put(t + right, count);
+            }
+            // 更新最长长度
+            res = Math.max(res, count);
+        }
+        return res;
+    }
+}
+</code></pre>
+<h3 id="螺旋矩阵">螺旋矩阵</h3>
+<pre><code class="language-java">/**
+ * 顺时针螺旋顺序
+ */
+class Solution {
+    public List&lt;Integer&gt; spiralOrder(int[][] matrix) {
+        List&lt;Integer&gt; ans = new ArrayList&lt;&gt;();
+        if (matrix.length == 0) {
+            return ans;
+        }
+
+        int startR = 0, endR = matrix.length - 1;
+        int startC = 0, endC = matrix[0].length - 1;
+
+        while (startR &lt;= endR &amp;&amp; startC &lt;= endC) {
+            // 上面一行遍历
+            for (int c = startC; c &lt;= endC; c++) {
+                ans.add(matrix[startR][c]);
+            }
+            // 右边一列遍历，起始位置应该start+1
+            for (int r = startR + 1; r &lt;= endR; r++) {
+                ans.add(matrix[r][endC]);
+            }
+            // 倒序遍历
+            if (startR &lt; endR &amp;&amp; startC &lt; endC) {
+                // 下面一行遍历:从倒数第二个到第一个
+                for (int c = endC - 1; c &gt; startC; c--) {
+                    ans.add(matrix[endR][c]);
+                }
+                // 左边一行遍历:从倒数第二个到正数第二个
+                for (int r = endR; r &gt; startR; r--) {
+                    ans.add(matrix[r][startC]);
+                }
+            }
+            // 矩阵内缩
+            startR++;
+            endR--;
+            startC++;
+            endC--;
+        }
+        return ans;
+    }
+}
+</code></pre>
+<h3 id="螺旋矩阵ii">螺旋矩阵II</h3>
+<pre><code class="language-java">class Solution {
+    public int[][] generateMatrix(int n) {
+        int[][] res = new int[n][n];
+        int startC = 0, endC = n - 1;
+        int startR = 0, endR = n - 1;
+        int i = 1;
+        while (startC &lt;= endC &amp;&amp; startR &lt;= endR) {
+            for (int c = startC; c &lt;= endC; c++) {
+                res[startR][c] = i++;
+            }
+            for (int r = startR + 1; r &lt;= endR; r++) {
+                res[r][endC] = i++;
+            }
+            if (startC &lt; endC &amp;&amp; startR &lt; endR) {
+                for (int c = endC - 1; c &gt; startC; c--) {
+                    res[endR][c] = i++;
+                }
+                for (int r = endR; r &gt; startR; r--) {
+                    res[r][startC] = i++;
+                }
+            }
+            startC++;
+            startR++;
+            endC--;
+            endR--;
+        }
+        return res;
+    }
+}
+</code></pre>
+<h3 id="买卖股票的最佳时机ii">买卖股票的最佳时机II</h3>
+<pre><code class="language-java">class Solution {
+    public int maxProfit(int[] prices) {
+        if (prices.length &lt; 2) {
+            return 0;
+        }
+        int max = prices[prices.length - 1];
+        int min = max;
+        int res = 0;
+        for (int i = prices.length - 1; i &gt;= 0; i--) {
+            if (prices[i] &gt;= max) {
+                res = res + max - min;
+                max = prices[i];
+                min = max;
+            } else if (prices[i] &lt;= min) {
+                min = prices[i];
+            } else {
+                res = res + max - min;
+                max = prices[i];
+                min = max;
+            }
+        }
+        res = res + max - min;
+        return res;
+    }
+}
+</code></pre>
+<h3 id="合并两个有序数组">合并两个有序数组</h3>
+<p>给出两个有序数组，将B数组合并进A数组<br>
+方法：倒序插入<br>
+获得合并后的尾指针和两个数组的尾指针，逐渐向内移动尾指针，比较两个数组中的值，决定将哪一个赋值给对应的位置</p>
+<pre><code class="language-java">class Solution {
+    public void merge(int[] nums1, int m, int[] nums2, int n) {
+        int i = m + n - 1, j = m - 1, k = n - 1;
+        while (j &gt;= 0 &amp;&amp; k &gt;= 0) {
+            nums1[i--] = (nums1[j] &gt; nums2[k]) ? nums1[j--] : nums2[k--];
+        }
+        while (k &gt;= 0) {
+            nums1[i--] = nums2[k--];
+        }
+    }
+}
+</code></pre>
+<h3 id="被围绕的区域">被围绕的区域</h3>
+<ul>
+<li>DFS</li>
+</ul>
+<pre><code class="language-java">class Solution {
+    public void solve(char[][] board) {
+        if(board == null || board.length == 0) return;
+        int m = board.length;
+        int n = board[0].length;
+        // 对于在边界出现的O进行DFS
+        for (int i = 0; i &lt; m; i++) {
+            for (int j = 0; j &lt; n; j++) {
+                boolean isEdge = (i == 0 || j == 0 || i == m - 1 || j == n - 1);
+                if (isEdge &amp;&amp; board[i][j] == 'O') {
+                    dfs(board, i, j);
+                }
+            }
+        }
+        // DFS后，无法替换的O已经被置换成#，这里将其置换回来
+        for (int i = 0; i &lt; m; i++) {
+            for (int j = 0; j &lt; n; j++) {
+                if (board[i][j] == 'O') {
+                    board[i][j] = 'X';
+                }
+                if (board[i][j] == '#') {
+                    board[i][j] = 'O';
+                }
+            }
+        }
+    }
+
+    /**
+     * 深度优先遍历递归
+     * @param board
+     * @param i
+     * @param j
+     */
+    public void dfs(char[][] board, int i, int j) {
+        // 对非边界的O进行查找，替换为#
+        if (i &lt; 0 || j &lt; 0 || i &gt;= board.length || j &gt;= board[0].length || board[i][j] == 'X' || board[i][j] == '#') {
+            return;
+        }
+        board[i][j] = '#';
+        dfs(board, i - 1, j);
+        dfs(board, i + 1, j);
+        dfs(board, i, j - 1);
+        dfs(board, i, j + 1);
+    }
+
+}
+</code></pre>
+<h3 id="分割回文串">分割回文串</h3>
+<pre><code class="language-java">class Solution {
+    private String s;
+    private List&lt;List&lt;String&gt;&gt; result = new ArrayList&lt;&gt;();
+
+    /**
+     * 验证s[i,j]子串是否是回文
+     * @param i i
+     * @param j j
+     * @return a[i,j]是否为回文
+     */
+    private boolean validate(int i, int j){
+        while(i &lt; j){
+            if(s.charAt(i) != s.charAt(j)) {
+                return false;
+            }
+            i++;
+            j--;
+        }
+        return true;
+    }
+
+    /**
+     *
+     * @param s 字符串
+     * @param list  将分割的字符串存储在 list中
+     * @param index index，在字符串中的下标
+     */
+    private void f(String s, List&lt;String&gt; list, int index){
+        // 当下标移动至结尾时，就可以将其添加到result中
+        if(index &gt;= s.length()){
+            result.add(new ArrayList&lt;&gt;(list));
+            return;
+        }
+        // 从index开始判断s[index, i]子串是否是回文串
+        for(int i = index; i &lt; s.length(); i++){
+            // 如果是回文串，放入list中，然后对
+            if(validate(index, i)){
+                list.add(s.substring(index, i + 1));
+                f(s, list, i + 1);
+                list.remove(list.size() - 1);
+            }
+        }
+    }
+
+    public List&lt;List&lt;String&gt;&gt; partition(String s) {
+        if(s.equals(&quot;&quot;)||s.length()==0) {
+            return result;
+        }
+        this.s=s;
+        f(s, new ArrayList&lt;&gt;(), 0);
+        return result;
+    }
+}
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[n&(n-1) 特性、异或、Bitmap处理用户画像]]></title>
+        <id>https://yuncheng1998.github.io/post/VpOnun9ms/</id>
+        <link href="https://yuncheng1998.github.io/post/VpOnun9ms/">
+        </link>
+        <updated>2021-04-11T15:24:19.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="nn-1-特性">n&amp;(n-1) 特性</h3>
+<p>这是在一篇公众号看到的算法，主要思想为</p>
+<blockquote>
+<p>n=n&amp;(n-1)可以消去从右到左的第一个1</p>
+</blockquote>
+<p>这个特性可以快速解出一些二进制相关的问题诸如</p>
+<ul>
+<li>判断是一个数n是否只2的幂次方，因为该数必定只有一个1，所以只需要判断<code>n&amp;(n-1)</code>是否为0，这样在O(1)的复杂度就可以解出</li>
+<li><em>《编程之美》</em> 中求二进制中1的个数也使用了这个方法，每执行一次就可以减少一个1，最终为0时执行的次数就是1的个数</li>
+</ul>
+<h3 id="异或">异或</h3>
+<p>和同事在讨论位运算时，同事说到用异或运算交换两个数的经典题目，由此想到了面试中被问到的道题目</p>
+<blockquote>
+<p>1-10万中缺失两个数，如何找到？</p>
+</blockquote>
+<p>如果是缺失了一个数，可以用1到10万求和减去给出数的合，或者使用1到10万异或再去异或给出的所有数，得到的就是缺失的那个数。两个数可以使用两种方法的结合，求出他们的和，再求出他们的异或，然后再有限的范围内遍历。<br>
+另外还有一种方法是在 <em>《编程之美》</em> 中给出的，将给出的数异或后，由于有缺失，因此不会为0，必然有一位为1，因此可以将给出的数按照该位为1或0分为两个列表，这样缺失的两个数就会被分到两个列表中，再将1到10万按照相同的方法分到这两个列表中，这样两个列表中的数分别做异或，就求出了两个缺失的数。</p>
+<h3 id="bitmap处理用户画像">Bitmap处理用户画像</h3>
+<p>位图算法在处理大量数据时十分高效快捷，特别是可以与位运算结合使用，极大的提高了运算的效率。在 <em>《漫画算法》</em> 中提出了一个用户标签的问题，在刻画用户画像系统时，通常有多种标签来将用户分类，如果是通过在数据库中增加列，然后在运用SQL语句来实现查找一类用户，那么随着标签越来越多，这种方法十分低效。<br>
+<em>Bitmap</em> 可以解决这一问题，位图算法的本质是利用 <em>1bit</em> 来存储一个数据，对于用户画像系统，可以使用 <em>Bitmap</em> 来存储所有的用户ID，而每个标签使用一个 <em>Bitmap</em> 来表示。<br>
+假若一共有16个用户，ID为1,3和10的用户喜欢游泳，那么游泳标签 <em>SwimMap</em> 中的倒数第1位和倒数第10位为1，那么该map的值为 <code>000001000001010</code>，若ID为3,5和10的用户是学生，那么 <em>StudentMap</em> 的值为 <code>000001000101000</code></p>
+<ul>
+<li>要筛选喜欢游泳的学生，只需要 <code>StudentMap &amp; SwimMap</code> 即可得到 <code>000001000001000</code>，得到结果为3和10。</li>
+<li>要筛选喜欢游泳或者喜欢篮球，则 <code>SwimMap | BasketBallMap</code></li>
+<li>要筛选非学生，需要使用全量位图 <code>AllUserMap^StundentMap</code>，因为申请的空间必然是大于实际用户数的，因此需要维持一个全量位图，而不能简单的取非，会有很多的空用户ID。</li>
+<li></li>
+</ul>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[算法周记（两数之和、整数反转、最接近的三数之和、盛水最多的容器、全排列、最长公共前缀、爬楼梯）]]></title>
         <id>https://yuncheng1998.github.io/post/ffJJJTXS7/</id>
         <link href="https://yuncheng1998.github.io/post/ffJJJTXS7/">
         </link>
@@ -335,259 +2377,6 @@
 <li>使用Map映射池</li>
 <li>使用策略模式</li>
 </ol>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[跳跃表]]></title>
-        <id>https://yuncheng1998.github.io/post/tiao-yue-biao/</id>
-        <link href="https://yuncheng1998.github.io/post/tiao-yue-biao/">
-        </link>
-        <updated>2021-04-11T14:25:23.000Z</updated>
-        <content type="html"><![CDATA[<p>最早在Redis设计与实现这本书中看到关于Redis中跳跃表的介绍，后来又在Java中使用跳表实现的ConcurrentSkipListMap，才发现这种数据结构有着广泛的应用。</p>
-<h2 id="redis中的跳跃表">Redis中的跳跃表</h2>
-<p>Redis中实现了skiplist这种有序的数据结构，以Redis的设计与实现中图示为例<br>
-<img src="https://yuncheng1998.github.io/post-images/1618151152233.png" alt="Redis-skip-list" loading="lazy"><br>
-这表示一个如下所示的跳跃表<br>
-<img src="https://yuncheng1998.github.io/post-images/1618151184016.png" alt="redis-skip-list-2" loading="lazy"><br>
-其中第一列为表头节点，有32层，但在此跳跃表中只有用到了5层，第一层是所有节点，每一个节点都有50%的概率会在上一层中包含，这样可以提高每个节点的访问速度，相当于为链表增加了二分查找的功能。这样即有着省去了链表需要从头到尾遍历的过程，也有着链表插入和删除很快的优点。<br>
-下面是跳跃表的插入和删除的过程<br>
-<img src="https://yuncheng1998.github.io/post-images/1618151211971.png" alt="skip-list-add-and-delete" loading="lazy"><br>
-跳跃表相当于为链表增加了一层索引，先通过索引确定大概位置，然后在进行逐步的细化，是一种空间换时间的方式。<br>
-Redis中的跳跃表是实现有序集合对象的一种数据结构，适应的Redis需要快速增删改查的需求。</p>
-<h2 id="concurrentskiplistmap中的跳跃表">ConcurrentSkipListMap中的跳跃表</h2>
-<p>ConcurrentSkipListMap的设计在有元素插入后，会进一步确定该元素是否需要建立索引，判断标准完全采用抛硬币的方式来实现</p>
-<pre><code class="language-java">int rnd = ThreadLocalRandom.nextSecondarySeed();
-    // 0x80000001展开为二进制为10000000000000000000000000000001
-    // 只有两头是1
-    // 这里(rnd &amp; 0x80000001) == 0
-    // 相当于排除了负数（负数最高位是1），排除了奇数（奇数最低位是1）
-    // 只有最高位最低位都不为1的数跟0x80000001做&amp;操作才会为0
-    // 也就是正偶数
-    if ((rnd &amp; 0x80000001) == 0) { // test highest and lowest bits
-        // 默认level为1，也就是只要到这里了就会至少建立一层索引
-        int level = 1, max;
-        // 随机数从最低位的第二位开始，有几个连续的1则level就加几
-        // 因为最低位肯定是0，正偶数嘛
-        // 比如，1100110，level就加2
-        while (((rnd &gt;&gt;&gt;= 1) &amp; 1) != 0)
-            ++level;
-
-        // 用于记录目标节点建立的最高的那层索引节点
-        Index&lt;K,V&gt; idx = null;
-        // 取头索引节点（这是最高层的头索引节点）
-        HeadIndex&lt;K,V&gt; h = head;
-        // 如果生成的层数小于等于当前最高层的层级
-        // 也就是跳表的高度不会超过现有高度
-        if (level &lt;= (max = h.level)) {
-            // 从第一层开始建立一条竖直的索引链表
-            // 这条链表使用down指针连接起来
-            // 每个索引节点里面都存储着目标节点这个数据节点
-            // 最后idx存储的是这条索引链表的最高层节点
-            for (int i = 1; i &lt;= level; ++i)
-                idx = new Index&lt;K,V&gt;(z, idx, null);
-        }
-        else { // try to grow by one level
-            // 如果新的层数超过了现有跳表的高度
-            // 则最多只增加一层
-            // 比如现在只有一层索引，那下一次最多增加到两层索引，增加多了也没有意义
-            level = max + 1; // hold in array and later pick the one to use
-            // idxs用于存储目标节点建立的竖起索引的所有索引节点
-            // 其实这里直接使用idx这个最高节点也是可以完成的
-            // 只是用一个数组存储所有节点要方便一些
-            // 注意，这里数组0号位是没有使用的
-            @SuppressWarnings(&quot;unchecked&quot;)Index&lt;K,V&gt;[] idxs =
-                    (Index&lt;K,V&gt;[])new Index&lt;?,?&gt;[level+1];
-            // 从第一层开始建立一条竖的索引链表（跟上面一样，只是这里顺便把索引节点放到数组里面了）
-            for (int i = 1; i &lt;= level; ++i)
-                idxs[i] = idx = new Index&lt;K,V&gt;(z, idx, null);
-
-            // 自旋
-            for (;;) {
-                // 旧的最高层头索引节点
-                h = head;
-                // 旧的最高层级
-                int oldLevel = h.level;
-                // 再次检查，如果旧的最高层级已经不比新层级矮了
-                // 说明有其它线程先一步修改了值，从头来过
-                if (level &lt;= oldLevel) // lost race to add level
-                    break;
-                // 新的最高层头索引节点
-                HeadIndex&lt;K,V&gt; newh = h;
-                // 头节点指向的数据节点
-                Node&lt;K,V&gt; oldbase = h.node;
-                // 超出的部分建立新的头索引节点
-                for (int j = oldLevel+1; j &lt;= level; ++j)
-                    newh = new HeadIndex&lt;K,V&gt;(oldbase, newh, idxs[j], j);
-                // 原子更新头索引节点
-                if (casHead(h, newh)) {
-                    // h指向新的最高层头索引节点
-                    h = newh;
-                    // 把level赋值为旧的最高层级的
-                    // idx指向的不是最高的索引节点了
-                    // 而是与旧最高层平齐的索引节点
-                    idx = idxs[level = oldLevel];
-                    break;
-                }
-            }
-        }
-</code></pre>
-<h2 id="为什么不选择树">为什么不选择树</h2>
-<p>跳表插入元素、删除元素、查找元素的时间复杂度与平衡二叉树相同为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>l</mi><mi>o</mi><msubsup><mi>g</mi><mn>2</mn><mi>n</mi></msubsup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(log_2^n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">o</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.664392em;"><span style="top:-2.4518920000000004em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.24810799999999997em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>，输出区间内元素的复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>。而红黑树对输出区间内元素的支持性较差，每次需要从首位置来查找。与B+树比较来看，B+树提供了指向了下一个元素的指针，可以方便的获得区间内元素，增删改查的时间复杂度与跳跃表相同，但跳跃表的实现较B+树更为简单。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[增强try-catch]]></title>
-        <id>https://yuncheng1998.github.io/post/try-catch/</id>
-        <link href="https://yuncheng1998.github.io/post/try-catch/">
-        </link>
-        <updated>2019-07-11T16:00:00.000Z</updated>
-        <content type="html"><![CDATA[<p>在传统的 <code>try-catch-finally</code> 语句中，需要将一些必须执行的步骤放在 <em>finally</em> 语句块中，诸如关闭资源，释放连接等。例如下面代码是将对象序列化到文件中后再反序列化读取出来的步骤，在 <em>finally</em> 语句块中，要判断两个文件流是否成功创建，然后再执行关闭操作，这样造成了代码的啰嗦。</p>
-<pre><code class="language-java">public class App {
-    private static final String PATH = &quot;/Users/yuncheng/IdeaProjects/leetcode-log/src/main/java/top/wangych/file.in&quot;;
-    public static void main(String[] args) {
-        ObjectInputStream objectInputStream = null;
-        ObjectOutputStream objectOutputStream = null;
-        try {
-            objectOutputStream = new ObjectOutputStream(new FileOutputStream(PATH));
-            objectInputStream= new ObjectInputStream(new FileInputStream(PATH));
-            Student student = new Student();
-            student.setName(&quot;test&quot;);
-            objectOutputStream.writeObject(student);
-            student = (Student) objectInputStream.readObject();
-            System.out.println(student.getName());
-
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        } finally {
-            if (objectInputStream != null) {
-                try {
-                    objectInputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (objectOutputStream != null) {
-                try {
-                    objectOutputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-}
-
-@Data
-class Student implements Serializable {
-
-    private static final long serialVersionUID = -8955603390013362711L;
-    private String name;
-}
-</code></pre>
-<p>在Java7中提供了增强try语句来释放资源，如下所示</p>
-<pre><code class="language-java">public class App {
-    private static final String PATH = &quot;/Users/yuncheng/IdeaProjects/leetcode-log/src/main/java/top/wangych/file.in&quot;;
-    public static void main(String[] args) {
-        try (
-          ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(PATH));
-          ObjectInputStream objectInputStream= new ObjectInputStream(new FileInputStream(PATH))
-        ) {
-
-            Student student = new Student();
-            student.setName(&quot;test&quot;);
-            objectOutputStream.writeObject(student);
-            student = (Student) objectInputStream.readObject();
-            System.out.println(student.getName());
-
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-}
-</code></pre>
-<p>增强try语句是一种语法糖，查看编译后的的代码如下，仍然生成finally语句块来释放资源。释放的方式是调用括号内对象的close()方法，这就要求该类必须实现了 <em>Closeable</em> 接口。<br>
-<img src="http://www.wangych.top/upload/2019/7/%E5%A2%9E%E5%BC%BAtry-27866803a9f846d39d87ae63a6e21457.png" alt="增强try" loading="lazy"></p>
-<p><a href="https://docs.oracle.com/javase/7/docs/technotes/guides/language/try-with-resources.html">The try-with-resources Statement</a></p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[蓄水池采样、Rand7和洗牌算法]]></title>
-        <id>https://yuncheng1998.github.io/post/about/</id>
-        <link href="https://yuncheng1998.github.io/post/about/">
-        </link>
-        <updated>2019-01-25T11:09:48.000Z</updated>
-        <content type="html"><![CDATA[<p>[TOC]</p>
-<h3 id="蓄水池采样">蓄水池采样</h3>
-<p>给定一个无限的数据流，要求随机取出 k 个数。也就是说当数据流有 N 个数据时，不论 N 为多少，每个数被取出的概率都为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>k</mi><mi mathvariant="normal">/</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">k/N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord">/</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span></span></span></span></p>
-<p><strong>采样方法</strong><br>
-先取出先 k 个数，从 k+1 个数开始以 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>k</mi><mi mathvariant="normal">/</mi><mi>i</mi></mrow><annotation encoding="application/x-tex">k/i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord">/</span><span class="mord mathdefault">i</span></span></span></span> 的概率取出这个数，随机替换掉k个数中的一个数。</p>
-<p><strong>证明</strong><br>
-使用数学归纳法进行证明</p>
-<ol>
-<li>
-<p>当<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi><mo>=</mo><mi>k</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">i=k+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.77777em;vertical-align:-0.08333em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>时，第<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">k+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.77777em;vertical-align:-0.08333em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>个数被取出的概率为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>k</mi><mi mathvariant="normal">/</mi><mo>(</mo><mi>k</mi><mo>+</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">k/(k+1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord">/</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span>，前k个数中每个数被取出的概率是<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mi>k</mi></mrow><annotation encoding="application/x-tex">1/k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mord">/</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span></span></span></span>，则每个数被保留的概率为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>1</mn><mo>−</mo><mo>(</mo><mn>1</mn><mi mathvariant="normal">/</mi><mi>k</mi><mo>)</mo><mo>∗</mo><mo>(</mo><mi>k</mi><mi mathvariant="normal">/</mi><mo>(</mo><mi>k</mi><mo>+</mo><mn>1</mn><mo>)</mo><mo>)</mo><mo>=</mo><mi>k</mi><mi mathvariant="normal">/</mi><mo>(</mo><mi>k</mi><mo>+</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">1-(1/k) * (k/(k+1)) = k/(k+1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mord">/</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord">/</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord">/</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span>，与第<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">k+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.77777em;vertical-align:-0.08333em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>个数被取出的概率相同，每个数字保留的概率均为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>k</mi><mi mathvariant="normal">/</mi><mo>(</mo><mi>k</mi><mo>+</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">k/(k+1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord">/</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span></p>
-</li>
-<li>
-<p>假设<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi><mo>=</mo><mi>p</mi></mrow><annotation encoding="application/x-tex">i=p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">p</span></span></span></span>时符合条件，则前p个数保留的概率为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>k</mi><mi mathvariant="normal">/</mi><mi>p</mi></mrow><annotation encoding="application/x-tex">k/p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord">/</span><span class="mord mathdefault">p</span></span></span></span>，证明<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi><mo>=</mo><mi>p</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">i=p+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.7777700000000001em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">p</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>时保留的概率为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>k</mi><mi mathvariant="normal">/</mi><mo>(</mo><mi>p</mi><mo>+</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">k/(p+1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord">/</span><span class="mopen">(</span><span class="mord mathdefault">p</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span>。</p>
-<ol>
-<li>p+1个数被取出的概率是<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>k</mi><mi mathvariant="normal">/</mi><mo>(</mo><mi>p</mi><mo>+</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">k/(p+1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord">/</span><span class="mopen">(</span><span class="mord mathdefault">p</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span></li>
-<li>前p个数保留下来个概率为：<strong>在p个数中被选中的概率 * 没有被第p+1个数替换的概率</strong>。即<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mi>k</mi><mi mathvariant="normal">/</mi><mi>p</mi><mo>)</mo><mo>∗</mo><mo>(</mo><mn>1</mn><mo>−</mo><mo>(</mo><mi>k</mi><mi mathvariant="normal">/</mi><mo>(</mo><mi>p</mi><mo>+</mo><mn>1</mn><mo>)</mo><mo>)</mo><mo>∗</mo><mo>(</mo><mn>1</mn><mi mathvariant="normal">/</mi><mi>k</mi><mo>)</mo><mo>)</mo><mo>=</mo><mi>k</mi><mi mathvariant="normal">/</mi><mo>(</mo><mi>p</mi><mo>+</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">(k/p) * (1-(k/(p+1)) * (1/k)) = k/(p+1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord">/</span><span class="mord mathdefault">p</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord">/</span><span class="mopen">(</span><span class="mord mathdefault">p</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mord">/</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mclose">)</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord">/</span><span class="mopen">(</span><span class="mord mathdefault">p</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span></li>
-</ol>
-<p>证明得出p+1时成立。</p>
-</li>
-</ol>
-<p>例如给定一个不定长的单向链表，实现一个 <em>getRandomNode(ListNode head)</em> 方法从链表中随机获得一个节点，要求每个节点被选中的概率相等且只能遍历一次链表<br>
-<strong>代码实现</strong></p>
-<pre><code class="language-java">public ListNode getRandomNode(ListNode head) {
-    ListNode ans = head;
-    ListNode node = head.next;
-    int i = 2;
-    Random random = new Random();
-    while (ans != null) {
-        // 节点被选中的概率为1/i
-        int ran = random.nextInt(i);
-        // 节点被选中
-        if (ran == 0) {
-            ans = node;
-        }
-        node = node.next;
-        i++;
-    }
-    return ans;
-}
-</code></pre>
-<h3 id="rand7">Rand7</h3>
-<p>假设有一个 <em>rand7()</em> 方法，要求使用它实现 <em>rand5()</em> 方法，只需要调用 <em>rand7</em> ，只选取其位于 [0,4] 之间的数，否则继续调用即可。这就意味着使用 <em>randN()</em> 实现 <em>randM()</em> 时，若<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>N</mi><mo>&gt;</mo><mi>M</mi></mrow><annotation encoding="application/x-tex">N&gt;M</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72243em;vertical-align:-0.0391em;"></span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.10903em;">M</span></span></span></span>，都可以使用该方法。但如果是使用 <em>rand5()</em> 来实现 <em>rand7()</em> 呢？</p>
-<p>考虑数值的进制表示，使用 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>r</mi><mi>a</mi><mi>n</mi><mi>d</mi><mn>5</mn><mo>(</mo><mo>)</mo><mo>∗</mo><mn>5</mn><mo>+</mo><mi>r</mi><mi>a</mi><mi>n</mi><mi>d</mi><mn>5</mn><mo>(</mo><mo>)</mo></mrow><annotation encoding="application/x-tex">rand5() * 5 + rand5()</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">a</span><span class="mord mathdefault">n</span><span class="mord mathdefault">d</span><span class="mord">5</span><span class="mopen">(</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">a</span><span class="mord mathdefault">n</span><span class="mord mathdefault">d</span><span class="mord">5</span><span class="mopen">(</span><span class="mclose">)</span></span></span></span> 可以生成从0到24的数字，这些数字是随机分布的。可以将其看作随机生成了一组5进制数字，其对应10进制也必然是随机的。即 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>r</mi><mi>a</mi><mi>n</mi><mi>d</mi><mi>N</mi><mo>(</mo><mo>)</mo><mo>∗</mo><mi>N</mi><mo>+</mo><mi>r</mi><mi>a</mi><mi>n</mi><mi>d</mi><mi>N</mi><mo>(</mo><mo>)</mo></mrow><annotation encoding="application/x-tex">randN() * N + randN()</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">a</span><span class="mord mathdefault">n</span><span class="mord mathdefault">d</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mopen">(</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">a</span><span class="mord mathdefault">n</span><span class="mord mathdefault">d</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mopen">(</span><span class="mclose">)</span></span></span></span> 会产生 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>N</mi><mo>∗</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">N * N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span></span></span></span> 个均匀分布的数字</p>
-<p>另外由于产生25个数字只截取前7个太过浪费，因此可以将7在25的范围内映射3次，即截取前21个数字 [0,20]，将选取的数字对7取模即可。</p>
-<p><strong>代码实现</strong></p>
-<pre><code class="language-java">public static int rand7() {
-  int n = rand5() * 5 + rand5();
-    if (n &lt; 21) {
-      return n % 7;
-    }
-  return rand7();
-}
-</code></pre>
-<h3 id="洗牌算法">洗牌算法</h3>
-<p>给定一个数组进行随机打乱。根据 <em>The Art of Computer Programming</em> 中的算法为：遍历数组，每次将一个元素与它本身及以后随机一个元素交换位置即可。</p>
-<p><strong>证明</strong><br>
-要证明每张牌出现在每个位置上的概率都想等，只需要证明每个位置上出现每张牌的概率相等，都为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">1/N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mord">/</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span></span></span></span> 即可。第一个位置上出现牌k的概率为1/N，第二个位置出现的概率为<br>
-<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mo>(</mo><mi>N</mi><mo>−</mo><mn>1</mn><mo>)</mo><mi mathvariant="normal">/</mi><mi>N</mi><mo>)</mo><mo>∗</mo><mo>(</mo><mn>1</mn><mi mathvariant="normal">/</mi><mo>(</mo><mi>N</mi><mo>−</mo><mn>1</mn><mo>)</mo><mo>)</mo><mo>=</mo><mn>1</mn><mi mathvariant="normal">/</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">((N-1)/N) * (1/(N-1))=1/N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mord">/</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mord">/</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mord">/</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span></span></span></span><br>
-同理第i个位置上出现牌K的概率为：<strong>牌K在i到N的位置上的概率 * 选中该位置的概率</strong><br>
-<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mo>(</mo><mi>N</mi><mo>−</mo><mi>i</mi><mo>+</mo><mn>1</mn><mo>)</mo><mi mathvariant="normal">/</mi><mi>N</mi><mo>)</mo><mo>∗</mo><mo>(</mo><mn>1</mn><mi mathvariant="normal">/</mi><mo>(</mo><mi>N</mi><mo>−</mo><mi>i</mi><mo>+</mo><mn>1</mn><mo>)</mo><mo>)</mo><mo>=</mo><mn>1</mn><mi mathvariant="normal">/</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">((N-i+1)/N) * (1/(N-i+1)) = 1/N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.74285em;vertical-align:-0.08333em;"></span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mord">/</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mord">/</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.74285em;vertical-align:-0.08333em;"></span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mord">/</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span></span></span></span></p>
-<p><strong>代码实现</strong></p>
-<pre><code class="language-java">public static void shuffle(int[] nums) {
-    Random random = new Random();
-    for (int i = 0; i &lt; nums.length; i++) {
-      int position = random.nextInt(nums.length - i) + i;
-      int temp = nums[i];
-      nums[i] = nums[position];
-      nums[position] = temp;
-    }
-    System.out.println(Arrays.toString(nums));
-}
-</code></pre>
 ]]></content>
     </entry>
 </feed>

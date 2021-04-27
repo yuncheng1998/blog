@@ -1,0 +1,269 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>朋友圈问题 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619501596088">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="朋友圈问题 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="省份数量
+DFS/BFS搜索
+使用一个标记数组，依次判断每个节点，如果其未访问：朋友圈数+1并对该节点进行DFS/BFS标记所有访问到的节点。
+class Solution {
+      public int findCircleNum(..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619501596088" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              朋友圈问题
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-04-17
+              </span>
+              <span>
+                2 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <p><a href="https://leetcode-cn.com/problems/number-of-provinces/comments/">省份数量</a></p>
+<h1 id="dfsbfs搜索">DFS/BFS搜索</h1>
+<p>使用一个<strong>标记数组</strong>，依次判断每个节点，如果其未访问：朋友圈数+1并对该节点进行DFS/BFS标记所有访问到的节点。</p>
+<pre><code class="language-java">class Solution {
+      public int findCircleNum(int[][] isConnected) {
+    int ans = 0;
+    boolean[] flag = new boolean[isConnected.length];
+    for (int i = 0; i &lt; flag.length; i++) {
+      // 没有被访问
+      if (!flag[i]) {
+        ans++;
+        flag[i] = true;
+        dfs(isConnected, flag, i);
+      }
+    }
+    System.out.println(ans);
+    return ans;
+  }
+
+  /**
+   * 以i为中心开始深度优先遍历
+   */
+  private void dfs(int[][] isConnected, boolean[] flag, int i) {
+    for (int j = 0; j &lt; flag.length; j++) {
+      if (isConnected[i][j] == 1) {
+        if (!flag[j]) {
+          flag[i] = true;
+          dfs(isConnected, flag, j);
+        }
+      }
+    }
+  }
+}
+</code></pre>
+<h1 id="查并集">查并集</h1>
+<pre><code class="language-java">class Solution {
+    int[] cities;
+    public void union(int i, int j) {
+        cities[i] = j;
+    }
+    public int find(int i) {
+        if (cities[i] == -1) {
+        return i;
+        } else {
+        int p = cities[i];
+        while (cities[p] != -1) {
+            p = cities[p];
+        }
+        return p;
+        }
+    }
+    public int findCircleNum(int[][] isConnected) {
+    cities = new int[isConnected.length];
+    // 初始化
+    Arrays.fill(cities, -1);
+    for (int i = 0; i &lt; isConnected.length; i++) {
+      for (int j = i + 1; j &lt; isConnected.length; j++) {
+        if (isConnected[i][j] == 1) {
+          int ip = find(i);
+          int jp = find(j);
+          if (ip != jp) {
+            union(ip, j);
+          }
+        }
+      }
+    }
+    return (int)Arrays.stream(cities).filter(x -&gt; x == -1).count();
+  }
+}
+</code></pre>
+<h2 id="查并集的优化方法">查并集的优化方法</h2>
+<p>降低树的高度：将树上每个节点都指向根节点</p>
+<pre><code class="language-java">public int find(int i) {
+    if (cities[i] == -1) {
+      return i;
+    } else {
+      int parent = cities[i];
+      while (cities[parent] != -1) {
+        parent = cities[parent];
+      }
+      // 将[i,p)都指向parent
+      while (cities[i] != -1) {
+        int tmp = cities[i];
+        cities[cities[tmp]] = parent;
+        i = tmp;
+      }
+      return parent;
+    }
+  }
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#dfsbfs%E6%90%9C%E7%B4%A2">DFS/BFS搜索</a></li>
+<li><a href="#%E6%9F%A5%E5%B9%B6%E9%9B%86">查并集</a>
+<ul>
+<li><a href="#%E6%9F%A5%E5%B9%B6%E9%9B%86%E7%9A%84%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95">查并集的优化方法</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/Qe7mvB1pJ/">
+              <h3 class="post-title">
+                复用类
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

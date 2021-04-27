@@ -1,0 +1,669 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>重读深入理解Java虚拟机（二）—— 垃圾收集器与内存分配 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619501596088">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="重读深入理解Java虚拟机（二）—— 垃圾收集器与内存分配 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="重读深入理解Java虚拟机计划 垃圾收集器与内存分配
+线程独占和线程共享区域
+线程独立区域随线程结束回收
+
+程序计数器
+虚拟机栈
+本地方法栈
+
+Java堆和方法区是垃圾回收器关注的内存
+
+堆上关注对象的回收
+方法区关注常量和无用类
+
+判断对..." />
+    <meta name="keywords" content="JVM,读书笔记" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619501596088" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              重读深入理解Java虚拟机（二）—— 垃圾收集器与内存分配
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-04-12
+              </span>
+              <span>
+                7 min read
+              </span>
+              
+                <a href="https://yuncheng1998.github.io/tag/dUzz8hia8/" class="post-tag">
+                  # JVM
+                </a>
+              
+                <a href="https://yuncheng1998.github.io/tag/WrIED4MPc/" class="post-tag">
+                  # 读书笔记
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <p>重读深入理解Java虚拟机计划 <strong>垃圾收集器与内存分配</strong></p>
+<h2 id="线程独占和线程共享区域">线程独占和线程共享区域</h2>
+<h3 id="线程独立区域随线程结束回收">线程独立区域随线程结束回收</h3>
+<ul>
+<li>程序计数器</li>
+<li>虚拟机栈</li>
+<li>本地方法栈</li>
+</ul>
+<h3 id="java堆和方法区是垃圾回收器关注的内存">Java堆和方法区是垃圾回收器关注的内存</h3>
+<ul>
+<li>堆上关注对象的回收</li>
+<li>方法区关注常量和无用类</li>
+</ul>
+<h2 id="判断对象是否需要回收">判断对象是否需要回收</h2>
+<h3 id="引用计数法">引用计数法</h3>
+<ul>
+<li>引用计数，当为0时判断需要回收</li>
+<li>难以解决对象间的循环引用问题</li>
+</ul>
+<h3 id="可达性分析法">可达性分析法</h3>
+<ul>
+<li>
+<p>以GC Root为起点，向下搜索，不再引用链上的对象可以回收</p>
+</li>
+<li>
+<p>GC Root判定</p>
+<ul>
+<li>JVM栈中的引用对象</li>
+<li>方法区中类静态属性引用的对象</li>
+<li>方法区中常量引用的对象</li>
+<li>本地方法栈中JNI引用的对象</li>
+</ul>
+</li>
+</ul>
+<figure data-type="image" tabindex="1"><img src="http://www.wangych.top/upload/2019/7/%E5%AF%B9%E8%B1%A1%E5%9B%9E%E6%94%B6-5693b7d0bf864fe096213eeaa802e201.jpg" alt="对象回收" loading="lazy"></figure>
+<h3 id="引用">引用</h3>
+<ul>
+<li>
+<p>为了在进行垃圾回收时更好的为对象分类，将其引用类型进行区分</p>
+</li>
+<li>
+<p>四种引用强度</p>
+<ul>
+<li>
+<p>强引用</p>
+<ul>
+<li>new出来的对象，只要强引用还在，就不会回收该对象</li>
+</ul>
+</li>
+<li>
+<p>软引用</p>
+<ul>
+<li>有用但非必须的对象，在即将内存溢出时进行一次回收，如果空间还不够，才将其划分到第二次回收的范围中</li>
+</ul>
+</li>
+<li>
+<p>弱引用</p>
+<ul>
+<li>第一次垃圾回收会直接回收掉</li>
+</ul>
+</li>
+<li>
+<p>虚引用</p>
+<ul>
+<li>对象被回收会得到一个系统通知</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>判断对象生存还是死亡</p>
+</li>
+</ul>
+<h2 id="方法区的回收">方法区的回收</h2>
+<h3 id="回收对象废弃常量和无用的类">回收对象：废弃常量和无用的类</h3>
+<h3 id="废弃常量">废弃常量</h3>
+<ul>
+<li>如果没有引用指向这个常量，就将其回收</li>
+</ul>
+<h3 id="无用的类">无用的类</h3>
+<ul>
+<li>该类所有实例都被回收</li>
+<li>类加载器被回收</li>
+<li>Class对象没有被引用过，不能通过反射来访问该类的方法</li>
+</ul>
+<h2 id="垃圾收集算法">垃圾收集算法</h2>
+<h3 id="标记清除算法">标记清除算法</h3>
+<ul>
+<li>
+<p>效率问题</p>
+</li>
+<li>
+<p>空间问题</p>
+<ul>
+<li>标记清除产生大量不连续的内存碎片，导致分配大对象时没有足够的连续的内存</li>
+</ul>
+</li>
+</ul>
+<h3 id="复制算法">复制算法</h3>
+<ul>
+<li>针对新生代（对象存活时间较短）</li>
+<li>较大的Eden区和两块Survivor区8:1比例</li>
+<li>每次将Eden和Survivor存活的对象一次性复制到另外一块Survivor中</li>
+<li>为防止Survivor的空间不够用需要老年代进行分配担保</li>
+</ul>
+<h3 id="标记整理算法">标记整理算法</h3>
+<ul>
+<li>针对老年代（对象存活时间较长）</li>
+<li>让存活对象向一端移动，然后清理掉端边界以外的内存</li>
+</ul>
+<h3 id="分代收集算法">分代收集算法</h3>
+<ul>
+<li>根据对象存活周期不同将内存划分为新生代和老年代</li>
+<li>新生代使用复制算法</li>
+<li>老年代使用标记清除或标记整理</li>
+</ul>
+<h2 id="hotspot算法实现">HotSpot算法实现</h2>
+<h3 id="枚举根节点">枚举根节点</h3>
+<ul>
+<li>
+<p>GC Root主要存在于全局引用和执行上下文中，检查消耗时间</p>
+</li>
+<li>
+<p>在确保一致性的快照中执行</p>
+<ul>
+<li>stop the world</li>
+<li>枚举根节点时必须停顿</li>
+</ul>
+</li>
+<li>
+<p>准确式GC</p>
+<ul>
+<li>OopMap来获得对象引用存在的位置</li>
+<li>在类加载完成时，HotSpot将对象在内存上偏移量以及数据类型计算出来</li>
+</ul>
+</li>
+</ul>
+<h3 id="安全点">安全点</h3>
+<ul>
+<li>
+<p>引起引用变化的指令较多，为每一条指令都生成对应OopMap需要大量额外空间</p>
+</li>
+<li>
+<p>只在特定位置上记录，到达安全点才会GC</p>
+</li>
+<li>
+<p>选定标准：程序长时间执行，例如方法调用、循环跳转、异常跳转等</p>
+</li>
+<li>
+<p>让所有线程都跑到最近安全点后停顿</p>
+<ul>
+<li>
+<p>抢先式中断</p>
+<ul>
+<li>不需要代码主动配合，所有线程中断，有线程没有中断在安全点上就恢复线程到安全点</li>
+</ul>
+</li>
+<li>
+<p>主动式中断</p>
+<ul>
+<li>线程轮询中断标志，需要中断时将其挂起在经过的安全点上</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="安全区域">安全区域</h3>
+<ul>
+<li>一块代码片段内，引用关系不会发生变化，该区域内的GC是安全的</li>
+<li>对安全点的扩展</li>
+<li>线程执行到Safe Region中的代码时，表示自己，GC时不需要考虑这些线程，当离开时检查枚举根节点是否正在执行，等待完成信号后离开</li>
+</ul>
+<figure data-type="image" tabindex="2"><img src="http://www.wangych.top/upload/2019/7/%E5%AE%89%E5%85%A8%E5%8C%BA-5e578f8c5e3b46269b602ebede205231.jpg" alt="安全区" loading="lazy"></figure>
+<h2 id="垃圾收集器">垃圾收集器</h2>
+<h3 id="新生代">新生代</h3>
+<ul>
+<li>
+<p>Serial</p>
+<ul>
+<li>单线程的收集器</li>
+<li>采用复制算法</li>
+</ul>
+</li>
+<li>
+<p>ParNew</p>
+<ul>
+<li>Serial的多线程版本</li>
+</ul>
+</li>
+<li>
+<p>Parallel Scavenge</p>
+<ul>
+<li>吞吐量优先收集器</li>
+<li>目的为达到一个可控制的吞吐量</li>
+<li>吞吐量=用户代码时间/总时间</li>
+</ul>
+</li>
+</ul>
+<h3 id="老年代">老年代</h3>
+<ul>
+<li>
+<p>Serial Old</p>
+<ul>
+<li>Serial的老年代版本</li>
+<li>标记整理算法</li>
+</ul>
+</li>
+<li>
+<p>Parallel Old</p>
+<ul>
+<li>Serial Old的多线程版本</li>
+</ul>
+</li>
+<li>
+<p>CMS</p>
+<ul>
+<li>
+<p>目标为获取最短回收停顿时间，提高响应速度</p>
+</li>
+<li>
+<p>标记-清除算法 Mark sweep</p>
+</li>
+<li>
+<p>运作过程</p>
+<ul>
+<li>
+<p>初始标记</p>
+<ul>
+<li>stop the world，单线程</li>
+<li>标记GC Root直接关联的对象，时间短</li>
+</ul>
+</li>
+<li>
+<p>并发标记</p>
+<ul>
+<li>GC Roots Tracing</li>
+<li>时间较长，用户程序会导致标记变动</li>
+<li>与用户线程并发</li>
+</ul>
+</li>
+<li>
+<p>重新标记</p>
+<ul>
+<li>stop the world，多线程重新标记</li>
+<li>针对并发标记阶段产生的变动重新标记</li>
+</ul>
+</li>
+<li>
+<p>并发清除</p>
+<ul>
+<li>与用户线程并发执行</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>缺点</p>
+<ul>
+<li>
+<p>对CPU资源敏感</p>
+</li>
+<li>
+<p>无法处理浮动垃圾</p>
+<ul>
+<li>
+<p>并发清理阶段与用户线程并发执行，产生的新垃圾需要等到下一次GC时回收</p>
+</li>
+<li>
+<p>需要预留部分空间给并发收集时程序使用</p>
+</li>
+<li>
+<p>可能出现Concurrent Mode failure导致另一次Full GC</p>
+<ul>
+<li>临时启动Serial Old收集器重新进行Tenured generation的收集</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>空间碎片</p>
+<ul>
+<li>
+<p>由于采用标记清除算法导致</p>
+</li>
+<li>
+<p>可能缺乏足够连续内存存放大对象</p>
+</li>
+<li>
+<p>解决</p>
+<ul>
+<li>
+<p>-XX:+UseCMSCompactAtFullCollection参数</p>
+<ul>
+<li>在要进行Full GC时进行内存碎片整理合并</li>
+</ul>
+</li>
+<li>
+<p>-XX:CMSFullGCsBeforeCollection参数</p>
+<ul>
+<li>设置几次不压缩的Full GC后跟一次带压缩的</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="g1">G1</h3>
+<ul>
+<li>
+<p>特点</p>
+<ul>
+<li>并行与并发</li>
+<li>分代收集</li>
+<li>空间整合</li>
+<li>可预测的停顿</li>
+</ul>
+</li>
+<li>
+<p>Region</p>
+<ul>
+<li>
+<p>G1收集器不进行分代收集，将内存划分为大小相同的Region</p>
+</li>
+<li>
+<p>新生代和老年代是一部分Region的集合</p>
+</li>
+<li>
+<p>跟踪每个Region中垃圾堆积的价值大小，维护优先列表，每次根据允许收集的时间优先回收价值最大的Region</p>
+</li>
+<li>
+<p>Remembered Set</p>
+<ul>
+<li>每个Region都有自己的Set</li>
+<li>Region间存在对象的引用关系，使用Remembered Set避免在回收新生代过程中查找GC Roots时全堆扫描</li>
+<li>当程序对引用类型的数据进行写操作时，检查引用的对象是否在其他Region中，如果时通过CardTable将引用信息记录到Set中</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>运行过程</p>
+<ul>
+<li>
+<p>初始标记</p>
+<ul>
+<li>标记GC Root能直接关联到的对象</li>
+</ul>
+</li>
+<li>
+<p>并发标记</p>
+<ul>
+<li>从GC Root开始对堆中的对象进行可达性分析</li>
+<li>耗时长，与用户程序并发执行</li>
+</ul>
+</li>
+<li>
+<p>最终标记</p>
+<ul>
+<li>修正在并发标记期间因用户程序继续运作导致标记变动</li>
+</ul>
+</li>
+<li>
+<p>筛选回收</p>
+<ul>
+<li>对Region的回收价值和成本进行排序</li>
+<li>根据用户期望的停顿时间制定回收计划</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="内存分配与回收策略">内存分配与回收策略</h2>
+<h3 id="对象的分配">对象的分配</h3>
+<ul>
+<li>
+<p>主要在堆上</p>
+<ul>
+<li>
+<p>优先在新生代的Eden区分配</p>
+</li>
+<li>
+<p>大对象直接进入老年代</p>
+<ul>
+<li>-XX:PretenureSizeThreshold参数</li>
+<li>设置大于对象大于某个值后直接分配在老年代</li>
+</ul>
+</li>
+<li>
+<p>长期存活的对象进入老年代</p>
+<ul>
+<li>
+<p>使用对象年龄Age计数器</p>
+</li>
+<li>
+<p>对象在Eden出生，第一次Minor GC后放入Survivor，Age=1。没熬过一次Minor GC对象年龄+1，到达阈值（默认15）后进入老年代</p>
+<ul>
+<li>+XX:MaxTenuringThreshold=15</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>也可能被拆散为标量类型间接在栈上分配</p>
+</li>
+</ul>
+<h3 id="两种情况进入老年代">两种情况进入老年代</h3>
+<ul>
+<li>Age&gt;MaxTenuringThreshold</li>
+<li>Survivor空间中相同年龄所有对象大小的总和大于Survivor空间的一半，年龄大于或等于该年龄的对象直接进入老年代</li>
+</ul>
+<h3 id="空间分配担保">空间分配担保</h3>
+<figure data-type="image" tabindex="3"><img src="http://www.wangych.top/upload/2019/7/%E7%A9%BA%E9%97%B4%E5%88%86%E9%85%8D%E6%8B%85%E4%BF%9D-4038b245f9ee4f1c89ee63a27d822c3c.jpg" alt="空间分配担保" loading="lazy"></figure>
+<h3 id="minor-gc与full-gc">Minor GC与Full GC</h3>
+<ul>
+<li>Minor GC是新生代GC，对象朝生夕灭，回收频繁，速度较快</li>
+<li>Full GC/Major GC是老年代GC，慢</li>
+</ul>
+<p><em>XMind: ZEN - Trial Version</em></p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E7%BA%BF%E7%A8%8B%E7%8B%AC%E5%8D%A0%E5%92%8C%E7%BA%BF%E7%A8%8B%E5%85%B1%E4%BA%AB%E5%8C%BA%E5%9F%9F">线程独占和线程共享区域</a>
+<ul>
+<li><a href="#%E7%BA%BF%E7%A8%8B%E7%8B%AC%E7%AB%8B%E5%8C%BA%E5%9F%9F%E9%9A%8F%E7%BA%BF%E7%A8%8B%E7%BB%93%E6%9D%9F%E5%9B%9E%E6%94%B6">线程独立区域随线程结束回收</a></li>
+<li><a href="#java%E5%A0%86%E5%92%8C%E6%96%B9%E6%B3%95%E5%8C%BA%E6%98%AF%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8%E5%85%B3%E6%B3%A8%E7%9A%84%E5%86%85%E5%AD%98">Java堆和方法区是垃圾回收器关注的内存</a></li>
+</ul>
+</li>
+<li><a href="#%E5%88%A4%E6%96%AD%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%90%A6%E9%9C%80%E8%A6%81%E5%9B%9E%E6%94%B6">判断对象是否需要回收</a>
+<ul>
+<li><a href="#%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0%E6%B3%95">引用计数法</a></li>
+<li><a href="#%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90%E6%B3%95">可达性分析法</a></li>
+<li><a href="#%E5%BC%95%E7%94%A8">引用</a></li>
+</ul>
+</li>
+<li><a href="#%E6%96%B9%E6%B3%95%E5%8C%BA%E7%9A%84%E5%9B%9E%E6%94%B6">方法区的回收</a>
+<ul>
+<li><a href="#%E5%9B%9E%E6%94%B6%E5%AF%B9%E8%B1%A1%E5%BA%9F%E5%BC%83%E5%B8%B8%E9%87%8F%E5%92%8C%E6%97%A0%E7%94%A8%E7%9A%84%E7%B1%BB">回收对象：废弃常量和无用的类</a></li>
+<li><a href="#%E5%BA%9F%E5%BC%83%E5%B8%B8%E9%87%8F">废弃常量</a></li>
+<li><a href="#%E6%97%A0%E7%94%A8%E7%9A%84%E7%B1%BB">无用的类</a></li>
+</ul>
+</li>
+<li><a href="#%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95">垃圾收集算法</a>
+<ul>
+<li><a href="#%E6%A0%87%E8%AE%B0%E6%B8%85%E9%99%A4%E7%AE%97%E6%B3%95">标记清除算法</a></li>
+<li><a href="#%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95">复制算法</a></li>
+<li><a href="#%E6%A0%87%E8%AE%B0%E6%95%B4%E7%90%86%E7%AE%97%E6%B3%95">标记整理算法</a></li>
+<li><a href="#%E5%88%86%E4%BB%A3%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95">分代收集算法</a></li>
+</ul>
+</li>
+<li><a href="#hotspot%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0">HotSpot算法实现</a>
+<ul>
+<li><a href="#%E6%9E%9A%E4%B8%BE%E6%A0%B9%E8%8A%82%E7%82%B9">枚举根节点</a></li>
+<li><a href="#%E5%AE%89%E5%85%A8%E7%82%B9">安全点</a></li>
+<li><a href="#%E5%AE%89%E5%85%A8%E5%8C%BA%E5%9F%9F">安全区域</a></li>
+</ul>
+</li>
+<li><a href="#%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8">垃圾收集器</a>
+<ul>
+<li><a href="#%E6%96%B0%E7%94%9F%E4%BB%A3">新生代</a></li>
+<li><a href="#%E8%80%81%E5%B9%B4%E4%BB%A3">老年代</a></li>
+<li><a href="#g1">G1</a></li>
+</ul>
+</li>
+<li><a href="#%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%B8%8E%E5%9B%9E%E6%94%B6%E7%AD%96%E7%95%A5">内存分配与回收策略</a>
+<ul>
+<li><a href="#%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%88%86%E9%85%8D">对象的分配</a></li>
+<li><a href="#%E4%B8%A4%E7%A7%8D%E6%83%85%E5%86%B5%E8%BF%9B%E5%85%A5%E8%80%81%E5%B9%B4%E4%BB%A3">两种情况进入老年代</a></li>
+<li><a href="#%E7%A9%BA%E9%97%B4%E5%88%86%E9%85%8D%E6%8B%85%E4%BF%9D">空间分配担保</a></li>
+<li><a href="#minor-gc%E4%B8%8Efull-gc">Minor GC与Full GC</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/BSpDNhcfw/">
+              <h3 class="post-title">
+                重读深入理解Java虚拟机（一）—— 读深入理解JVM之内存管理
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

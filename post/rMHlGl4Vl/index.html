@@ -1,0 +1,452 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>设计模式（一）策略模式 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619501596088">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="设计模式（一）策略模式 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="简单说下设计模式
+​	设计模式 ( Design Pattern ) 是开发人员在软件开发的长期过程中总结出来的，代表着最佳的实践方案。使用设计模式重用代码，使代码更容易被理解，逻辑更加清晰，特别是在重构和增改需求的时候，一个良好的设计模式..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619501596088" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              设计模式（一）策略模式
+            </h2>
+            <div class="post-info">
+              <span>
+                2018-04-01
+              </span>
+              <span>
+                6 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h4 id="简单说下设计模式">简单说下设计模式</h4>
+<p>​	设计模式 ( Design Pattern ) 是开发人员在软件开发的长期过程中总结出来的，代表着最佳的实践方案。使用设计模式重用代码，使代码更容易被理解，逻辑更加清晰，特别是在重构和增改需求的时候，一个良好的设计模式使其更加方便。</p>
+<h4 id="问题的提出">问题的提出</h4>
+<p>​	参考 <em>Head First 设计模式</em> 一书中策略模式的例子，要求设计一个鸭子游戏，这就需要我们实现若干不同种类的鸭子。</p>
+<p>​	我们首先想到先定义一个 Duck 的超类，其中包含鸭子所有的行为，然后让子类来继承这个超类，由于不同的鸭子的行为不同，例如有的鸭子咕咕叫，有的呱呱叫，而木头鸭子模型则不会叫，那么我们就需要对父类的方法进行覆盖，例如</p>
+<pre><code class="language-java">class Duck{
+    public void fly();
+    public void quack();
+    public void swim();
+    // ......
+}
+class Mallard extends Duck{
+    public void fly(){
+        // flywithWings
+    }
+    public void quack(){
+        // GuaGua quack
+    }
+    // ......
+}
+class TonyDuck extends Duck{
+    public void fly(){
+        //can't fly
+    }
+    public void quack(){
+        // can't quack
+    }
+    //......
+}
+class DomesticDuck extends Duck{
+    public void fly(){
+        //can't fly
+    }
+    public void quack(){
+        // GuaGua quack
+    }
+}
+// ......
+</code></pre>
+<p>这样我们发现这个方法有着巨大的弊端</p>
+<blockquote>
+<p>代码的复用性大大的降低</p>
+<p>每种鸭子都需要把父类的方法进行重写</p>
+<p>修改同一类行为方法时需要检查所有的鸭子</p>
+<p>难以知道全部行为，将他们全部在超类中定义</p>
+</blockquote>
+<h4 id="使用策略模式进行设计">使用策略模式进行设计</h4>
+<p>​	策略模式定义了一系列的算法，并将每一个算法封装起来，而且使他们可以相互替换，让算法独立于使用它的客户而独立变化。</p>
+<p>​	根据定义我们可以得到策略模式中的三条设计原则：</p>
+<ol>
+<li>
+<p>找出可能需要变化之处，把他们独立出来，不要和不变的部分混在一起，即 <em>封装会变化的部分</em>。</p>
+<p>​	在上面的设计中，我们发现鸭子的行为是变化最多的部分，例如他们的fly与quack就有着多种实现。因此我们将它独立出来，建立一组新类来代表每个行为。这样我们在建立新的鸭子种类时，就可以直接去实例化对应行为的类。</p>
+</li>
+<li>
+<p>针对接口编程，而不是针对实现编程，即 <em>针对超类型编程</em></p>
+<p>​	如何来实现鸭子的行为的类，我们为了使一切更加有弹性，可以动态的改变每个种类鸭子的行为，我们可以将它们一类行为( 如 quack )的不同实现实现方法( ZaZaQuack, GaGaQuack, Quiet)放在不同的类中，而为每类行为提供一个接口的实现。</p>
+</li>
+<li>
+<p>多用组合，少用继承，即 <em>将同类方式的不同实现组合在一起</em></p>
+<pre><code class="language-java">interface QuackBehavior{	//quack行为接口实现
+    public void quack();
+}
+// quack不同实现方式分别放在不同类中，但都可以由接口来调用
+class GaGaQuack implements QuackBehavior{
+    public void quack(){
+        // GaGa
+    }
+}
+class ZaZaQuack implements QuackBehavior{
+    public void quack(){
+        // ZaZa
+    }
+}
+// ... 
+</code></pre>
+<p>​	这样就是针对 <em>超类型 SuperType</em> 进行编程，超类型指的是<em>抽象类</em>或<em>接口</em>，这样以来我们就可以十分方便的使用多态来为每种鸭子配置不同的行为实现，这同时实现了封装变化的部分，也将所有叫的方式组合到一起。</p>
+<p>​	利用多态配置每种鸭子的行为：</p>
+<pre><code class="language-java">quack = new GaGaQuack();
+fly = new FlyWithWings();
+// ...
+</code></pre>
+</li>
+</ol>
+<h4 id="最终实现">最终实现</h4>
+<ol>
+<li>
+<p>实现行为</p>
+<p><em>飞行行为的接口设计</em></p>
+<pre><code class="language-java">// FlyBehavior.java
+public interface FlyBehavior {
+    String fly(); //接口中的方法必须是public,否则没有意义，不需要显式声明
+}
+// FlyWithWings.java
+public class FlyWithWings implements FlyBehavior {
+    @Override
+    public String fly() {
+        return &quot; Fly with Wings &quot;;
+    }
+}
+// FlyWithRock.java
+public class FlyWithRock implements FlyBehavior {
+    @Override
+    public String fly() {
+        return &quot; Fly with Rock &quot;;
+    }
+}
+</code></pre>
+<p><em>叫声行为的接口设计</em></p>
+<pre><code class="language-java">// QuackBehavior.java
+public interface QuackBehavior {
+    String quack();
+}
+// GaGaQuack.java
+public class GaGaQuack implements QuackBehavior {
+    @Override
+    public String quack() {
+        return &quot; Ga Ga &quot;;
+    }
+}
+// ZaZaQuack.java
+public class ZaZaQuack implements QuackBehavior {
+    @Override
+    public String quack() {
+        return &quot; Za Za &quot;;
+    }
+}
+</code></pre>
+</li>
+<li>
+<p>整合Duck行为</p>
+<pre><code class="language-java">// Duck.java
+public abstract class Duck {
+    
+    // 在Duck中增加两个实例变量,为接口类型，而不是具体的实现类型
+    QuackBehavior quackBehavior;
+    FlyBehavior flyBehavior;
+	
+    // 设置行为的方法
+    public void setQuackBehavior(QuackBehavior quackBehavior) {
+        this.quackBehavior = quackBehavior;
+    }
+
+    public void setFlyBehavior(FlyBehavior flyBehavior) {
+        this.flyBehavior = flyBehavior;
+    }
+
+    // 重写toString()
+    @Override
+    public String toString() {
+        return this.getClass() + this.flyBehavior.fly() + this.quackBehavior.quack();
+    }
+}
+</code></pre>
+</li>
+<li>
+<p>增加一个鸭子种类</p>
+<pre><code class="language-java">// RockDuck.java
+//假设在游戏世界里有 火箭鸭 的设定
+class RockDuck extends Duck {
+     RockDuck(){    //protected
+        quackBehavior = new ZaZaQuack();	//父类的变量需要在子类的构造方法中赋值
+        flyBehavior = new FlyWithRock();
+    }
+}
+</code></pre>
+</li>
+<li>
+<p>测试</p>
+<pre><code class="language-java">// StrategyPatternTest.java
+public class StrategyPatternTest {
+    public static void main(String[] args) {
+        Duck rd = new RockDuck();
+        System.out.println(rd.toString());
+        rd.setQuackBehavior(new GaGaQuack());
+        System.out.println(rd.toString());
+    }
+}
+</code></pre>
+</li>
+</ol>
+<h4 id="策略模式">策略模式</h4>
+<p>​	策略模式提供了一种管理算法族的方法，它可以替换掉继承。在本例中，使用策略模式解决了Behavior行为族的问题，对各种duck的实现时替换了继承。</p>
+<h4 id="策略模式的组成">策略模式的组成</h4>
+<ul>
+<li>
+<p>抽象策略</p>
+<ul>
+<li>
+<p>策略类，由一个接口或者抽象类实现	——  QuackBehavior, FlyBehavior类</p>
+<pre><code class="language-java">public interface Strategy {
+    /**
+     * 策略方法
+     */
+    public void strategyInterface();
+}
+</code></pre>
+</li>
+</ul>
+</li>
+<li>
+<p>具体策略</p>
+<ul>
+<li>
+<p>算法族的接口或抽象类，包装了相关的算法和行为  ——  行为接口的具体实现</p>
+<pre><code class="language-java">public class ConcreteStrategyA implements Strategy {
+    @Override
+    public void strategyInterface() {
+        //相关的业务
+    }
+}
+
+public class ConcreteStrategyB implements Strategy {
+    @Override
+    public void strategyInterface() {
+        //相关的业务
+    }
+}
+</code></pre>
+<p>​</p>
+</li>
+</ul>
+</li>
+<li>
+<p>环境</p>
+<ul>
+<li>
+<p>得到策略类的引用，给客户端调用 —— flyBehavior = new FlyWithWings()</p>
+<pre><code class="language-java">public class Context {
+    //持有一个具体策略的对象
+    private Strategy strategy;
+    /**
+     * 构造函数，传入一个具体策略对象
+     * @param strategy    具体策略对象
+     */
+    public Context(Strategy strategy){
+        this.strategy = strategy;
+    }
+    /**
+     * 策略方法
+     */
+    public void contextInterface(){
+        strategy.strategyInterface();
+    }
+}
+</code></pre>
+<p>​</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="使用场景">使用场景</h4>
+<ul>
+<li>同一类型问题有多种处理方式，仅在具体行为与差别</li>
+<li>安全的封装</li>
+<li>同一抽象类有多个子类，需要对子类进行选择</li>
+</ul>
+<h4 id="完整代码">完整代码</h4>
+<p>​	<a href="https://github.com/yuncheng1998/PatternDesign">Github</a></p>
+<h4 id="参考来源">参考来源</h4>
+<p>​	<a href="https://blog.csdn.net/u012124438/article/details/70039943">设计模式学习之策略模式</a></p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#%E7%AE%80%E5%8D%95%E8%AF%B4%E4%B8%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F">简单说下设计模式</a></li>
+<li><a href="#%E9%97%AE%E9%A2%98%E7%9A%84%E6%8F%90%E5%87%BA">问题的提出</a></li>
+<li><a href="#%E4%BD%BF%E7%94%A8%E7%AD%96%E7%95%A5%E6%A8%A1%E5%BC%8F%E8%BF%9B%E8%A1%8C%E8%AE%BE%E8%AE%A1">使用策略模式进行设计</a></li>
+<li><a href="#%E6%9C%80%E7%BB%88%E5%AE%9E%E7%8E%B0">最终实现</a></li>
+<li><a href="#%E7%AD%96%E7%95%A5%E6%A8%A1%E5%BC%8F">策略模式</a></li>
+<li><a href="#%E7%AD%96%E7%95%A5%E6%A8%A1%E5%BC%8F%E7%9A%84%E7%BB%84%E6%88%90">策略模式的组成</a></li>
+<li><a href="#%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF">使用场景</a></li>
+<li><a href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81">完整代码</a></li>
+<li><a href="#%E5%8F%82%E8%80%83%E6%9D%A5%E6%BA%90">参考来源</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/6wlIWcm7x/">
+              <h3 class="post-title">
+                区块链技术（二）浅谈区块链
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

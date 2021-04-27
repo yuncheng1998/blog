@@ -1,0 +1,289 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>区块链技术（二）浅谈区块链 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619501596088">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="区块链技术（二）浅谈区块链 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="初识区块链
+账本的故事
+从前的村子里都会有一个账房先生，他保留有一个账本负责记录村民的支出花费，每到年底，村民会根据账本的余额和收支状况进行余额分配。全村的资金流通记录都是以来该账本进行的，并没有什么实际的货币。账房先生因为承担着给大家记账..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619501596088" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              区块链技术（二）浅谈区块链
+            </h2>
+            <div class="post-info">
+              <span>
+                2018-03-30
+              </span>
+              <span>
+                15 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="初识区块链">初识区块链</h1>
+<h3 id="账本的故事">账本的故事</h3>
+<p>从前的村子里都会有一个账房先生，他保留有一个账本负责记录村民的支出花费，每到年底，村民会根据账本的余额和收支状况进行余额分配。全村的资金流通记录都是以来该账本进行的，并没有什么实际的货币。账房先生因为承担着给大家记账的工作，因此不需要进行实际劳动，格外有一点补贴。<br>
+但后来，有人发现这本账本出现了问题，支出收入余额不能平衡，因此产生了失信危机。于是大家集体决定将记账权分配给所有人，即每个人都保留一份账本，每个人都有记账的权力，只需要把结果告诉其他人同步即可，如果有人发现账目不对可以拒绝接受，最终以一致的账目表示为准。你可能会想如果 A 进行了欺诈，伪造了自己的收入然后广播应该如何处理？其实账本上的记录并不是图中表示的那么简单，每一笔记账都与之前和之后的记录有着相关的联系，并且每次交易都有秘钥作为保障，这将在后面进行讨论。</p>
+<p>当然这种方式并不完美，如果有人不愿意记账，只时每次把别人记录好的账本核对一下然后抄一抄就好了。这样的后果只能是大家都不愿意勤奋的取记账，为了改进记账制度，大家决定,给记账的人一定的奖励作为记账工作的回报，通过掷骰子来决定谁来记账，其他人只需要进行核对复制记录即可。<br>
+<img src="https://yuncheng1998.github.io/post-images/1619442921183.png" alt="" loading="lazy"><br>
+当然会，因为大家都想要获得这笔奖励，因此都在争取记账权，村民们不断地掷骰子来满足目标点数获得记账权。这就是区块链的原型。</p>
+<h3 id="区块链的技术理念">区块链的技术理念</h3>
+<p>区块链本质上是一种记账方法，当然他是通过软件来实现的，村民相当于区块链客户端软件，客户端之间会通过网络相互认识一下，然后彼此之间又形成了一个区块链网络，称为网络路由。在这个网络中每个节点都维护着自己的一个账本，记录网络中发生账务。在区块链系统中，掷骰子是通过共识算法来实现的，即一种大家都遵循的筛选方案。在选出一个节点后，一段时间内的张无数据都以这个节点的记录为准，其他节点只需要通过网络来接受新的数据然后进行核对同步即可。</p>
+<p>有些系统中会考虑被选中节点记账所付出的劳动，设计一种激励机制，负责打包数据的节点会获得这笔奖励。这种带有竞争机制的奖励会使各个节点取争抢这个记账权，我们称之为挖矿。</p>
+<p>另外在区分用户上使用了公开密钥算法的机制来实现。公开密钥算法有一个公钥和一个与之配合的私钥。公钥时对外公开做用户身份识别的，由于公钥往往比较长，因此会进行转换，例如取后二十个字节经过一系列更复杂的转换得到称为 ”地址“ 的转换结果，每个地址可以代表一个用户。这种机制保证了交易的安全性，在进行加密时，B 会使用自己的私钥签名后使用 A 的公钥进行加密，此时只有配合 A 的私钥才能将使用 B 给 Ａ 签署的支票。这种功能设计在区块链中被称为 “脚本系统”。</p>
+<h3 id="区块链的工作流程">区块链的工作流程</h3>
+<p>我们先来看一个转账交易的流程，转账的本质上就是发送一笔交易数据。这个数据可以表示为资产，也可以表示为订单或其他形式的交易数据<br>
+<img src="https://yuncheng1998.github.io/post-images/1619499247128.png" alt="" loading="lazy"><br>
+其中将数据打包进区块是进行记账操作的步骤，可以获得补偿，即新发行货币。争取记账权是需要进行大量运算的挖矿过程。实际上是大家共同维护公共账本的过程。</p>
+<h3 id="区块链技术栈">区块链技术栈</h3>
+<p>区块链由一组技术组合构成，其中包括共识机制、密码算法、网络路由、脚本系统和区块链账本。他们组成区块链软件，也是区块链网络中的一个节点。每个节点是平等的，大家互相为对方提供服务形成对等网络。</p>
+<ul>
+<li>
+<p>区块链账本</p>
+<p>区块链账本是以区块+链的数据结构来存储账目信息的表示。对于比特币来说，大约每 10 分钟产生一个区块，每个区块头中通过梅克尔根来关联区块中的交易数据，区块之间通过区块头的哈希值串联起来。<br>
+<img src="https://yuncheng1998.github.io/post-images/1619499980246.png" alt="" loading="lazy"><br>
+如图所示，我们可以看出，每个区块都与他前一个区块直接匹配，并且与之后所有区块产生联系。加入我们修改了区块 2 中的交易内容，那么该区块的 Hash 就会发生改变，这样其后面所有区块都要进行改变，以此来规避作假的可能。</p>
+</li>
+<li>
+<p>共识机制</p>
+<p>由于区块链是一个分布式的对等网络，没有拥有高权限的节点，因此对于区块链中的一切事务都要协商，共识算法就是制定一个规则来使所有节点都可以按照这个规则去核对自己的数据。目前在区块链系统中存在着多种筛选方案，比如 PoW（Proof of Work，工作量证明）、PoS（Proof of Stake，权益证明）、DPoS（Delegate Proof of Stake，委托权益证明）、PBFT（Practical Byzantine Fault Tolerance，实用拜占庭容错算法）等。区块链就是通过这种筛选算法来使得网络中各个节点的数据保持一致。</p>
+</li>
+<li>
+<p>密码算法</p>
+<p>密码算法在区块链中应用来保持数据的安全性，其中一个应用是利用 Hash 算法来得出每个区块的哈希数据存储在下一个区块中，保证区块的可校验和安全连续性。另一个密码算法应用在梅克尔树结构中，将每笔交易数据计算出一个 Hash 值，称为哈希事务，将一组哈希事务加工处理成树结构，树根称为梅克尔根。通过梅克尔根对数据进行约束，保证这组交易数据的完整性。总之，密码算法使得区块中交易数据的改动变得难以掩饰，任何微小的修改都将破坏掉整个区块结构，充分体现了区块链的安全性。</p>
+</li>
+<li>
+<p>脚本系统</p>
+<p>脚本系统是一组程序规则，驱动区块链进行数据的收发。有些系统允许用户自行编写一套规则部署到区块链系统中进行功能的扩展，例如以太坊中智能合约功能的实现。</p>
+</li>
+<li>
+<p>网络路由</p>
+<p>对于一个分布式的系统，网络路由值至关重要的，它负责节点间的通信。由于没有服务器作为数据交换中心，在对等网络中，节点之间进行通信和数据的交换，通常需要将其以节点发现协议的形式写入，节点通过该协议与邻近的节点进行数据的同步。</p>
+</li>
+</ul>
+<h3 id="比特币">比特币</h3>
+<h4 id="难度值">难度值</h4>
+<p>在比特币软件中规定了一个 256 位整数作为该区块的难度值，在比特币诞生的初期，大约需要 10 分钟左右的运算能得到一个符合难度 1 要求的值，这就是我们常说比特币网络每隔大约 10 分钟产生一个区块的来源。当然这个难度为 1 的 0 号区块就是创世块，我们可以查看改区块的难度信息</p>
+<pre><code>&quot;none&quot;: 2083236893,
+&quot;bits&quot;: &quot;1d00ffff&quot;,
+&quot;difficulty&quot;: 1,
+</code></pre>
+<p>bits 是用来存储难度的十六进制目标值，改目标难度值存储在区块的头部，在源码中被定义为一个 4 字节长度的字段，用来存储 16 字节长度的难度目标值，当然这需要经过压缩处理，我们以创世块为例</p>
+<p>难度 1 的目标值为 <code>x00000000FFFFFFFFFFFF...</code> 要将其压缩至 4 字节（32位），根据压缩规则，第一个字节为存储难度的有效字节数，有效字节数是指从第一个非0字节开始计算，并且若第一个有效字节大于 0x80，那么需要在结果中增补 0x00。根据该规则，难度 1 的有效字节数为 <code>0x00FFFFF...</code> ，字节个数为 32 - 4 + 1 = 29 个，因此压缩后第一个字节为 1D。另外三个字节用来存储目标值有效位最高位的三个字节，分别为 00、FF、FF。组合得到压缩后的有效值为 0x1D00FFFF，与创世块中 difficulty 的参数相同。</p>
+<p>那么如何对压缩进行还原呢？对于压缩后的难度目标值，我们定义第一个字节为指数，后三个字节为系数，可以通过以下公式进行目标值的还原 <code>目标值 = 系数×2^(8×(指数-3))</code></p>
+<p>以 0x1D00FFFF 为例，带入计算后得到目标值 = 00FFFF×2^(8×(0x1D-3)) = 0x00000000FFFF00000000...，可以看出存储在 bits 中的值实际上时一个精度阶段的近似值。另外我们再对 2000 号区块进行难度值查询</p>
+<pre><code>&quot;none&quot;: 4158183488,
+&quot;bits&quot;: &quot;1a05db8b&quot;,
+&quot;difficulty&quot;: 2864140.507810974
+</code></pre>
+<p>从第 2000 号区块与第 0 号区块的对比中，我们们可以发现在全网算力不断增加的情况下，比特币软件将难度值上调，将目标值减小来保证产生每个区块的间隔时间是稳定的。为了维持没10分钟过出一个区块的节奏，难度值的调整公式是有一个定式的：</p>
+<p>新难度值 = 当前难度值 × ( 最近的 2016 个区块的实际出块时间 / 20160 分钟 )</p>
+<p>即根据前两个周的实际情况进行一个时间差值的弥补。</p>
+<h4 id="挖矿">挖矿</h4>
+<p>挖矿即争夺记账权的过程，根据挖矿的计算公式</p>
+<p><code>SHA256(SHA256(version + prev_hash + merkle_root + ntime + nbits + nonce)) &lt; TARGET</code></p>
+<p>即需要对版本号、前一个区块的 Hash 值、梅克尔根、区块时间戳、当前难度和一个随机数的综合数据进行 Hash 计算。在这些变量中，梅克尔根、前一个区块的 Hash 值、当前难度和 Unix 时间长戳都是已知的，唯一的方法就是对随机数进行暴力计算来得出一个小于目标难度值的 Hash 值，即挖矿成功，可以进行交易的打包，并获得一定的奖励。当然这个奖励不是无限的，2009 年 1 月创建出一个区块时，每个区块奖励 50 个比特币，然后每产生 21 万个区块（大约4年），区块奖励减半，直到全部 20999999.98 个比特币发行完毕。</p>
+<p>第一个区块（创世块）与其他的区块不同，由于没有其他的 pre_hash，因此它是通过硬编码的形式写入区块链软件中的</p>
+<figure data-type="image" tabindex="1"><img src="https://yuncheng1998.github.io/post-images/1619500021073.png" alt="" loading="lazy"></figure>
+<p>在区块链的源码中，创世块通过 <code>CreateGenesisBlock</code> 方法写入，并且留下了一句话作为时间戳：</p>
+<blockquote>
+<p>The Times 03/Jan/2009 Chancellor on brink of second bailout for banks</p>
+</blockquote>
+<p>这句话正是比特币创世块当天泰晤士报的头版文章的标题。</p>
+<h3 id="比特币钱包">比特币钱包</h3>
+<p>比特币钱包实质是一个地址，使用比特币钱包转账就是将比特币从一个地址转移到另一个地址。比特币的地址是经过一系列的密码算法生成的。</p>
+<figure data-type="image" tabindex="2"><img src="https://yuncheng1998.github.io/post-images/1619500109056.png" alt="" loading="lazy"></figure>
+<center>比特币地址生成流程</center>
+<p>首先生成一个随机数作为私钥，然后利用椭圆曲线算法生成公钥，SECP256K1是一种不可逆的加密算法，只能用私钥生成公钥，但不能反向推出私钥。然后对公钥进行 SHA256 哈希算法和 RIPEMD160 哈希算法进行加密生成公钥哈希，然后对公钥哈希计算出校验码，将得到的全部字节利用BASE58编码生成比特币地址。</p>
+<p>很多时候我们希望可以确认支付是否成功发起，这时我们只要将钱包功能部分剥离出来，由此产生了 SPV 钱包。即只包含区块头的数据链，利用区块头中的区块梅克尔根与本次交易的梅克尔根做查询，看是否存在即可证明交易是否成功发起。</p>
+<p>比特币钱包中的私钥需要妥善保管，当多个私钥难以进行管理时，发展出了<strong>分层确定性钱包</strong>，即利用一个根私钥来生成任意数量的私钥，分别对应不同的公钥。这样只需要备份主私钥即可。</p>
+<figure data-type="image" tabindex="3"><img src="https://yuncheng1998.github.io/post-images/1619500554815.png" alt="" loading="lazy"></figure>
+<p>通过分层确定钱包，只需要备份主私钥，而不必每次新增地址都要备份私钥。另外可以配合权限设定不同层级的权限对比特币进行不同的操作。</p>
+<h3 id="区块链的技术意义">区块链的技术意义</h3>
+<h4 id="数据不可篡改">数据不可篡改</h4>
+<p>由于区块链是去中心化的，没有绝对的权力控制中心，每个人都有着数据的备份，修改数据的区块不会被其他节点承认。这保证了数据的安全有效，在金融行业的业务数据、公共政务数据、审计数据等都可以充分发挥其优势。</p>
+<h4 id="分布式存储">分布式存储</h4>
+<p>去中心化的设计使得系统数据在多地进行备份，不需要集群的数据库和大量的安全保护措施。区块链设计完美的避免了单点故障带来的数据丢失问题，并且可以使单点具有数据验证和查询检索的功能，增加了系统的可靠性。节点之前依靠路由进行数据的同步，使用类似梅克尔树这样的技术结构来数据的完整性和一致性。这种分布式的存储方案适合用在面向公共的服务型软件设施上，避免了集中而昂贵的专用服务器配备，也具备相当良好的数据安全性。</p>
+<h4 id="匿名性">匿名性</h4>
+<p>区块链中的节点以一串数字地址作为他们的唯一标示，无法通过地址进行其他信息的追查。</p>
+<h4 id="价值传递">价值传递</h4>
+<p>区块链可以作为一种有价值的资产，这也是目前最重要的一个特性。区块链技术的数据不可篡改保证了它的安全性，而工作量证明又使得他作为数字货币具有了价值，由于其去中心化的设计，不需要其他的监管机构只是依赖互联网上已经编写好的协议来运行，因此这个可以信任的环境有着极大的发展空间。</p>
+<h4 id="自动网络共识">自动网络共识</h4>
+<p>我们知道，每笔交易都需要交易的双方达成共识才确认是有效的。区块链软件中的节点可以自动根据协议进行交易的处理，并且由这极高的安全性，这对于效率提升是巨大的。</p>
+<h4 id="可编程合约">可编程合约</h4>
+<p>区块链技术时可以进行功能的扩展的，比特币资产是由程序脚本进行锁定和解锁的，这个程序脚本时可以进行配置。例如可以将一个私钥解锁脚本更改为多个私钥共同使用才可以解锁，智能合约使得区块链技术的应用变得可控。在以太坊中，智能合约发挥了巨大的作用。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E5%88%9D%E8%AF%86%E5%8C%BA%E5%9D%97%E9%93%BE">初识区块链</a><br>
+*
+<ul>
+<li><a href="#%E8%B4%A6%E6%9C%AC%E7%9A%84%E6%95%85%E4%BA%8B">账本的故事</a></li>
+<li><a href="#%E5%8C%BA%E5%9D%97%E9%93%BE%E7%9A%84%E6%8A%80%E6%9C%AF%E7%90%86%E5%BF%B5">区块链的技术理念</a></li>
+<li><a href="#%E5%8C%BA%E5%9D%97%E9%93%BE%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B">区块链的工作流程</a></li>
+<li><a href="#%E5%8C%BA%E5%9D%97%E9%93%BE%E6%8A%80%E6%9C%AF%E6%A0%88">区块链技术栈</a></li>
+<li><a href="#%E6%AF%94%E7%89%B9%E5%B8%81">比特币</a>
+<ul>
+<li><a href="#%E9%9A%BE%E5%BA%A6%E5%80%BC">难度值</a></li>
+<li><a href="#%E6%8C%96%E7%9F%BF">挖矿</a></li>
+</ul>
+</li>
+<li><a href="#%E6%AF%94%E7%89%B9%E5%B8%81%E9%92%B1%E5%8C%85">比特币钱包</a></li>
+<li><a href="#%E5%8C%BA%E5%9D%97%E9%93%BE%E7%9A%84%E6%8A%80%E6%9C%AF%E6%84%8F%E4%B9%89">区块链的技术意义</a>
+<ul>
+<li><a href="#%E6%95%B0%E6%8D%AE%E4%B8%8D%E5%8F%AF%E7%AF%A1%E6%94%B9">数据不可篡改</a></li>
+<li><a href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8">分布式存储</a></li>
+<li><a href="#%E5%8C%BF%E5%90%8D%E6%80%A7">匿名性</a></li>
+<li><a href="#%E4%BB%B7%E5%80%BC%E4%BC%A0%E9%80%92">价值传递</a></li>
+<li><a href="#%E8%87%AA%E5%8A%A8%E7%BD%91%E7%BB%9C%E5%85%B1%E8%AF%86">自动网络共识</a></li>
+<li><a href="#%E5%8F%AF%E7%BC%96%E7%A8%8B%E5%90%88%E7%BA%A6">可编程合约</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/8Ty_r0ipV1/">
+              <h3 class="post-title">
+                区块链技术（一）Python实现简单区块链
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

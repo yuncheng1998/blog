@@ -1,0 +1,492 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>重读深入理解Java虚拟机（一）—— 读深入理解JVM之内存管理 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619501596088">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="重读深入理解Java虚拟机（一）—— 读深入理解JVM之内存管理 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="JVM内存管理
+最近在读 深入理解 Java虚拟机，这里列出一下JVM内存管理部分大纲，还需配合该书进行学习。
+运行时数据区
+线程隔离
+
+程序计数器
+
+Java方法
+
+虚拟机字节码指令的地址
+
+
+Native方法
+
+计数值为空
+
+
+唯一一个..." />
+    <meta name="keywords" content="JVM,读书笔记" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619501596088" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              重读深入理解Java虚拟机（一）—— 读深入理解JVM之内存管理
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-04-12
+              </span>
+              <span>
+                4 min read
+              </span>
+              
+                <a href="https://yuncheng1998.github.io/tag/dUzz8hia8/" class="post-tag">
+                  # JVM
+                </a>
+              
+                <a href="https://yuncheng1998.github.io/tag/WrIED4MPc/" class="post-tag">
+                  # 读书笔记
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="jvm内存管理">JVM内存管理</h1>
+<p>最近在读 <a href="https://book.douban.com/subject/24722612/"><em>深入理解 Java虚拟机</em></a>，这里列出一下JVM内存管理部分大纲，还需配合该书进行学习。</p>
+<h3 id="运行时数据区">运行时数据区</h3>
+<h4 id="线程隔离">线程隔离</h4>
+<ul>
+<li>程序计数器
+<ul>
+<li>Java方法
+<ul>
+<li>虚拟机字节码指令的地址</li>
+</ul>
+</li>
+<li>Native方法
+<ul>
+<li>计数值为空</li>
+</ul>
+</li>
+<li>唯一一个没有规定OutOfMemoryError的区域</li>
+</ul>
+</li>
+<li>Java虚拟机栈
+<ul>
+<li>描述方法执行的内存模型
+<ul>
+<li>方法执行时创建栈帧
+<ul>
+<li>局部变量表
+<ul>
+<li>编译期可知的基本数据类型和引用类型</li>
+<li>64位长度的long和double类型占用2个局部变量空间（2 slot）</li>
+<li>编译期间大小分配完成，运行期间不会再动态更改</li>
+</ul>
+</li>
+<li>操作数栈</li>
+<li>动态链接</li>
+<li>方法出口</li>
+</ul>
+</li>
+<li>每个方法对应一个栈帧入栈和出栈的过程</li>
+</ul>
+</li>
+<li>异常
+<ul>
+<li>StackOverflowError
+<ul>
+<li>线程请求的栈深度超过虚拟机允许的</li>
+</ul>
+</li>
+<li>OutOfMemoryError
+<ul>
+<li>虚拟机栈动态扩展时无法申请到足够的内存</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>本地方法栈
+<ul>
+<li>为Native方法服务</li>
+<li>Sun HotSpot将本地方法栈和虚拟机栈合二为一</li>
+</ul>
+</li>
+</ul>
+<h4 id="线程共享">线程共享</h4>
+<ul>
+<li>方法区
+<ul>
+<li>用于存储已被虚拟机加载的类信息、常量、静态变量、即时编译器编译后的代码</li>
+<li>Java虚拟机规范对方法区管理宽松
+<ul>
+<li>不需要连续内存</li>
+<li>可以固定大小或扩展</li>
+<li>可以不选择垃圾收集
+<ul>
+<li>对常量池的回收和对类型的卸载</li>
+<li>回收成绩难以令人满意</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>运行时常量池
+<ul>
+<li>存放class文件
+<ul>
+<li>Class文件有常量池信息，存放编译期生成的各种字面量和符号引用
+<ul>
+<li>在类加载后进入方法区的运行时常量池</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>发生区内存大小无法满足需要时
+<ul>
+<li>OutOfMemoryError</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>堆
+<ul>
+<li>存放对象实例</li>
+<li>垃圾收集的主要区域</li>
+<li>堆的划分
+<ul>
+<li>内存分配的角度
+<ul>
+<li>多个线程私有的分配缓冲区</li>
+</ul>
+</li>
+<li>内存回收的角度
+<ul>
+<li>根据分代收集法细分
+<ul>
+<li>新生代</li>
+<li>老年代</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>逻辑上连续即可</li>
+<li>可以固定大小也可以是可扩展的</li>
+</ul>
+</li>
+</ul>
+<h3 id="直接内存">直接内存</h3>
+<h4 id="堆外内存">堆外内存</h4>
+<h4 id="nio类">NIO类</h4>
+<ul>
+<li>基于通道与缓冲区的I/O方式</li>
+<li>使用Native函数直接分配堆外内存</li>
+<li>通过Java堆中的DirectByteBuffer对象作为堆外内存的引用</li>
+<li>避免在Java堆和Native堆中来回复制数据</li>
+</ul>
+<h3 id="对象的创建">对象的创建</h3>
+<h4 id="创建对象的过程">创建对象的过程</h4>
+<ul>
+<li>遇到new指令，检查该类是否已经被加载、解析、初始化</li>
+<li>加载后确定了内存大小，从Java堆中划出内存
+<ul>
+<li>内存分配方式
+<ul>
+<li>指针碰撞</li>
+<li>空闲列表</li>
+</ul>
+</li>
+<li>Java堆是否规整选择分配方式
+<ul>
+<li>根据垃圾收集器是否带有压缩决定</li>
+</ul>
+</li>
+<li>并发情况下修改指针
+<ul>
+<li>对分配内存空间的动作进行同步处理
+<ul>
+<li>采用CAS配上失败重试的方式保证原子性</li>
+</ul>
+</li>
+<li>将内存分配动作按照线程划分在不同的空间中
+<ul>
+<li>每个线程在Java堆中预先分配一小块内存，本地线程分配缓冲</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>将内存空间都初始化为零值
+<ul>
+<li>成员变量默认的数据类型</li>
+</ul>
+</li>
+<li>虚拟机对对象做设置，设置对象头
+<ul>
+<li>对应类</li>
+<li>怎样找到类的元数据信息</li>
+<li>对象的哈希码</li>
+<li>对象的CG分代年龄</li>
+</ul>
+</li>
+</ul>
+<h4 id="对象的内存布局">对象的内存布局</h4>
+<ul>
+<li>对象头
+<ul>
+<li>存储对象自身运行时数据（Mark Word）</li>
+<li>类型指针（指向类元数据的指针）
+<ul>
+<li>JVM通过类型指针确定对象是哪个类</li>
+<li>查找类时不需要经过对象本身</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>实例数据
+<ul>
+<li>对象真正存储的有效信息</li>
+<li>受到JVM分配参数策略和源码中字段定义顺序的影响</li>
+</ul>
+</li>
+<li>对齐填充
+<ul>
+<li>HotSpot中对象的起始地址必须是8字节的整数倍</li>
+<li>通过对齐填充来补全</li>
+</ul>
+</li>
+</ul>
+<h4 id="对象的访问定位">对象的访问定位</h4>
+<ul>
+<li>通过栈上的reference数据来操作堆上的具体对象</li>
+<li>引用定位堆上对象的方式
+<ul>
+<li>句柄访问
+<ul>
+<li>堆的划分
+<ul>
+<li>句柄池
+<ul>
+<li>句柄对象</li>
+</ul>
+</li>
+<li>实例池
+<ul>
+<li>实例对象</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>句柄对象
+<ul>
+<li>到对象实例数据的指针
+<ul>
+<li>指向实例池</li>
+</ul>
+</li>
+<li>到对象类型数据的指针
+<ul>
+<li>指向方法区</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>优点
+<ul>
+<li>稳定的句柄地址
+<ul>
+<li>移动对象只要改变句柄对象的实例数据指针</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>指针直接访问
+<ul>
+<li>堆中实例数据中存在到对象类型数据的指针
+<ul>
+<li>指向方法区的对象类型数据</li>
+</ul>
+</li>
+<li>优点
+<ul>
+<li>速度快</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#jvm%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86">JVM内存管理</a><br>
+*
+<ul>
+<li><a href="#%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA">运行时数据区</a>
+<ul>
+<li><a href="#%E7%BA%BF%E7%A8%8B%E9%9A%94%E7%A6%BB">线程隔离</a></li>
+<li><a href="#%E7%BA%BF%E7%A8%8B%E5%85%B1%E4%BA%AB">线程共享</a></li>
+</ul>
+</li>
+<li><a href="#%E7%9B%B4%E6%8E%A5%E5%86%85%E5%AD%98">直接内存</a>
+<ul>
+<li><a href="#%E5%A0%86%E5%A4%96%E5%86%85%E5%AD%98">堆外内存</a></li>
+<li><a href="#nio%E7%B1%BB">NIO类</a></li>
+</ul>
+</li>
+<li><a href="#%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%88%9B%E5%BB%BA">对象的创建</a>
+<ul>
+<li><a href="#%E5%88%9B%E5%BB%BA%E5%AF%B9%E8%B1%A1%E7%9A%84%E8%BF%87%E7%A8%8B">创建对象的过程</a></li>
+<li><a href="#%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80">对象的内存布局</a></li>
+<li><a href="#%E5%AF%B9%E8%B1%A1%E7%9A%84%E8%AE%BF%E9%97%AE%E5%AE%9A%E4%BD%8D">对象的访问定位</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/lXK0TE-8V/">
+              <h3 class="post-title">
+                算法周记（启发式搜索、有限内存中大数据量中查找、找出数组中超过一半的数、不连续的整数中找出最大间隔））
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

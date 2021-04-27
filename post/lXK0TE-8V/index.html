@@ -1,0 +1,197 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>算法周记（启发式搜索、有限内存中大数据量中查找、找出数组中超过一半的数、不连续的整数中找出最大间隔）） | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619501596088">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="算法周记（启发式搜索、有限内存中大数据量中查找、找出数组中超过一半的数、不连续的整数中找出最大间隔）） | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="启发式搜索
+在 《漫画算法》 中看到 A*寻路算法，这是一种用于寻找最短路径的算法，例如在有障碍的图中找到从A到B的最短路径，就会应用这个算法。将地图以方格进行划分，A和B的位置分别占据一个方格，程序维持一个OpenList和CloseLi..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619501596088" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              算法周记（启发式搜索、有限内存中大数据量中查找、找出数组中超过一半的数、不连续的整数中找出最大间隔））
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-04-11
+              </span>
+              <span>
+                4 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h3 id="启发式搜索">启发式搜索</h3>
+<p>在 <em>《漫画算法》</em> 中看到 <code>A*寻路算法</code>，这是一种用于寻找最短路径的算法，例如在有障碍的图中找到从A到B的最短路径，就会应用这个算法。将地图以方格进行划分，A和B的位置分别占据一个方格，程序维持一个OpenList和CloseList来存储新获得的节点和已经检查过的节点，每个方格存储三个特性(到起点的距离s，到终点的距离e，二者只和h)。第一次将A周围的四个方格放到OpenList中，将A作为这四个方格的父节点，然后选出h最小的放到CloseList中，将这个方格周围的方格再进行相同的操作，直到将终点放到CloseList中。另外需要记录每一个方格的父节点，这样当只需要根据父节点从终点向上回溯就可以找到最短路径。</p>
+<h3 id="有限内存中大数据量中查找">有限内存中大数据量中查找</h3>
+<ul>
+<li>如何在20亿个整数中查找一个数是否存在<br>
+如果将每个整数都使用int来存储，那么需要使用大约要 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mn>2</mn><mn>31</mn></msup><mo>∗</mo><msup><mn>2</mn><mn>5</mn></msup></mrow><annotation encoding="application/x-tex">2^{31} * 2^{5}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">3</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">5</span></span></span></span></span></span></span></span></span></span></span></span> 共8G内存。那么若内存有限，这种使用int来存储的方法就不能使用，这就可以使用Bitmap来进行改进。根据整数的范围至多有 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mn>2</mn><mn>32</mn></msup></mrow><annotation encoding="application/x-tex">2^{32}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">3</span><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span> 个数，因此可以申请长度为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mn>2</mn><mn>32</mn></msup></mrow><annotation encoding="application/x-tex">2^{32}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">3</span><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span> bit的空间来存储这些数，每一个bit代替1个数，这样只需要 512MB的内存空间即可存入。</li>
+<li>如何在20亿个整数中找到出现次数最多的整数<br>
+要记录出现的次数就不能使用Bitmap，若要保证不会超过内存，那么需要对其进行分批处理。如果使用Hash表来进行记录，每条记录需要占用两个int的空间，即8Byte，这样需要16GB的内存。因此需要考虑进行分批处理，若内存只有2GB，则将其分为10份，让每份数据量只占用1.6GB，由于给出的数未必是均匀分布的，因此可以设计一个好的Hash映射函数，将其均匀的映射到20亿的数值范围内。</li>
+<li>如何在40亿个整数中找到出现次数最多的整数<br>
+当数据量达到10亿时，我们还需要考虑假如某个数据出现的次数太多，超过了int整数的表示范围应该如何处理，对于40亿级别，由于int类型表示最大整数在21亿左右，因此将其初值设置为int表示的最小负数值即可，即 <code>-2147483648</code></li>
+</ul>
+<h3 id="找出数组中超过一半的数">找出数组中超过一半的数</h3>
+<p>如果一个数组中有超过一半的数，那么将任意两个不相等的数相互抵消，最后剩下的数必然是超过一半的数。这个算法前提是必须保证存在这种数，如果不能保证，仍然需要排序后找出中间的数，然后与第一个数和最后一个数比较。如果n为奇数，那么需要保证<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">n/2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">n</span><span class="mord">/</span><span class="mord">2</span></span></span></span>，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord mathdefault">n</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>三个位置上的数有两个相等。如果n为偶数，那么需要保证<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">n/2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">n</span><span class="mord">/</span><span class="mord">2</span></span></span></span>和<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>相等或<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n/2-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">n</span><span class="mord">/</span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>与<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">n</span></span></span></span>相等。</p>
+<h3 id="不连续的整数中找出最大间隔">不连续的整数中找出最大间隔</h3>
+<p>若给出的数不多，可以使用计数排序，即使用下标进行计数。用每个数减去最小的数，然后使用bitmap来储存，然后根据0连续出现的次数来确定。如果数的间隔较大，那么可以使用桶排序，例如共有15个数，最小的数为0，最大数为10w，那么可以分成10个桶，分别存储0-1w，1-2w，...。现根据空桶进行查找，如都集中在某个桶那么就再次分桶计数，直到找出间隔最大的。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#%E5%90%AF%E5%8F%91%E5%BC%8F%E6%90%9C%E7%B4%A2">启发式搜索</a></li>
+<li><a href="#%E6%9C%89%E9%99%90%E5%86%85%E5%AD%98%E4%B8%AD%E5%A4%A7%E6%95%B0%E6%8D%AE%E9%87%8F%E4%B8%AD%E6%9F%A5%E6%89%BE">有限内存中大数据量中查找</a></li>
+<li><a href="#%E6%89%BE%E5%87%BA%E6%95%B0%E7%BB%84%E4%B8%AD%E8%B6%85%E8%BF%87%E4%B8%80%E5%8D%8A%E7%9A%84%E6%95%B0">找出数组中超过一半的数</a></li>
+<li><a href="#%E4%B8%8D%E8%BF%9E%E7%BB%AD%E7%9A%84%E6%95%B4%E6%95%B0%E4%B8%AD%E6%89%BE%E5%87%BA%E6%9C%80%E5%A4%A7%E9%97%B4%E9%9A%94">不连续的整数中找出最大间隔</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/DX1hNN3hk/">
+              <h3 class="post-title">
+                算法周记（第K个最大元素、最长连续序列、螺旋矩阵、股票买卖、合并有序数组、被围绕的区域、分割回文串）
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

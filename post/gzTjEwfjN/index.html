@@ -1,0 +1,991 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>重读深入理解Java虚拟机（三）—— 读深入理解JVM之类文件结构 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619501596088">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="重读深入理解Java虚拟机（三）—— 读深入理解JVM之类文件结构 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="类文件结构
+最近在读 深入理解 Java虚拟机，这里列出类文件结构部分大纲，还需配合该书进行学习。
+无关性
+
+字节码存储格式
+
+虚拟机只与字节码文件进行绑定
+安全性：对字节码文件有很多强制性约束
+
+
+虚拟机
+
+虚拟机只执行字节码文件，而不关..." />
+    <meta name="keywords" content="JVM,读书笔记" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619501596088" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              重读深入理解Java虚拟机（三）—— 读深入理解JVM之类文件结构
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-04-12
+              </span>
+              <span>
+                8 min read
+              </span>
+              
+                <a href="https://yuncheng1998.github.io/tag/dUzz8hia8/" class="post-tag">
+                  # JVM
+                </a>
+              
+                <a href="https://yuncheng1998.github.io/tag/WrIED4MPc/" class="post-tag">
+                  # 读书笔记
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="类文件结构">类文件结构</h1>
+<p>最近在读 <a href="https://book.douban.com/subject/24722612/"><em>深入理解 Java虚拟机</em></a>，这里列出类文件结构部分大纲，还需配合该书进行学习。</p>
+<h3 id="无关性">无关性</h3>
+<ul>
+<li>字节码存储格式
+<ul>
+<li>虚拟机只与字节码文件进行绑定</li>
+<li>安全性：对字节码文件有很多强制性约束</li>
+</ul>
+</li>
+<li>虚拟机
+<ul>
+<li>虚拟机只执行字节码文件，而不关心它的来源</li>
+<li>字节码文件描述能力比Java语言更强大</li>
+</ul>
+</li>
+</ul>
+<h3 id="class类文件的结构">Class类文件的结构</h3>
+<h4 id="注意">注意</h4>
+<ul>
+<li>每一个Class文件都对应唯一的类或接口，但这个类或接口不一定在文件中，可以通过类加载器直接生成</li>
+<li>以8字节为基础单位的二进制流
+<ul>
+<li>占用8位以上空间的数据项需要分割
+<ul>
+<li>分割方式：高位在前</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>使用伪结构来存储数据</li>
+</ul>
+<h4 id="两种数据类型">两种数据类型</h4>
+<ul>
+<li>无符号数
+<ul>
+<li>基本数据类型</li>
+<li>分类
+<ul>
+<li>u1</li>
+<li>u2</li>
+<li>u4</li>
+<li>u8</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>表
+<ul>
+<li>复合数据类型
+<ul>
+<li>有层次</li>
+</ul>
+</li>
+<li>由多个无符号数组成</li>
+</ul>
+</li>
+</ul>
+<h4 id="集合">集合</h4>
+<ul>
+<li>有同一类型但数量不定的多个数据时
+<ul>
+<li>前置容量计数器</li>
+</ul>
+</li>
+</ul>
+<h4 id="文件格式">文件格式</h4>
+<ul>
+<li>magic
+<ul>
+<li>魔数：CAFE BABE</li>
+<li>标识文件类型</li>
+<li>u4</li>
+</ul>
+</li>
+<li>版本
+<ul>
+<li>minor_version
+<ul>
+<li>Class文件的次版本号</li>
+<li>u2</li>
+</ul>
+</li>
+<li>major_version
+<ul>
+<li>Class文件主版本号</li>
+<li>u2</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>常量集合
+<ul>
+<li>constant_pool_count
+<ul>
+<li>常量池中常量个数计数</li>
+<li>u2</li>
+</ul>
+</li>
+<li>constant_pool
+<ul>
+<li>常量池</li>
+<li>长度为constant_pool_count - 1
+<ul>
+<li>第0号常量池表示指向常量池的索引值数据表达不引用任何一个常量池项目</li>
+</ul>
+</li>
+<li>常量池的两大类常量
+<ul>
+<li>字面量
+<ul>
+<li>字符串，声明为final的常量值</li>
+<li>运行期不发生动态链接</li>
+</ul>
+</li>
+<li>符号引用
+<ul>
+<li>包含的三类常量
+<ul>
+<li>类和接口的全限定名</li>
+<li>字段的名称和描述符</li>
+<li>方法的名称和描述符</li>
+</ul>
+</li>
+<li>符号引用在运行期间经过转换得到真正的内存入口地址</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>常量池中的常量
+<ul>
+<li>每个常量都是表结构
+<ul>
+<li>表结构第一项都是tag，表示常量的类型</li>
+</ul>
+</li>
+<li>14中常量有自己的表结构
+<ul>
+<li>即有不同的表示</li>
+</ul>
+</li>
+<li>在字段表、方法表、属性表中存在对这些常量的引用</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>access_flags
+<ul>
+<li>访问标志</li>
+<li>标识
+<ul>
+<li>是否public</li>
+<li>是否final</li>
+<li>是否允许使用invokespecial字节码指令的新语意
+<ul>
+<li>JDK 1.0.2后都为真</li>
+<li>改指令语意发生过改变</li>
+</ul>
+</li>
+<li>是否是接口</li>
+<li>是否是abstract</li>
+<li>标识该类不是由用户代码产生</li>
+<li>标识是注解</li>
+<li>标识是枚举</li>
+</ul>
+</li>
+<li>u2</li>
+</ul>
+</li>
+<li>this_class
+<ul>
+<li>类索引</li>
+<li>u2</li>
+</ul>
+</li>
+<li>super_class
+<ul>
+<li>父类索引</li>
+<li>u2</li>
+</ul>
+</li>
+<li>接口索引集合
+<ul>
+<li>interfaces_count
+<ul>
+<li>接口索引计数</li>
+<li>u2</li>
+</ul>
+</li>
+<li>interfaces
+<ul>
+<li>接口索引集合</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>字段表集合
+<ul>
+<li>fields_count
+<ul>
+<li>字段表集合中字段的个数</li>
+<li>u2</li>
+</ul>
+</li>
+<li>fields
+<ul>
+<li>字段表集合
+<ul>
+<li>字段是接口或类中声明的变量</li>
+<li>在Class文件中字段以字段表的形式存储</li>
+<li>除属性表集合外其他均为u2类型</li>
+</ul>
+</li>
+<li>字段包含的信息
+<ul>
+<li>作用域</li>
+<li>实例变量还是类变量</li>
+<li>可变性</li>
+<li>并发可见性</li>
+<li>可否序列化</li>
+<li>字段数据类型</li>
+<li>字段名称</li>
+</ul>
+</li>
+<li>字段表结构
+<ul>
+<li>access_flag
+<ul>
+<li>访问类型</li>
+</ul>
+</li>
+<li>name_index
+<ul>
+<li>字段名称</li>
+<li>指向常量池</li>
+</ul>
+</li>
+<li>descrptor_index
+<ul>
+<li>方法描述</li>
+<li>指向常量池</li>
+</ul>
+</li>
+<li>attribute_count</li>
+<li>attributes</li>
+</ul>
+</li>
+<li>描述符规则
+<ul>
+<li>基本数据类型使用大写字母表示</li>
+<li>对象类型使用L加对象全限定名</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>方法表集合
+<ul>
+<li>methods_count
+<ul>
+<li>方法集合的计数</li>
+<li>u2</li>
+</ul>
+</li>
+<li>methods
+<ul>
+<li>方法表集合
+<ul>
+<li>方法在Class文件中以方法表的形式存储</li>
+</ul>
+</li>
+<li>方法表结构
+<ul>
+<li>access_flag</li>
+<li>name_index
+<ul>
+<li>指向常量池</li>
+<li>常量池中存方法名</li>
+</ul>
+</li>
+<li>descriptor_index
+<ul>
+<li>(方法参数)返回值类型</li>
+</ul>
+</li>
+<li>attribute_count</li>
+<li>attributes
+<ul>
+<li>Code属性存放了方法体字节码指令</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>注意
+<ul>
+<li>若没有重写，不会出现父类方法信息</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>属性表集合
+<ul>
+<li>attributes_count</li>
+<li>attributes
+<ul>
+<li>属性表结构
+<ul>
+<li>attribute_name_index
+<ul>
+<li>u2</li>
+<li>指向常量池来获取名称</li>
+</ul>
+</li>
+<li>attribute_length
+<ul>
+<li>u4</li>
+<li>使用该字段指定长度</li>
+<li>以字节为单位</li>
+</ul>
+</li>
+<li>info
+<ul>
+<li>u1</li>
+<li>数量为attribute_length定义的数量</li>
+<li>属性结构完全自定义</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>预定义的属性
+<ul>
+<li>Code
+<ul>
+<li>Code属性表的结构
+<ul>
+<li>attribute_name_index</li>
+<li>attribute_length</li>
+<li>max_stack
+<ul>
+<li>操作数栈最大深度</li>
+<li>用来分配栈帧中操作数栈深度</li>
+</ul>
+</li>
+<li>max_locals
+<ul>
+<li>局部变量表所需的存储空间</li>
+<li>单位slot</li>
+<li>并不是所有变量所占slot的和
+<ul>
+<li>注意slot可以重用，当代码执行超过该局部变量范围时，slot可以重新赋值</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>code_length
+<ul>
+<li>Java源程序编译后的字节码指令长度</li>
+<li>u4类型</li>
+<li>但只能使用u2的长度</li>
+</ul>
+</li>
+<li>code
+<ul>
+<li>存储字节码指令一系列字节流
+<ul>
+<li>每个指令都是u1的单字节</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>异常表集合
+<ul>
+<li>不是必须存在</li>
+<li>异常表结构
+<ul>
+<li>start_pc
+<ul>
+<li>开始行
+<ul>
+<li>字节码相对于方法体的偏移量</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>end_pc
+<ul>
+<li>结束行</li>
+</ul>
+</li>
+<li>handler_pc
+<ul>
+<li>出现异常跳转行</li>
+</ul>
+</li>
+<li>catch_type
+<ul>
+<li>异常类型
+<ul>
+<li>指向一个CONSTANT_Class_info型常量的索引</li>
+<li>当该值为0时，表示任意异常都要转到handler_pc进行处理</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>使用异常表而不是跳转来完成异常处理</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Exceptions属性
+<ul>
+<li>列举方法中可能抛出的受检查的异常
+<ul>
+<li>throws关键字后的异常</li>
+</ul>
+</li>
+<li>属性表结构
+<ul>
+<li>attribute_name_index</li>
+<li>attribute_length</li>
+<li>number_of_exceptions
+<ul>
+<li>抛出受检查异常的种类数</li>
+</ul>
+</li>
+<li>exception_index_table
+<ul>
+<li>指向常量池中CONSTANT_Class_info型常量的索引
+<ul>
+<li>代表受查异常的类型</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>LineNumberTable属性
+<ul>
+<li>Java源码行号与字节码行号的对应关系
+<ul>
+<li>行号：偏移量</li>
+</ul>
+</li>
+<li>属性结构
+<ul>
+<li>attribute_name_index
+<ul>
+<li>属性名</li>
+</ul>
+</li>
+<li>attribute_length
+<ul>
+<li>属性长度</li>
+</ul>
+</li>
+<li>line_number_table_length
+<ul>
+<li>映射表长度</li>
+</ul>
+</li>
+<li>line_number_table
+<ul>
+<li>集合
+<ul>
+<li>大小：line_number_table_length</li>
+<li>类型：line_number_info
+<ul>
+<li>line_number_info包括start_pc和line_number两个u2类型的数据项</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>LocalVariableTable属性
+<ul>
+<li>栈帧中局部变量表中的变量与Java源码中定义的变量之间的关系
+<ul>
+<li>缺失时IDE会使用args0等占位符来代替</li>
+</ul>
+</li>
+<li>属性结构
+<ul>
+<li>attribute_name_index
+<ul>
+<li>属性名</li>
+<li>指向常量池</li>
+</ul>
+</li>
+<li>attribute_length
+<ul>
+<li>属性长度</li>
+</ul>
+</li>
+<li>local_variable_table_length
+<ul>
+<li>映射表表长</li>
+</ul>
+</li>
+<li>local_variable_table
+<ul>
+<li>大小：local_variable_table_length指定</li>
+<li>类型：local_variable_info
+<ul>
+<li>结构
+<ul>
+<li>start_pc
+<ul>
+<li>局部变量生命周期开始的字节码偏移量</li>
+</ul>
+</li>
+<li>length
+<ul>
+<li>局部变量作用范围覆盖的长度</li>
+</ul>
+</li>
+<li>name_index
+<ul>
+<li>局部变量的名称</li>
+<li>指向常量池</li>
+</ul>
+</li>
+<li>descriptor_index
+<ul>
+<li>局部变量的描述符</li>
+<li>指向常量池</li>
+</ul>
+</li>
+<li>index
+<ul>
+<li>局部变量在栈帧局部变量表中Slot的位置</li>
+<li>若为64位类型时，占用index和index+1两个位置</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>与LocalVariableTypeTable的区分
+<ul>
+<li>描述泛型</li>
+<li>描述符中泛型的参数化类型被擦除，描述符不能准确描述泛型类型</li>
+<li>将descriptor_index换为字段的特征签名Signature</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>SourceFile属性
+<ul>
+<li>记录生成Class文件的源码文件的名称</li>
+<li>可选属性</li>
+<li>结构
+<ul>
+<li>attribute_name_index</li>
+<li>attribute_length</li>
+<li>sourcefile_index
+<ul>
+<li>指向常量池</li>
+<li>源码文件名</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>ConstantValue属性
+<ul>
+<li>通知虚拟机为静态变量赋值</li>
+<li>变量的赋值方式
+<ul>
+<li>非静态变量
+<ul>
+<li>实例构造器方法进行</li>
+</ul>
+</li>
+<li>静态变量
+<ul>
+<li>类构造器中</li>
+<li>使用Constant属性
+<ul>
+<li>使用final来修饰，并且数据类型是基本数据类型或String类型</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>结构
+<ul>
+<li>attribute_name_index</li>
+<li>attribute_length
+<ul>
+<li>定长属性，值为2</li>
+</ul>
+</li>
+<li>constantvalue_index
+<ul>
+<li>常量池中一个字面量的引用</li>
+<li>u2数据类型</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>InnerClasses属性
+<ul>
+<li>记录内部类与宿主类之间的关联</li>
+<li>对外部类和它的内部类生成该属性</li>
+<li>结构
+<ul>
+<li>attribute_name_index</li>
+<li>attribute_length</li>
+<li>number_of_classes
+<ul>
+<li>表示要记录多少个内部类信息</li>
+</ul>
+</li>
+<li>inner_classes
+<ul>
+<li>类型：inner_class_info
+<ul>
+<li>inner_class_info_index
+<ul>
+<li>指向常量池</li>
+<li>内部类的符号引用：CONSTANT_Class_info型常量</li>
+</ul>
+</li>
+<li>outer_class_info_index
+<ul>
+<li>指向常量池</li>
+<li>外部类的符号引用</li>
+</ul>
+</li>
+<li>inner_name_index
+<ul>
+<li>指向常量池</li>
+<li>内部类的名字
+<ul>
+<li>匿名类值为0</li>
+<li>即常量池的0号</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>inner_class_access_flags
+<ul>
+<li>内部类的访问标志</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>大小：number_of_classes指定</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Deprecated属性
+<ul>
+<li>过时标志</li>
+<li>有或没有，没有属性值</li>
+<li>结构
+<ul>
+<li>attribute_name_index</li>
+<li>attribute_length</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Synthetic属性
+<ul>
+<li>表示该类、字段或方法是由编译期自动产生的</li>
+</ul>
+</li>
+<li>StackMapTable
+<ul>
+<li>位于Code属性表中的变长属性</li>
+<li>虚拟机类加载的字节码验证阶段被新类型检查验证器使用</li>
+<li>在编译期间将一系列验证信息直接记录在Class文件中</li>
+<li>结构
+<ul>
+<li>attribute_name_index</li>
+<li>attribute_length</li>
+<li>number_of_entries</li>
+<li>stack_map_frame entries
+<ul>
+<li>大小：number_of_entries指定</li>
+<li>类型：stack_map_frame
+<ul>
+<li>显式或隐式代表一个字节码偏移量</li>
+<li>表示执行该字节码时局部变量表和操作数栈的验证类型</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Signature属性
+<ul>
+<li>可选的定长属性</li>
+<li>记录泛型中指定的类型变量或参数化类型</li>
+<li>由于Java中泛型时伪泛型，使用这个属性可以使用反射获取泛型类型</li>
+<li>结构
+<ul>
+<li>attribute_name_index</li>
+<li>attribute_length</li>
+<li>signature_index
+<ul>
+<li>指向常量池中的签名</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>BootstrapMethods属性
+<ul>
+<li>变长属性，位于类文件属性表中</li>
+<li>保存invokedynamic指令引用的引导方法限定符</li>
+<li>类文件结构的常量池中出现CONSTANT_InvokeDynamic_info类型的常量</li>
+<li>结构
+<ul>
+<li>attribute_name_index</li>
+<li>attribute_length</li>
+<li>num_bootstrap_methods
+<ul>
+<li>引导方法限定符的数量</li>
+</ul>
+</li>
+<li>bootstrap_methods
+<ul>
+<li>大小：num_bootstrap_methods指定</li>
+<li>类型：bootstrap_method
+<ul>
+<li>bootstrap_method_ref
+<ul>
+<li>对常量池中CONSTANT_MethodHandle_info结构的指向</li>
+</ul>
+</li>
+<li>num_bootsrap_arguments
+<ul>
+<li>指出静态参数个数</li>
+</ul>
+</li>
+<li>bootstrap_arguments
+<ul>
+<li>大小：num_bootsrap_argumnets指出</li>
+<li>类型：对常量池的有效索引</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E7%B1%BB%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84">类文件结构</a><br>
+*
+<ul>
+<li><a href="#%E6%97%A0%E5%85%B3%E6%80%A7">无关性</a></li>
+<li><a href="#class%E7%B1%BB%E6%96%87%E4%BB%B6%E7%9A%84%E7%BB%93%E6%9E%84">Class类文件的结构</a>
+<ul>
+<li><a href="#%E6%B3%A8%E6%84%8F">注意</a></li>
+<li><a href="#%E4%B8%A4%E7%A7%8D%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B">两种数据类型</a></li>
+<li><a href="#%E9%9B%86%E5%90%88">集合</a></li>
+<li><a href="#%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F">文件格式</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/9kojaJwjx/">
+              <h3 class="post-title">
+                重读深入理解Java虚拟机（二）—— 垃圾收集器与内存分配
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,510 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>算法周记（第K个最大元素、最长连续序列、螺旋矩阵、股票买卖、合并有序数组、被围绕的区域、分割回文串） | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619501596088">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="算法周记（第K个最大元素、最长连续序列、螺旋矩阵、股票买卖、合并有序数组、被围绕的区域、分割回文串） | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="数组中第k个最大的元素
+找数组中第k大的元素
+class Solution {
+
+    /**
+     * 将其由小到大排序，选定一个位置作为分割
+     * 找第k大的数
+     * @param nums
+     * @par..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619501596088" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              算法周记（第K个最大元素、最长连续序列、螺旋矩阵、股票买卖、合并有序数组、被围绕的区域、分割回文串）
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-04-11
+              </span>
+              <span>
+                8 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h3 id="数组中第k个最大的元素">数组中第k个最大的元素</h3>
+<p>找数组中第k大的元素</p>
+<pre><code class="language-java">class Solution {
+
+    /**
+     * 将其由小到大排序，选定一个位置作为分割
+     * 找第k大的数
+     * @param nums
+     * @param k
+     * @return
+     */
+    public int findKthLargest(int[] nums, int k) {
+        // 首先使用倒数k作为分割点进行查找
+        return findK(nums, 0, nums.length -1, nums.length - k);
+    }
+
+    /**
+     *
+     * @param nums 数组
+     * @param start 开始
+     * @param end 结束
+     * @param k 第k大
+     * @return
+     */
+    public int findK(int[] nums, int start, int end, int k) {
+        if (start == end) {
+            return nums[start];
+        }
+        int pivot = nums[(start + end)/2];
+        int i = start;
+        int j = end;
+        while (i &lt;= j) {
+            while (nums[i] &lt; pivot) {
+                i++;
+            }
+            while (nums[j] &gt; pivot) {
+                j--;
+            }
+            if (i &lt;= j) {
+                int temp = nums[i];
+                nums[i] = nums[j];
+                nums[j] = temp;
+                i++;
+                j--;
+            }
+        }
+        // 判断k在选定点前面还是后面，对选定的部分进行排序
+        if (k &gt;= (i-start)) {
+            return findK(nums, i, end, k-i+start);
+        } else {
+            return findK(nums, start, i-1, k);
+        }
+    }
+}
+</code></pre>
+<h3 id="最长连续序列">最长连续序列</h3>
+<pre><code class="language-java">class Solution {
+    /**
+     * 最长连续序列，注意最长连续序列中的任意一个数
+     * @param nums
+     * @return
+     */
+    public int longestConsecutive(int[] nums) {
+        // 记录该字符所在的最长子序列的序列长度
+        HashMap&lt;Integer, Integer&gt; map = new HashMap&lt;&gt;();
+        // 最长子序列长度
+        int res = 0;
+        for (int t : nums) {
+            // 如果map中包含说明已经计算过
+            if (map.containsKey(t)) {
+                continue;
+            }
+            // 获取t-1所在的最长连续序列的长度
+            int left = map.getOrDefault(t - 1, 0);
+            // 获取t+1所在的最长连续序列的长度
+            int right = map.getOrDefault(t + 1, 0);
+            // 最终长度
+            int count = left + right + 1;
+            // 更新t、t-1、t+1的值
+            map.put(t, count);
+            if (left &gt; 0) {
+                map.put(t - left, count);
+            }
+            if (right &gt; 0) {
+                map.put(t + right, count);
+            }
+            // 更新最长长度
+            res = Math.max(res, count);
+        }
+        return res;
+    }
+}
+</code></pre>
+<h3 id="螺旋矩阵">螺旋矩阵</h3>
+<pre><code class="language-java">/**
+ * 顺时针螺旋顺序
+ */
+class Solution {
+    public List&lt;Integer&gt; spiralOrder(int[][] matrix) {
+        List&lt;Integer&gt; ans = new ArrayList&lt;&gt;();
+        if (matrix.length == 0) {
+            return ans;
+        }
+
+        int startR = 0, endR = matrix.length - 1;
+        int startC = 0, endC = matrix[0].length - 1;
+
+        while (startR &lt;= endR &amp;&amp; startC &lt;= endC) {
+            // 上面一行遍历
+            for (int c = startC; c &lt;= endC; c++) {
+                ans.add(matrix[startR][c]);
+            }
+            // 右边一列遍历，起始位置应该start+1
+            for (int r = startR + 1; r &lt;= endR; r++) {
+                ans.add(matrix[r][endC]);
+            }
+            // 倒序遍历
+            if (startR &lt; endR &amp;&amp; startC &lt; endC) {
+                // 下面一行遍历:从倒数第二个到第一个
+                for (int c = endC - 1; c &gt; startC; c--) {
+                    ans.add(matrix[endR][c]);
+                }
+                // 左边一行遍历:从倒数第二个到正数第二个
+                for (int r = endR; r &gt; startR; r--) {
+                    ans.add(matrix[r][startC]);
+                }
+            }
+            // 矩阵内缩
+            startR++;
+            endR--;
+            startC++;
+            endC--;
+        }
+        return ans;
+    }
+}
+</code></pre>
+<h3 id="螺旋矩阵ii">螺旋矩阵II</h3>
+<pre><code class="language-java">class Solution {
+    public int[][] generateMatrix(int n) {
+        int[][] res = new int[n][n];
+        int startC = 0, endC = n - 1;
+        int startR = 0, endR = n - 1;
+        int i = 1;
+        while (startC &lt;= endC &amp;&amp; startR &lt;= endR) {
+            for (int c = startC; c &lt;= endC; c++) {
+                res[startR][c] = i++;
+            }
+            for (int r = startR + 1; r &lt;= endR; r++) {
+                res[r][endC] = i++;
+            }
+            if (startC &lt; endC &amp;&amp; startR &lt; endR) {
+                for (int c = endC - 1; c &gt; startC; c--) {
+                    res[endR][c] = i++;
+                }
+                for (int r = endR; r &gt; startR; r--) {
+                    res[r][startC] = i++;
+                }
+            }
+            startC++;
+            startR++;
+            endC--;
+            endR--;
+        }
+        return res;
+    }
+}
+</code></pre>
+<h3 id="买卖股票的最佳时机ii">买卖股票的最佳时机II</h3>
+<pre><code class="language-java">class Solution {
+    public int maxProfit(int[] prices) {
+        if (prices.length &lt; 2) {
+            return 0;
+        }
+        int max = prices[prices.length - 1];
+        int min = max;
+        int res = 0;
+        for (int i = prices.length - 1; i &gt;= 0; i--) {
+            if (prices[i] &gt;= max) {
+                res = res + max - min;
+                max = prices[i];
+                min = max;
+            } else if (prices[i] &lt;= min) {
+                min = prices[i];
+            } else {
+                res = res + max - min;
+                max = prices[i];
+                min = max;
+            }
+        }
+        res = res + max - min;
+        return res;
+    }
+}
+</code></pre>
+<h3 id="合并两个有序数组">合并两个有序数组</h3>
+<p>给出两个有序数组，将B数组合并进A数组<br>
+方法：倒序插入<br>
+获得合并后的尾指针和两个数组的尾指针，逐渐向内移动尾指针，比较两个数组中的值，决定将哪一个赋值给对应的位置</p>
+<pre><code class="language-java">class Solution {
+    public void merge(int[] nums1, int m, int[] nums2, int n) {
+        int i = m + n - 1, j = m - 1, k = n - 1;
+        while (j &gt;= 0 &amp;&amp; k &gt;= 0) {
+            nums1[i--] = (nums1[j] &gt; nums2[k]) ? nums1[j--] : nums2[k--];
+        }
+        while (k &gt;= 0) {
+            nums1[i--] = nums2[k--];
+        }
+    }
+}
+</code></pre>
+<h3 id="被围绕的区域">被围绕的区域</h3>
+<ul>
+<li>DFS</li>
+</ul>
+<pre><code class="language-java">class Solution {
+    public void solve(char[][] board) {
+        if(board == null || board.length == 0) return;
+        int m = board.length;
+        int n = board[0].length;
+        // 对于在边界出现的O进行DFS
+        for (int i = 0; i &lt; m; i++) {
+            for (int j = 0; j &lt; n; j++) {
+                boolean isEdge = (i == 0 || j == 0 || i == m - 1 || j == n - 1);
+                if (isEdge &amp;&amp; board[i][j] == 'O') {
+                    dfs(board, i, j);
+                }
+            }
+        }
+        // DFS后，无法替换的O已经被置换成#，这里将其置换回来
+        for (int i = 0; i &lt; m; i++) {
+            for (int j = 0; j &lt; n; j++) {
+                if (board[i][j] == 'O') {
+                    board[i][j] = 'X';
+                }
+                if (board[i][j] == '#') {
+                    board[i][j] = 'O';
+                }
+            }
+        }
+    }
+
+    /**
+     * 深度优先遍历递归
+     * @param board
+     * @param i
+     * @param j
+     */
+    public void dfs(char[][] board, int i, int j) {
+        // 对非边界的O进行查找，替换为#
+        if (i &lt; 0 || j &lt; 0 || i &gt;= board.length || j &gt;= board[0].length || board[i][j] == 'X' || board[i][j] == '#') {
+            return;
+        }
+        board[i][j] = '#';
+        dfs(board, i - 1, j);
+        dfs(board, i + 1, j);
+        dfs(board, i, j - 1);
+        dfs(board, i, j + 1);
+    }
+
+}
+</code></pre>
+<h3 id="分割回文串">分割回文串</h3>
+<pre><code class="language-java">class Solution {
+    private String s;
+    private List&lt;List&lt;String&gt;&gt; result = new ArrayList&lt;&gt;();
+
+    /**
+     * 验证s[i,j]子串是否是回文
+     * @param i i
+     * @param j j
+     * @return a[i,j]是否为回文
+     */
+    private boolean validate(int i, int j){
+        while(i &lt; j){
+            if(s.charAt(i) != s.charAt(j)) {
+                return false;
+            }
+            i++;
+            j--;
+        }
+        return true;
+    }
+
+    /**
+     *
+     * @param s 字符串
+     * @param list  将分割的字符串存储在 list中
+     * @param index index，在字符串中的下标
+     */
+    private void f(String s, List&lt;String&gt; list, int index){
+        // 当下标移动至结尾时，就可以将其添加到result中
+        if(index &gt;= s.length()){
+            result.add(new ArrayList&lt;&gt;(list));
+            return;
+        }
+        // 从index开始判断s[index, i]子串是否是回文串
+        for(int i = index; i &lt; s.length(); i++){
+            // 如果是回文串，放入list中，然后对
+            if(validate(index, i)){
+                list.add(s.substring(index, i + 1));
+                f(s, list, i + 1);
+                list.remove(list.size() - 1);
+            }
+        }
+    }
+
+    public List&lt;List&lt;String&gt;&gt; partition(String s) {
+        if(s.equals(&quot;&quot;)||s.length()==0) {
+            return result;
+        }
+        this.s=s;
+        f(s, new ArrayList&lt;&gt;(), 0);
+        return result;
+    }
+}
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#%E6%95%B0%E7%BB%84%E4%B8%AD%E7%AC%ACk%E4%B8%AA%E6%9C%80%E5%A4%A7%E7%9A%84%E5%85%83%E7%B4%A0">数组中第k个最大的元素</a></li>
+<li><a href="#%E6%9C%80%E9%95%BF%E8%BF%9E%E7%BB%AD%E5%BA%8F%E5%88%97">最长连续序列</a></li>
+<li><a href="#%E8%9E%BA%E6%97%8B%E7%9F%A9%E9%98%B5">螺旋矩阵</a></li>
+<li><a href="#%E8%9E%BA%E6%97%8B%E7%9F%A9%E9%98%B5ii">螺旋矩阵II</a></li>
+<li><a href="#%E4%B9%B0%E5%8D%96%E8%82%A1%E7%A5%A8%E7%9A%84%E6%9C%80%E4%BD%B3%E6%97%B6%E6%9C%BAii">买卖股票的最佳时机II</a></li>
+<li><a href="#%E5%90%88%E5%B9%B6%E4%B8%A4%E4%B8%AA%E6%9C%89%E5%BA%8F%E6%95%B0%E7%BB%84">合并两个有序数组</a></li>
+<li><a href="#%E8%A2%AB%E5%9B%B4%E7%BB%95%E7%9A%84%E5%8C%BA%E5%9F%9F">被围绕的区域</a></li>
+<li><a href="#%E5%88%86%E5%89%B2%E5%9B%9E%E6%96%87%E4%B8%B2">分割回文串</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/VpOnun9ms/">
+              <h3 class="post-title">
+                n&amp;(n-1) 特性、异或、Bitmap处理用户画像
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
