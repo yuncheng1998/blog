@@ -1,368 +1,328 @@
-<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8" >
-
-<title>文章归档 | 云程的BLOG</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619502296411">
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619502355741">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
 
-<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-
-
-
-    <meta name="description" content="潜龙勿用">
-  </head>
-  <body>
-    <div id="app" class="main">
-
-      <div class="sidebar" :class="{ 'full-height': menuVisible }">
-  <div class="top-container" data-aos="fade-right">
-    <div class="top-header-container">
-      <a class="site-title-container" href="https://yuncheng1998.github.io">
-        <img src="https://yuncheng1998.github.io/images/avatar.png?v=1619502296411" class="site-logo">
-        <h1 class="site-title">云程的BLOG</h1>
-      </a>
-      <div class="menu-btn" @click="menuVisible = !menuVisible">
-        <div class="line"></div>
-      </div>
-    </div>
-    <div>
-      
-        
-          <a href="/" class="site-nav">
-            首页
-          </a>
-        
-      
-        
-          <a href="/archives" class="site-nav">
-            归档
-          </a>
-        
-      
-        
-          <a href="/tags" class="site-nav">
-            标签
-          </a>
-        
-      
-    </div>
-  </div>
-  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
-    <div class="social-container">
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    </div>
-    <div class="site-description">
-      潜龙勿用
-    </div>
-    <div class="site-footer">
-      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">RSS</a>
-    </div>
-  </div>
-</div>
-
-
-      <div class="main-container">
-        <div class="content-container" data-aos="fade-up">
-          
-
-          <h2 class="archives-title">文章归档</h2>
-          <div class="archives-container">
-            
-              <h2 class="year" data-aos="fade-in" data-aos-delay="500">2021</h2>
-              
-                
-                  <article class="post">
-                    <a href="https://yuncheng1998.github.io/post/mArWjG4B0/">
-                      <h2 class="post-title">
-                        朋友圈问题
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-                  <article class="post">
-                    <a href="https://yuncheng1998.github.io/post/Qe7mvB1pJ/">
-                      <h2 class="post-title">
-                        复用类
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-                  <article class="post">
-                    <a href="https://yuncheng1998.github.io/post/gzTjEwfjN/">
-                      <h2 class="post-title">
-                        重读深入理解Java虚拟机（三）—— 读深入理解JVM之类文件结构
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-                  <article class="post">
-                    <a href="https://yuncheng1998.github.io/post/9kojaJwjx/">
-                      <h2 class="post-title">
-                        重读深入理解Java虚拟机（二）—— 垃圾收集器与内存分配
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-                  <article class="post">
-                    <a href="https://yuncheng1998.github.io/post/BSpDNhcfw/">
-                      <h2 class="post-title">
-                        重读深入理解Java虚拟机（一）—— 读深入理解JVM之内存管理
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-                  <article class="post">
-                    <a href="https://yuncheng1998.github.io/post/lXK0TE-8V/">
-                      <h2 class="post-title">
-                        算法周记（启发式搜索、有限内存中大数据量中查找、找出数组中超过一半的数、不连续的整数中找出最大间隔））
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-                  <article class="post">
-                    <a href="https://yuncheng1998.github.io/post/DX1hNN3hk/">
-                      <h2 class="post-title">
-                        算法周记（第K个最大元素、最长连续序列、螺旋矩阵、股票买卖、合并有序数组、被围绕的区域、分割回文串）
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-                  <article class="post">
-                    <a href="https://yuncheng1998.github.io/post/VpOnun9ms/">
-                      <h2 class="post-title">
-                        n&amp;(n-1) 特性、异或、Bitmap处理用户画像
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-                  <article class="post">
-                    <a href="https://yuncheng1998.github.io/post/ffJJJTXS7/">
-                      <h2 class="post-title">
-                        算法周记（两数之和、整数反转、最接近的三数之和、盛水最多的容器、全排列、最长公共前缀、爬楼梯）
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-                  <article class="post">
-                    <a href="https://yuncheng1998.github.io/post/clean-code/">
-                      <h2 class="post-title">
-                        Clean Code
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-                  <article class="post">
-                    <a href="https://yuncheng1998.github.io/post/tiao-yue-biao/">
-                      <h2 class="post-title">
-                        跳跃表
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-            
-              <h2 class="year" data-aos="fade-in" data-aos-delay="500">2019</h2>
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-                  <article class="post">
-                    <a href="https://yuncheng1998.github.io/post/try-catch/">
-                      <h2 class="post-title">
-                        增强try-catch
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-                  <article class="post">
-                    <a href="https://yuncheng1998.github.io/post/about/">
-                      <h2 class="post-title">
-                        蓄水池采样、Rand7和洗牌算法
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-            
-              <h2 class="year" data-aos="fade-in" data-aos-delay="500">2018</h2>
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-              
-                
-                  <article class="post">
-                    <a href="https://yuncheng1998.github.io/post/RaTIwMx1D1/">
-                      <h2 class="post-title">
-                        设计模式（二）观察者模式
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-                  <article class="post">
-                    <a href="https://yuncheng1998.github.io/post/rMHlGl4Vl/">
-                      <h2 class="post-title">
-                        设计模式（一）策略模式
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-                  <article class="post">
-                    <a href="https://yuncheng1998.github.io/post/6wlIWcm7x/">
-                      <h2 class="post-title">
-                        区块链技术（二）浅谈区块链
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-                  <article class="post">
-                    <a href="https://yuncheng1998.github.io/post/8Ty_r0ipV1/">
-                      <h2 class="post-title">
-                        区块链技术（一）Python实现简单区块链
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-            
-          </div>
-
-          <div class="pagination-container">
-  
-  
-</div>
-
-        </div>
-      </div>
-    </div>
-
-    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
-<script type="application/javascript">
-
-AOS.init();
-
-var app = new Vue({
-  el: '#app',
-  data: {
-    menuVisible: false,
-  },
-})
-
+  gtag('config', 'UA-144214379-1');
 </script>
 
 
+    <meta name="description" content="潜龙勿用" />
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619502355741" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
 
+    
+        
 
+<div class="archives-container">
+  
+    <h2 class="year">2021</h2>
+    
+      
+        <a href="https://yuncheng1998.github.io/post/mArWjG4B0/" class="post">
+          <h2 class="post-title">
+            朋友圈问题
+          </h2>
+          <div class="time">2021-04-17</div>
+        </a>
+      
+    
+      
+        <a href="https://yuncheng1998.github.io/post/Qe7mvB1pJ/" class="post">
+          <h2 class="post-title">
+            复用类
+          </h2>
+          <div class="time">2021-04-12</div>
+        </a>
+      
+    
+      
+        <a href="https://yuncheng1998.github.io/post/gzTjEwfjN/" class="post">
+          <h2 class="post-title">
+            重读深入理解Java虚拟机（三）—— 读深入理解JVM之类文件结构
+          </h2>
+          <div class="time">2021-04-12</div>
+        </a>
+      
+    
+      
+        <a href="https://yuncheng1998.github.io/post/9kojaJwjx/" class="post">
+          <h2 class="post-title">
+            重读深入理解Java虚拟机（二）—— 垃圾收集器与内存分配
+          </h2>
+          <div class="time">2021-04-12</div>
+        </a>
+      
+    
+      
+        <a href="https://yuncheng1998.github.io/post/BSpDNhcfw/" class="post">
+          <h2 class="post-title">
+            重读深入理解Java虚拟机（一）—— 读深入理解JVM之内存管理
+          </h2>
+          <div class="time">2021-04-12</div>
+        </a>
+      
+    
+      
+        <a href="https://yuncheng1998.github.io/post/lXK0TE-8V/" class="post">
+          <h2 class="post-title">
+            算法周记（启发式搜索、有限内存中大数据量中查找、找出数组中超过一半的数、不连续的整数中找出最大间隔））
+          </h2>
+          <div class="time">2021-04-11</div>
+        </a>
+      
+    
+      
+        <a href="https://yuncheng1998.github.io/post/DX1hNN3hk/" class="post">
+          <h2 class="post-title">
+            算法周记（第K个最大元素、最长连续序列、螺旋矩阵、股票买卖、合并有序数组、被围绕的区域、分割回文串）
+          </h2>
+          <div class="time">2021-04-11</div>
+        </a>
+      
+    
+      
+        <a href="https://yuncheng1998.github.io/post/VpOnun9ms/" class="post">
+          <h2 class="post-title">
+            n&amp;(n-1) 特性、异或、Bitmap处理用户画像
+          </h2>
+          <div class="time">2021-04-11</div>
+        </a>
+      
+    
+      
+        <a href="https://yuncheng1998.github.io/post/ffJJJTXS7/" class="post">
+          <h2 class="post-title">
+            算法周记（两数之和、整数反转、最接近的三数之和、盛水最多的容器、全排列、最长公共前缀、爬楼梯）
+          </h2>
+          <div class="time">2021-04-11</div>
+        </a>
+      
+    
+      
+        <a href="https://yuncheng1998.github.io/post/clean-code/" class="post">
+          <h2 class="post-title">
+            Clean Code
+          </h2>
+          <div class="time">2021-04-11</div>
+        </a>
+      
+    
+      
+        <a href="https://yuncheng1998.github.io/post/tiao-yue-biao/" class="post">
+          <h2 class="post-title">
+            跳跃表
+          </h2>
+          <div class="time">2021-04-11</div>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  
+    <h2 class="year">2019</h2>
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+        <a href="https://yuncheng1998.github.io/post/try-catch/" class="post">
+          <h2 class="post-title">
+            增强try-catch
+          </h2>
+          <div class="time">2019-07-12</div>
+        </a>
+      
+    
+      
+        <a href="https://yuncheng1998.github.io/post/about/" class="post">
+          <h2 class="post-title">
+            蓄水池采样、Rand7和洗牌算法
+          </h2>
+          <div class="time">2019-01-25</div>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  
+    <h2 class="year">2018</h2>
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+        <a href="https://yuncheng1998.github.io/post/RaTIwMx1D1/" class="post">
+          <h2 class="post-title">
+            设计模式（二）观察者模式
+          </h2>
+          <div class="time">2018-04-05</div>
+        </a>
+      
+    
+      
+        <a href="https://yuncheng1998.github.io/post/rMHlGl4Vl/" class="post">
+          <h2 class="post-title">
+            设计模式（一）策略模式
+          </h2>
+          <div class="time">2018-04-01</div>
+        </a>
+      
+    
+      
+        <a href="https://yuncheng1998.github.io/post/6wlIWcm7x/" class="post">
+          <h2 class="post-title">
+            区块链技术（二）浅谈区块链
+          </h2>
+          <div class="time">2018-03-30</div>
+        </a>
+      
+    
+      
+        <a href="https://yuncheng1998.github.io/post/8Ty_r0ipV1/" class="post">
+          <h2 class="post-title">
+            区块链技术（一）Python实现简单区块链
+          </h2>
+          <div class="time">2018-03-24</div>
+        </a>
+      
+    
+  
+</div>
 
+    
+        <div class="pagination-container">
+  
+  
+</div>
 
+    
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
   </body>
 </html>

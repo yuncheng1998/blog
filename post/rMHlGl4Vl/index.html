@@ -1,95 +1,98 @@
-<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8" >
-
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>设计模式（一）策略模式 | 云程的BLOG</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619502296411">
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619502355741">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="设计模式（一）策略模式 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
 
-<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-
+  gtag('config', 'UA-144214379-1');
+</script>
 
 
     <meta name="description" content="简单说下设计模式
 ​	设计模式 ( Design Pattern ) 是开发人员在软件开发的长期过程中总结出来的，代表着最佳的实践方案。使用设计模式重用代码，使代码更容易被理解，逻辑更加清晰，特别是在重构和增改需求的时候，一个良好的设计模式..." />
     <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
   </head>
   <body>
-    <div id="app" class="main">
-
-      <div class="sidebar" :class="{ 'full-height': menuVisible }">
-  <div class="top-container" data-aos="fade-right">
-    <div class="top-header-container">
-      <a class="site-title-container" href="https://yuncheng1998.github.io">
-        <img src="https://yuncheng1998.github.io/images/avatar.png?v=1619502296411" class="site-logo">
-        <h1 class="site-title">云程的BLOG</h1>
-      </a>
-      <div class="menu-btn" @click="menuVisible = !menuVisible">
-        <div class="line"></div>
-      </div>
-    </div>
-    <div>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619502355741" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
       
-        
-          <a href="/" class="site-nav">
-            首页
-          </a>
-        
+        <a href="/" class="menu">
+          首页
+        </a>
       
-        
-          <a href="/archives" class="site-nav">
-            归档
-          </a>
-        
+    
       
-        
-          <a href="/tags" class="site-nav">
-            标签
-          </a>
-        
+        <a href="/archives" class="menu">
+          归档
+        </a>
       
-    </div>
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
   </div>
-  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
-    <div class="social-container">
+  <div class="social-container">
+    
       
-        
+    
       
-        
+    
       
-        
+    
       
-        
+    
       
-        
-      
-    </div>
-    <div class="site-description">
-      潜龙勿用
-    </div>
-    <div class="site-footer">
-      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">RSS</a>
-    </div>
+    
   </div>
 </div>
 
-
-      <div class="main-container">
-        <div class="content-container" data-aos="fade-up">
-          <div class="post-detail">
-            <h2 class="post-title">设计模式（一）策略模式</h2>
-            <div class="post-date">2018-04-01</div>
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              设计模式（一）策略模式
+            </h2>
+            <div class="post-info">
+              <span>
+                2018-04-01
+              </span>
+              <span>
+                6 min read
+              </span>
+              
+            </div>
             
-            <div class="post-content" v-pre>
-              <h4 id="简单说下设计模式">简单说下设计模式</h4>
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h4 id="简单说下设计模式">简单说下设计模式</h4>
 <p>​	设计模式 ( Design Pattern ) 是开发人员在软件开发的长期过程中总结出来的，代表着最佳的实践方案。使用设计模式重用代码，使代码更容易被理解，逻辑更加清晰，特别是在重构和增改需求的时候，一个良好的设计模式使其更加方便。</p>
 <h4 id="问题的提出">问题的提出</h4>
 <p>​	参考 <em>Head First 设计模式</em> 一书中策略模式的例子，要求设计一个鸭子游戏，这就需要我们实现若干不同种类的鸭子。</p>
@@ -351,45 +354,99 @@ public class ConcreteStrategyB implements Strategy {
 <h4 id="参考来源">参考来源</h4>
 <p>​	<a href="https://blog.csdn.net/u012124438/article/details/70039943">设计模式学习之策略模式</a></p>
 
-            </div>
-            
-            
-              <div class="next-post">
-                <div class="next">下一篇</div>
-                <a href="https://yuncheng1998.github.io/post/6wlIWcm7x/">
-                  <h3 class="post-title">
-                    区块链技术（二）浅谈区块链
-                  </h3>
-                </a>
               </div>
-            
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#%E7%AE%80%E5%8D%95%E8%AF%B4%E4%B8%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F">简单说下设计模式</a></li>
+<li><a href="#%E9%97%AE%E9%A2%98%E7%9A%84%E6%8F%90%E5%87%BA">问题的提出</a></li>
+<li><a href="#%E4%BD%BF%E7%94%A8%E7%AD%96%E7%95%A5%E6%A8%A1%E5%BC%8F%E8%BF%9B%E8%A1%8C%E8%AE%BE%E8%AE%A1">使用策略模式进行设计</a></li>
+<li><a href="#%E6%9C%80%E7%BB%88%E5%AE%9E%E7%8E%B0">最终实现</a></li>
+<li><a href="#%E7%AD%96%E7%95%A5%E6%A8%A1%E5%BC%8F">策略模式</a></li>
+<li><a href="#%E7%AD%96%E7%95%A5%E6%A8%A1%E5%BC%8F%E7%9A%84%E7%BB%84%E6%88%90">策略模式的组成</a></li>
+<li><a href="#%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF">使用场景</a></li>
+<li><a href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81">完整代码</a></li>
+<li><a href="#%E5%8F%82%E8%80%83%E6%9D%A5%E6%BA%90">参考来源</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 
-            
-
-          </div>
-
+              </div>
+            </div>
+          </article>
         </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/6wlIWcm7x/">
+              <h3 class="post-title">
+                区块链技术（二）浅谈区块链
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
       </div>
     </div>
 
-    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
-<script type="application/javascript">
+    <script>
+      hljs.initHighlightingOnLoad()
 
-AOS.init();
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
 
-var app = new Vue({
-  el: '#app',
-  data: {
-    menuVisible: false,
-  },
-})
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
 
-</script>
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
 
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
 
-
-
-
-
+    </script>
   </body>
 </html>
