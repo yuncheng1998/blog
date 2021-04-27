@@ -1,23 +1,21 @@
+<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" >
+
 <title>重读深入理解Java虚拟机（二）—— 垃圾收集器与内存分配 | 云程的BLOG</title>
-<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619501761315">
-<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619501851426">
 <link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
-<link rel="alternate" type="application/atom+xml" title="重读深入理解Java虚拟机（二）—— 垃圾收集器与内存分配 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
 
-  gtag('config', 'UA-144214379-1');
-</script>
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
 
 
     <meta name="description" content="重读深入理解Java虚拟机计划 垃圾收集器与内存分配
@@ -35,84 +33,75 @@ Java堆和方法区是垃圾回收器关注的内存
 
 判断对..." />
     <meta name="keywords" content="JVM,读书笔记" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
-    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
   </head>
   <body>
-    <div class="main">
-      <div class="main-content">
-        <div class="site-header">
-  <a href="https://yuncheng1998.github.io">
-  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619501761315" alt="">
-  </a>
-  <h1 class="site-title">
-    云程的BLOG
-  </h1>
-  <p class="site-description">
-    潜龙勿用
-  </p>
-  <div class="menu-container">
-    
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://yuncheng1998.github.io">
+        <img src="https://yuncheng1998.github.io/images/avatar.png?v=1619501851426" class="site-logo">
+        <h1 class="site-title">云程的BLOG</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
       
-        <a href="/" class="menu">
-          首页
-        </a>
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
       
-    
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
       
-        <a href="/archives" class="menu">
-          归档
-        </a>
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
       
-    
-      
-        <a href="/tags" class="menu">
-          标签
-        </a>
-      
-    
+    </div>
   </div>
-  <div class="social-container">
-    
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
       
-    
+        
       
-    
+        
       
-    
+        
       
-    
+        
       
-    
+        
+      
+    </div>
+    <div class="site-description">
+      潜龙勿用
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
   </div>
 </div>
 
-        <div class="post-detail">
-          <article class="post">
-            <h2 class="post-title">
-              重读深入理解Java虚拟机（二）—— 垃圾收集器与内存分配
-            </h2>
-            <div class="post-info">
-              <span>
-                2021-04-12
-              </span>
-              <span>
-                7 min read
-              </span>
-              
-                <a href="https://yuncheng1998.github.io/tag/dUzz8hia8/" class="post-tag">
-                  # JVM
-                </a>
-              
-                <a href="https://yuncheng1998.github.io/tag/WrIED4MPc/" class="post-tag">
-                  # 读书笔记
-                </a>
-              
-            </div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">重读深入理解Java虚拟机（二）—— 垃圾收集器与内存分配</h2>
+            <div class="post-date">2021-04-12</div>
             
-            <div class="post-content-wrapper">
-              <div class="post-content">
-                <p>重读深入理解Java虚拟机计划 <strong>垃圾收集器与内存分配</strong></p>
+            <div class="post-content" v-pre>
+              <p>重读深入理解Java虚拟机计划 <strong>垃圾收集器与内存分配</strong></p>
 <h2 id="线程独占和线程共享区域">线程独占和线程共享区域</h2>
 <h3 id="线程独立区域随线程结束回收">线程独立区域随线程结束回收</h3>
 <ul>
@@ -538,132 +527,57 @@ Java堆和方法区是垃圾回收器关注的内存
 </ul>
 <p><em>XMind: ZEN - Trial Version</em></p>
 
-              </div>
-              <div class="toc-container">
-                <ul class="markdownIt-TOC">
-<li>
-<ul>
-<li><a href="#%E7%BA%BF%E7%A8%8B%E7%8B%AC%E5%8D%A0%E5%92%8C%E7%BA%BF%E7%A8%8B%E5%85%B1%E4%BA%AB%E5%8C%BA%E5%9F%9F">线程独占和线程共享区域</a>
-<ul>
-<li><a href="#%E7%BA%BF%E7%A8%8B%E7%8B%AC%E7%AB%8B%E5%8C%BA%E5%9F%9F%E9%9A%8F%E7%BA%BF%E7%A8%8B%E7%BB%93%E6%9D%9F%E5%9B%9E%E6%94%B6">线程独立区域随线程结束回收</a></li>
-<li><a href="#java%E5%A0%86%E5%92%8C%E6%96%B9%E6%B3%95%E5%8C%BA%E6%98%AF%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8%E5%85%B3%E6%B3%A8%E7%9A%84%E5%86%85%E5%AD%98">Java堆和方法区是垃圾回收器关注的内存</a></li>
-</ul>
-</li>
-<li><a href="#%E5%88%A4%E6%96%AD%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%90%A6%E9%9C%80%E8%A6%81%E5%9B%9E%E6%94%B6">判断对象是否需要回收</a>
-<ul>
-<li><a href="#%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0%E6%B3%95">引用计数法</a></li>
-<li><a href="#%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90%E6%B3%95">可达性分析法</a></li>
-<li><a href="#%E5%BC%95%E7%94%A8">引用</a></li>
-</ul>
-</li>
-<li><a href="#%E6%96%B9%E6%B3%95%E5%8C%BA%E7%9A%84%E5%9B%9E%E6%94%B6">方法区的回收</a>
-<ul>
-<li><a href="#%E5%9B%9E%E6%94%B6%E5%AF%B9%E8%B1%A1%E5%BA%9F%E5%BC%83%E5%B8%B8%E9%87%8F%E5%92%8C%E6%97%A0%E7%94%A8%E7%9A%84%E7%B1%BB">回收对象：废弃常量和无用的类</a></li>
-<li><a href="#%E5%BA%9F%E5%BC%83%E5%B8%B8%E9%87%8F">废弃常量</a></li>
-<li><a href="#%E6%97%A0%E7%94%A8%E7%9A%84%E7%B1%BB">无用的类</a></li>
-</ul>
-</li>
-<li><a href="#%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95">垃圾收集算法</a>
-<ul>
-<li><a href="#%E6%A0%87%E8%AE%B0%E6%B8%85%E9%99%A4%E7%AE%97%E6%B3%95">标记清除算法</a></li>
-<li><a href="#%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95">复制算法</a></li>
-<li><a href="#%E6%A0%87%E8%AE%B0%E6%95%B4%E7%90%86%E7%AE%97%E6%B3%95">标记整理算法</a></li>
-<li><a href="#%E5%88%86%E4%BB%A3%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95">分代收集算法</a></li>
-</ul>
-</li>
-<li><a href="#hotspot%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0">HotSpot算法实现</a>
-<ul>
-<li><a href="#%E6%9E%9A%E4%B8%BE%E6%A0%B9%E8%8A%82%E7%82%B9">枚举根节点</a></li>
-<li><a href="#%E5%AE%89%E5%85%A8%E7%82%B9">安全点</a></li>
-<li><a href="#%E5%AE%89%E5%85%A8%E5%8C%BA%E5%9F%9F">安全区域</a></li>
-</ul>
-</li>
-<li><a href="#%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8">垃圾收集器</a>
-<ul>
-<li><a href="#%E6%96%B0%E7%94%9F%E4%BB%A3">新生代</a></li>
-<li><a href="#%E8%80%81%E5%B9%B4%E4%BB%A3">老年代</a></li>
-<li><a href="#g1">G1</a></li>
-</ul>
-</li>
-<li><a href="#%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%B8%8E%E5%9B%9E%E6%94%B6%E7%AD%96%E7%95%A5">内存分配与回收策略</a>
-<ul>
-<li><a href="#%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%88%86%E9%85%8D">对象的分配</a></li>
-<li><a href="#%E4%B8%A4%E7%A7%8D%E6%83%85%E5%86%B5%E8%BF%9B%E5%85%A5%E8%80%81%E5%B9%B4%E4%BB%A3">两种情况进入老年代</a></li>
-<li><a href="#%E7%A9%BA%E9%97%B4%E5%88%86%E9%85%8D%E6%8B%85%E4%BF%9D">空间分配担保</a></li>
-<li><a href="#minor-gc%E4%B8%8Efull-gc">Minor GC与Full GC</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-              </div>
             </div>
-          </article>
-        </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://yuncheng1998.github.io/tag/dUzz8hia8/" class="tag">
+                    JVM
+                  </a>
+                
+                  <a href="https://yuncheng1998.github.io/tag/WrIED4MPc/" class="tag">
+                    读书笔记
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://yuncheng1998.github.io/post/BSpDNhcfw/">
+                  <h3 class="post-title">
+                    重读深入理解Java虚拟机（一）—— 读深入理解JVM之内存管理
+                  </h3>
+                </a>
+              </div>
+            
 
-        
-          <div class="next-post">
-            <div class="next">下一篇</div>
-            <a href="https://yuncheng1998.github.io/post/BSpDNhcfw/">
-              <h3 class="post-title">
-                重读深入理解Java虚拟机（一）—— 读深入理解JVM之内存管理
-              </h3>
-            </a>
+            
+
           </div>
-        
 
-        
-
-        <div class="site-footer">
-  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
-  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
-    <i class="ri-rss-line"></i> RSS
-  </a>
-</div>
-
+        </div>
       </div>
     </div>
 
-    <script>
-      hljs.initHighlightingOnLoad()
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
 
-      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+AOS.init();
 
-      // This should probably be throttled.
-      // Especially because it triggers during smooth scrolling.
-      // https://lodash.com/docs/4.17.10#throttle
-      // You could do like...
-      // window.addEventListener("scroll", () => {
-      //    _.throttle(doThatStuff, 100);
-      // });
-      // Only not doing it here to keep this Pen dependency-free.
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
 
-      window.addEventListener("scroll", event => {
-        let fromTop = window.scrollY;
+</script>
 
-        mainNavLinks.forEach((link, index) => {
-          let section = document.getElementById(decodeURI(link.hash).substring(1));
-          let nextSection = null
-          if (mainNavLinks[index + 1]) {
-            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
-          }
-          if (section.offsetTop <= fromTop) {
-            if (nextSection) {
-              if (nextSection.offsetTop > fromTop) {
-                link.classList.add("current");
-              } else {
-                link.classList.remove("current");    
-              }
-            } else {
-              link.classList.add("current");
-            }
-          } else {
-            link.classList.remove("current");
-          }
-        });
-      });
 
-    </script>
+
+
+
+
   </body>
 </html>

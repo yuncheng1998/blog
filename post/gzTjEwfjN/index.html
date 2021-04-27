@@ -1,23 +1,21 @@
+<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" >
+
 <title>重读深入理解Java虚拟机（三）—— 读深入理解JVM之类文件结构 | 云程的BLOG</title>
-<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619501761315">
-<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619501851426">
 <link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
-<link rel="alternate" type="application/atom+xml" title="重读深入理解Java虚拟机（三）—— 读深入理解JVM之类文件结构 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
 
-  gtag('config', 'UA-144214379-1');
-</script>
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
 
 
     <meta name="description" content="类文件结构
@@ -34,84 +32,75 @@
 
 虚拟机只执行字节码文件，而不关..." />
     <meta name="keywords" content="JVM,读书笔记" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
-    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
   </head>
   <body>
-    <div class="main">
-      <div class="main-content">
-        <div class="site-header">
-  <a href="https://yuncheng1998.github.io">
-  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619501761315" alt="">
-  </a>
-  <h1 class="site-title">
-    云程的BLOG
-  </h1>
-  <p class="site-description">
-    潜龙勿用
-  </p>
-  <div class="menu-container">
-    
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://yuncheng1998.github.io">
+        <img src="https://yuncheng1998.github.io/images/avatar.png?v=1619501851426" class="site-logo">
+        <h1 class="site-title">云程的BLOG</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
       
-        <a href="/" class="menu">
-          首页
-        </a>
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
       
-    
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
       
-        <a href="/archives" class="menu">
-          归档
-        </a>
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
       
-    
-      
-        <a href="/tags" class="menu">
-          标签
-        </a>
-      
-    
+    </div>
   </div>
-  <div class="social-container">
-    
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
       
-    
+        
       
-    
+        
       
-    
+        
       
-    
+        
       
-    
+        
+      
+    </div>
+    <div class="site-description">
+      潜龙勿用
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
   </div>
 </div>
 
-        <div class="post-detail">
-          <article class="post">
-            <h2 class="post-title">
-              重读深入理解Java虚拟机（三）—— 读深入理解JVM之类文件结构
-            </h2>
-            <div class="post-info">
-              <span>
-                2021-04-12
-              </span>
-              <span>
-                8 min read
-              </span>
-              
-                <a href="https://yuncheng1998.github.io/tag/dUzz8hia8/" class="post-tag">
-                  # JVM
-                </a>
-              
-                <a href="https://yuncheng1998.github.io/tag/WrIED4MPc/" class="post-tag">
-                  # 读书笔记
-                </a>
-              
-            </div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">重读深入理解Java虚拟机（三）—— 读深入理解JVM之类文件结构</h2>
+            <div class="post-date">2021-04-12</div>
             
-            <div class="post-content-wrapper">
-              <div class="post-content">
-                <h1 id="类文件结构">类文件结构</h1>
+            <div class="post-content" v-pre>
+              <h1 id="类文件结构">类文件结构</h1>
 <p>最近在读 <a href="https://book.douban.com/subject/24722612/"><em>深入理解 Java虚拟机</em></a>，这里列出类文件结构部分大纲，还需配合该书进行学习。</p>
 <h3 id="无关性">无关性</h3>
 <ul>
@@ -900,92 +889,57 @@
 </li>
 </ul>
 
-              </div>
-              <div class="toc-container">
-                <ul class="markdownIt-TOC">
-<li><a href="#%E7%B1%BB%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84">类文件结构</a><br>
-*
-<ul>
-<li><a href="#%E6%97%A0%E5%85%B3%E6%80%A7">无关性</a></li>
-<li><a href="#class%E7%B1%BB%E6%96%87%E4%BB%B6%E7%9A%84%E7%BB%93%E6%9E%84">Class类文件的结构</a>
-<ul>
-<li><a href="#%E6%B3%A8%E6%84%8F">注意</a></li>
-<li><a href="#%E4%B8%A4%E7%A7%8D%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B">两种数据类型</a></li>
-<li><a href="#%E9%9B%86%E5%90%88">集合</a></li>
-<li><a href="#%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F">文件格式</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-              </div>
             </div>
-          </article>
-        </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://yuncheng1998.github.io/tag/dUzz8hia8/" class="tag">
+                    JVM
+                  </a>
+                
+                  <a href="https://yuncheng1998.github.io/tag/WrIED4MPc/" class="tag">
+                    读书笔记
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://yuncheng1998.github.io/post/9kojaJwjx/">
+                  <h3 class="post-title">
+                    重读深入理解Java虚拟机（二）—— 垃圾收集器与内存分配
+                  </h3>
+                </a>
+              </div>
+            
 
-        
-          <div class="next-post">
-            <div class="next">下一篇</div>
-            <a href="https://yuncheng1998.github.io/post/9kojaJwjx/">
-              <h3 class="post-title">
-                重读深入理解Java虚拟机（二）—— 垃圾收集器与内存分配
-              </h3>
-            </a>
+            
+
           </div>
-        
 
-        
-
-        <div class="site-footer">
-  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
-  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
-    <i class="ri-rss-line"></i> RSS
-  </a>
-</div>
-
+        </div>
       </div>
     </div>
 
-    <script>
-      hljs.initHighlightingOnLoad()
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
 
-      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+AOS.init();
 
-      // This should probably be throttled.
-      // Especially because it triggers during smooth scrolling.
-      // https://lodash.com/docs/4.17.10#throttle
-      // You could do like...
-      // window.addEventListener("scroll", () => {
-      //    _.throttle(doThatStuff, 100);
-      // });
-      // Only not doing it here to keep this Pen dependency-free.
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
 
-      window.addEventListener("scroll", event => {
-        let fromTop = window.scrollY;
+</script>
 
-        mainNavLinks.forEach((link, index) => {
-          let section = document.getElementById(decodeURI(link.hash).substring(1));
-          let nextSection = null
-          if (mainNavLinks[index + 1]) {
-            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
-          }
-          if (section.offsetTop <= fromTop) {
-            if (nextSection) {
-              if (nextSection.offsetTop > fromTop) {
-                link.classList.add("current");
-              } else {
-                link.classList.remove("current");    
-              }
-            } else {
-              link.classList.add("current");
-            }
-          } else {
-            link.classList.remove("current");
-          }
-        });
-      });
 
-    </script>
+
+
+
+
   </body>
 </html>
