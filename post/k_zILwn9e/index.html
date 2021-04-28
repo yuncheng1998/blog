@@ -1,0 +1,801 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>设计模式（六）命令模式 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619628804045">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="设计模式（六）命令模式 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="提出问题
+如今智能家居越来越普及，人们将所有电器的控制权集中在一个客户端，它可能是一个手机或者智能音箱，这些智能电器必定提供了一系列调用他们功能的 API，而控制器所做的就是调用这些 API。例如灯提供了 on() 和 off() 两个方法..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619628804045" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              设计模式（六）命令模式
+            </h2>
+            <div class="post-info">
+              <span>
+                2018-04-18
+              </span>
+              <span>
+                15 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="提出问题">提出问题</h1>
+<p>如今智能家居越来越普及，人们将所有电器的控制权集中在一个客户端，它可能是一个手机或者智能音箱，这些智能电器必定提供了一系列调用他们功能的 API，而控制器所做的就是调用这些 API。例如灯提供了 on() 和 off() 两个方法，门提供了 open() 和 close() 两个方法，我们使用控制它们就可以写成如下形式</p>
+<pre><code class="language-java">/**
+ * slot为1控制灯，slot为2控制门
+ */
+onButton(slot) {
+    switch(slot) {
+        case 0: light.on();
+        case 1: door.open();
+    }
+}
+offButton(slot) {
+    switch(slot) {
+        case 0: light.off();
+        case 1: door.close();
+    }
+}
+</code></pre>
+<p>这段逻辑虽然看起来简洁易懂，但在实际使用中，由于家电的数量不断增加，我们需要不断修改控制器中这段核心代码，这就是执行者与请求者之间<strong>耦合度过高</strong>导致的。我们要想将其两者解耦，就需要将变化的部分抽象出来作为接口，显然这些控制命令的逻辑代码部分需要被提取出来。</p>
+<h1 id="命令模式">命令模式</h1>
+<p>命令模式可以将动作的请求者从动作的执行者对象中解耦，适用命令模式将所要执行的动作以成命令对象的形式传递，动作的请求者不需要知道各种命令的具体执行方法，就像遥控器不需要知道开门开灯的具体工作一样，只需要知道发出对应的命令信号即可。遥控器只需要发出不同的命令即可，对灯泡的操作封装在命令中。</p>
+<p>我们假定遥控器有七个卡槽，每个卡槽后对应两个按钮，遥控器本身还有一个撤销按键 <em>UNDO</em>，用来取消上一步的操作。我们需要增加对一个电器的控制权时，只需要将它的控制卡插入其中一个卡槽即可。</p>
+<p>这样我们的命令对象需要有两个方法，<em>execute()</em> 执行和 <em>undo()</em> 撤销，执行用于实现发出的控制操作，撤销则使用与之相反的方法即可。</p>
+<p>首先我们定义一些智能家电</p>
+<pre><code class="language-java">/**
+ * 灯
+ */
+public class Light {
+    private final String location;
+
+    public Light(String lightName) {
+        this.location = lightName;
+    }
+
+    public void on() {
+        System.out.println(location + &quot; light on&quot;);
+    }
+    public void off() {
+        System.out.println(location + &quot; light off&quot;);
+    }
+}
+/**
+ * 立体声音响
+ */
+public class Stereo {
+    private final String location;
+
+    public Stereo(String location) {
+        this.location = location;
+    }
+
+    public void on() {
+        System.out.println(location + &quot; stereo is on&quot;);
+    }
+    public void off() {
+        System.out.println(location + &quot; stereo is off&quot;);
+    }
+    public void setCD() {
+        System.out.println(location + &quot;stereo is set for CD input&quot;);
+    }
+    public void setVolume(int volume) {
+        System.out.println(location + &quot;stereo volume set to &quot; + volume);
+    }
+}
+</code></pre>
+<p>然后我们再来编写命令对象，首先实现一个命令接口，然后在具体类中对其进行实现，命令对象包含了 Invoker 要求执行者实现的一系列具体的操作，我们需要将执行者的具体操作封装在一个个命令中。</p>
+<pre><code class="language-java">/**
+ * 命令对象
+ */
+public interface Command {
+    /**
+     * 执行
+     */
+    void execute();
+    /**
+     * 撤销
+     */
+    void undo();
+}
+</code></pre>
+<p>接下来定义开灯命令、关灯命令、打开音响命令、关闭音响命令</p>
+<pre><code class="language-java">/**
+ * 开灯命令
+ */
+public class LightOnCommand implements Command {
+
+    private final Light light;
+
+    public LightOnCommand(Light light) {
+        this.light = light;
+    }
+
+    @Override
+    public void execute() {
+        light.on();
+    }
+
+    @Override
+    public void undo() {
+        light.off();
+    }
+}
+/**
+ * 关灯命令
+ */
+public class LightOffCommand implements Command {
+    private final Light light;
+
+    public LightOffCommand(Light light) {
+        this.light = light;
+    }
+
+    @Override
+    public void execute() {
+        light.off();
+    }
+
+    @Override
+    public void undo() {
+        light.on();
+    }
+}
+/**
+ * 打开CD命令
+ */
+public class StereoOnWithCDCommand implements Command {
+    private Stereo stereo;
+
+    public StereoOnWithCDCommand(Stereo stereo) {
+        this.stereo = stereo;
+    }
+
+    /**
+     * 打开、放入CD、设置音量
+     */
+    @Override
+    public void execute() {
+        stereo.on();
+        stereo.setCD();
+        stereo.setVolume(11);
+    }
+
+    @Override
+    public void undo() {
+        stereo.off();
+    }
+
+}
+/**
+ * 关闭CD音响命令
+ */
+public class StereoOffCommand implements Command {
+    
+    private final Stereo stereo;
+
+    public StereoOffCommand(Stereo stereo) {
+        this.stereo = stereo;
+    }
+
+    @Override
+    public void execute() {
+        stereo.off();
+    }
+
+    @Override
+    public void undo() {
+        stereo.on();
+    }
+}
+</code></pre>
+<p>我们使用一个每次只能发出一个命令的简单遥控器来进行测试</p>
+<pre><code class="language-java">/**
+ * 简单遥控器对象
+ */
+public class SimpleRemoteControl {
+
+    /**
+     * 卡槽
+     */
+    private Command slot;
+
+    /**
+     * 设置卡槽
+     */
+    public void setCommand(Command command) {
+        slot = command;
+    }
+
+    /**
+     * 按下按键
+     */
+    public void buttonWasPressed() {
+        slot.execute();
+    }
+}
+
+public class RemoteControlTest {
+    
+    public static void main(String[] args) {
+        // 开灯和打开音响的命令
+        LightOnCommand lightOn = new LightOnCommand(new Light(&quot;LivingRoom&quot;));
+        StereoOnWithCDCommand stereoOn = new StereoOnWithCDCommand(new Stereo(&quot;Living Room&quot;));
+        // 遥控器
+        SimpleRemoteControl remote = new SimpleRemoteControl();
+        // 插入卡槽
+        remote.setCommand(lightOn);
+        // 按下按键
+        remote.buttonWasPressed();
+        remote.setCommand(stereoOn);
+        remote.buttonWasPressed();
+    }
+}
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://yuncheng1998.github.io/post-images/1619626807781.png" alt="" loading="lazy"></figure>
+<p>我们可以看到，两个按键被按下后，执行者也执行了对应的命令。</p>
+<p>我们要实现的遥控器是有七对按键和一个总的撤销按键，因此使得 <em>UNDO</em> 按键有效，我们必须<strong>对前一个命令进行追踪</strong>，因此我们要建立<strong>两个命令数组</strong>和<strong>一个对前一条命令的引用对象</strong>。另外我们需要考虑的时，在没有对按键设置要发出的命令时，应该将其初始化为什么。相比进行判断而言，直接设置为一个空的命令对象，这个空对象 <em>Null object</em> 被广泛的应用于设计模式中，在编写代码时，我们可以考虑将空替换为一个自己定义的 <em>Null object</em> 。</p>
+<pre><code class="language-java">// 空对象只需要将接口中的方法体置空即可
+public class NoCommand implements Command {
+    @Override
+    public void executed() {
+    }
+    @Override
+    public void undo() {
+    }
+}
+</code></pre>
+<pre><code class="language-java">/**
+ * 有撤销功能的按键
+ */
+public class RemoteControlWithUndo {
+
+    /**
+     * 开启命令
+     */
+    private final Command[] onCommands;
+    /**
+     * 关闭命令
+     */
+    private final Command[] offCommands;
+    /**
+     * 对上一个命令的引用
+     */
+    private Command undoCommand;
+
+    /**
+     * 初始化7个卡槽
+     */
+    RemoteControlWithUndo() {
+        onCommands = new Command[7];
+        offCommands = new Command[7];
+        Command noCommand = new NoCommand();
+        for (int i=0;i&lt;7;i++) {
+            onCommands[i] = noCommand;
+            offCommands[i] = noCommand;
+        }
+        undoCommand = noCommand;
+    }
+
+    /**
+     * 设置卡槽
+     * @param slot 卡位
+     * @param onCommand 开启命令
+     * @param offCommand 关闭命令
+     */
+    void setCommands(int slot, Command onCommand, Command offCommand) {
+        onCommands[slot] = onCommand;
+        offCommands[slot] = offCommand;
+    }
+
+    /**
+     * 按下开始键
+     * @param slot 卡位
+     */
+    void onButtonWasPushed(int slot) {
+        onCommands[slot].execute();
+        undoCommand = onCommands[slot];
+    }
+
+    /**
+     * 按下关闭键
+     * @param slot 卡位
+     */
+    void offButtonWasPushed(int slot) {
+        offCommands[slot].execute();
+        undoCommand = offCommands[slot];
+    }
+
+    /**
+     * 按下撤销键
+     */
+    void undoButtonWasPushed() {
+        undoCommand.undo();
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder stringBuffer = new StringBuilder();
+        stringBuffer.append(&quot;\n------------Remote Control---------------\n&quot;);
+        for (int i = 0; i &lt; onCommands.length; i++) {
+            stringBuffer.append(&quot;[slot&quot;).append(i).append(&quot;]&quot;).append(onCommands[i].getClass().getName()).append(&quot; &quot;).append(offCommands[i].getClass().getName()).append(&quot;\n&quot;);
+        }
+        return stringBuffer.toString();
+    }
+}
+</code></pre>
+<p>我们通过实现加载器类来实现遥控器的测试</p>
+<pre><code class="language-java">public class RemoteLoader {
+    public static void main(String[] args) {
+        RemoteControlWithUndo remoteControl = new RemoteControlWithUndo();
+        Light livingRoomLight = new Light(&quot;Living Room&quot;);
+        LightOnCommand livingRoomLightOn = new LightOnCommand(livingRoomLight);
+        LightOffCommand livingRoomLightOff = new LightOffCommand(livingRoomLight);
+        // 为卡槽及其后面两个按键设置命令信号
+        remoteControl.setCommands(0, livingRoomLightOn, livingRoomLightOff);
+        remoteControl.onButtonWasPushed(0);
+        remoteControl.offButtonWasPushed(0);
+        System.out.println(remoteControl.toString());
+        // 按下撤销按键
+        remoteControl.undoButtonWasPushed();
+        System.out.println(remoteControl.toString());
+    }
+}
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="https://yuncheng1998.github.io/post-images/1619626822300.png" alt="" loading="lazy"></figure>
+<p>很多家电的功能不止只有开关这么简单，例如吊扇厂商则会提供一些设置转速的方法 high()、medium()、low()、off() 等。这样我们要实现 <em>UNDO</em> 功能，就需要对对象的状态进行跟踪。即使用一个记录吊扇状态改变前的状态。</p>
+<pre><code class="language-java">/**
+ * 吊扇
+ */
+public class CeilingFan {
+    public static final int HIGH = 3;
+    public static final int MEDIUM = 2;
+    public static final int LOW = 1;
+    public static final int OFF = 0;
+    private final String location;
+    public int speed;
+
+    public CeilingFan(String location) {
+        this.location = location;
+        this.speed = OFF;
+    }
+    public void high() {
+        speed = HIGH;
+    }
+    public void medium() {
+        speed = MEDIUM;
+    }
+    public void low() {
+        speed = LOW;
+    }
+    public void off() {
+        speed = OFF;
+    }
+    public int getSpeed() {
+        return speed;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+}
+</code></pre>
+<p>这样在命令信号中 <em>UNDO</em> 功能的实现中我们就需要设置一个记录前一个速度状态的变量 <em>prevSpeed</em>，根据这个变量的状态调用不同的方法。因此这个方法在不同信号类中的实现是相同的 (都要判断 <em>prevSpeed</em> 的值来调用方法)。因此我们可以先实现一个 CeilingFanCommand 的超类。</p>
+<pre><code class="language-java">// 超类只需要实现 undo 方法，避免子类重复编码
+public class CeilingFanCommand implements Command {
+    CeilingFan ceilingFan;
+    int prevSpeed;
+
+    CeilingFanCommand(CeilingFan ceilingFan) {
+        this.ceilingFan = ceilingFan;
+    }
+
+    @Override
+    public void execute() {
+    }
+
+    @Override
+    public void undo() {
+        if (prevSpeed == CeilingFan.HIGH) {
+            ceilingFan.high();
+        } else if (prevSpeed == CeilingFan.MEDIUM) {
+            ceilingFan.medium();
+        } else if (prevSpeed == CeilingFan.LOW) {
+            ceilingFan.low();
+        } else if (prevSpeed == CeilingFan.OFF) {
+            ceilingFan.off();
+        }
+    }
+}
+</code></pre>
+<p>接下来在不同的子类信号中实现 execute() 方法</p>
+<pre><code class="language-java">public class CeilingFanHighCommand extends CeilingFanCommand {
+
+    public CeilingFanHighCommand(CeilingFan ceilingFan) {
+        super(ceilingFan);
+    }
+
+    @Override
+    public void execute() {
+        prevSpeed = ceilingFan.getSpeed();
+        ceilingFan.high();
+        System.out.println(ceilingFan.getLocation() + &quot; ceiling speed is &quot; + ceilingFan.speed);
+    }
+}
+
+public class CeilingFanLowCommand extends CeilingFanCommand {
+
+    public CeilingFanLowCommand(CeilingFan ceilingFan) {
+        super(ceilingFan);
+    }
+
+    @Override
+    public void execute() {
+        prevSpeed = ceilingFan.getSpeed();
+        ceilingFan.low();
+        System.out.println(ceilingFan.getLocation() + &quot; ceiling speed is &quot; + ceilingFan.speed);
+    }
+}
+
+public class CeilingFanMediumCommand extends CeilingFanCommand {
+    
+    CeilingFanMediumCommand(CeilingFan ceilingFan) {
+        super(ceilingFan);
+    }
+    
+    @Override
+    public void execute() {
+        prevSpeed = ceilingFan.speed;
+        ceilingFan.medium();
+        System.out.println(ceilingFan.getLocation() + &quot; ceiling speed is &quot; + ceilingFan.speed);
+    }
+}
+
+public class CeilingFanOffCommand extends CeilingFanCommand {
+    
+    CeilingFanOffCommand(CeilingFan ceilingFan) {
+        super(ceilingFan);
+    }
+    
+    @Override
+    public void execute() {
+        prevSpeed = ceilingFan.speed;
+        ceilingFan.off();
+        System.out.println(ceilingFan.getLocation() + &quot; ceiling speed is &quot; + ceilingFan.speed);
+    }
+}
+</code></pre>
+<p>这样就可以使用遥控器发出 CeilingFanHighCommand、CeilingFanMediumCommand、CeilingFanLowCommand、CeilingFanOffCommand 等指令来控制吊扇的转动速度。</p>
+<pre><code class="language-java">public class RemoteLoader {
+    public static void main(String[] args) {
+
+        RemoteControlWithUndo remoteControl = new RemoteControlWithUndo();
+
+        CeilingFan ceilingFan = new CeilingFan(&quot;Living Room&quot;);
+        CeilingFanHighCommand ceilingFanHigh = new CeilingFanHighCommand(ceilingFan);
+        CeilingFanMediumCommand ceilingFanMedium = new CeilingFanMediumCommand(ceilingFan);
+        CeilingFanLowCommand ceilingFanLow = new CeilingFanLowCommand(ceilingFan);
+        CeilingFanOffCommand ceilingFanOff = new CeilingFanOffCommand(ceilingFan);
+
+        remoteControl.setCommands(1, ceilingFanHigh, ceilingFanOff);
+        remoteControl.setCommands(2, ceilingFanMedium, ceilingFanOff);
+        remoteControl.setCommands(3, ceilingFanLow, ceilingFanOff);
+
+        remoteControl.onButtonWasPushed(1);
+        System.out.println(remoteControl.toString());
+        remoteControl.offButtonWasPushed(1);
+        System.out.println(remoteControl.toString());
+        remoteControl.onButtonWasPushed(2);
+        System.out.println(remoteControl.toString());
+        remoteControl.undoButtonWasPushed();
+        System.out.println(remoteControl.toString());
+    }
+}
+</code></pre>
+<p>在实际应用中，我们经常会发现遥控器有一些宏命令，例如开启 Party 模式的按键被按下后，多种电器同时开启。宏命令可以将其考虑成将若干执行者的执行动作信号都写在一个命令信号中，我们可以定义一个宏命令的类，其中包括一组命令信号，当发出这个信号后，其中包含的子信号被依次执行，要撤销这个信号时，子信号依次执行撤销操作。</p>
+<pre><code class="language-java">public class MacroCommand implements Command {
+    private Command[] commands;
+
+    public MacroCommand(Command[] commands) {
+        this.commands = commands;
+    }
+
+    @Override
+    public void execute() {
+        for (Command command : commands) {
+            command.execute();
+        }
+    }
+
+    @Override
+    public void undo() {
+        for (Command command : commands) {
+            command.undo();
+        }
+    }
+}
+</code></pre>
+<p>这样我们只需要定义我们所需要的组合命令，将其放入 MacroCommand 对象中即可。</p>
+<pre><code class="language-java">public class RemoteLoader {
+    public static void main(String[] args) {
+
+        RemoteControlWithUndo remoteControl = new RemoteControlWithUndo();
+
+        // party Macro
+        Stereo stereo = new Stereo(&quot;Living Room&quot;);
+        CeilingFan ceilingFan = new CeilingFan(&quot;Living Room&quot;);
+        StereoOnWithCDCommand stereoOn = new StereoOnWithCDCommand(stereo);
+        CeilingFanHighCommand ceilingFanHigh = new CeilingFanHighCommand(ceilingFan);
+        StereoOffCommand stereoOff = new StereoOffCommand(stereo);
+        CeilingFanLowCommand ceilingFanLow = new CeilingFanLowCommand(ceilingFan);
+        Command[] partyOn = {stereoOn, ceilingFanHigh};
+        MacroCommand partyOnMarco = new MacroCommand(partyOn);
+        Command[] partyOff = {stereoOff, ceilingFanLow};
+        MacroCommand partyOffMacro = new MacroCommand(partyOff);
+
+        remoteControl.setCommands(1, partyOnMarco, partyOffMacro);
+        remoteControl.onButtonWasPushed(1);
+        System.out.println(remoteControl.toString());
+        remoteControl.offButtonWasPushed(1);
+        System.out.println(remoteControl.toString());
+    }
+}
+</code></pre>
+<figure data-type="image" tabindex="3"><img src="https://yuncheng1998.github.io/post-images/1619626894311.png" alt="" loading="lazy"></figure>
+<p>使用宏命令可以同时控制多种电器的状态。</p>
+<h2 id="undo-的改进">UNDO 的改进</h2>
+<p>我们希望可以连续按下撤销键，不断地撤销上一次操作，我们可以使用栈结构改进 <em>UNDO</em> 按键。我们可以使用栈来存储所有执行过得命令，当按下 <em>UNDO</em> 按键后，就从栈中弹出这个命令信号然后执行 undo() 方法。</p>
+<pre><code class="language-java">public class RemoteControlWithStack {
+    
+    private final Command[] onCommands;
+    
+    private final Command[] offCommands;
+
+    /**
+     * 使用栈记录命令
+     */
+    private final Stack&lt;Command&gt; commands;
+
+    RemoteControlWithStack() {
+        onCommands = new Command[7];
+        offCommands = new Command[7];
+        NoCommand noCommand = new NoCommand();
+        for (int i=0;i&lt;7;i++) {
+            onCommands[i] = noCommand;
+            offCommands[i] = noCommand;
+        }
+        commands = new Stack&lt;&gt;();
+    }
+
+    void setCommands(int slot, Command onCommand, Command offCommand) {
+        onCommands[slot] = onCommand;
+        offCommands[slot] = offCommand;
+    }
+
+    /**
+     * 按下后执行并放入栈中
+     */
+    void onButtonWasPushed(int slot) {
+        onCommands[slot].execute();
+        commands.push(onCommands[slot]);
+    }
+
+    void offButtonWasPushed(int slot) {
+        offCommands[slot].execute();
+        commands.push(offCommands[slot]);
+    }
+
+    /**
+     * 从栈中弹出后执行
+     */
+    void undoButtonWasPushed() {
+        if (commands.peek() != null) {
+            commands.pop().undo();
+        }
+    }
+    // ...
+}   
+</code></pre>
+<h1 id="队列请求">队列请求</h1>
+<p>命令模式的核心的思想是将运算块或核心操作打包，将其作为对象传递，这样即使命令对象被创建许久后运算依然可以被调用。在工作队列中，可以使用命令模式将需要执行的操作打包成对象，放入工作队列中等待，每个线程只需要从队列中取出命令对象，执行他们的 execute() 方法即可。</p>
+<h1 id="日志请求">日志请求</h1>
+<p>某些应用需要我们将所有动作都记录在日志中，在系统死机后重新调用这些动作恢复到之前的状态，通过新增的两个方法 <em>store()</em>、<em>load()</em> 来实现。这就要求将这些动作都包装成命令对象写入日志中，系统重启后依次成批的调用这些方法。</p>
+<h1 id="模式分析">模式分析</h1>
+<p>命令模式的本质是对命令进行封装，将发出命令的责任与执行命令的责任分开。</p>
+<ul>
+<li>每一个命令都是一个操作，请求方发出，接收方执行。</li>
+<li>命令模式使请求方和接收方独立开来，请求方不知道接收方的接口、不知道请求怎样被接收，接收方如何执行。</li>
+<li>命令模式使请求本身成为一个对象，他可以被存储和传递。</li>
+<li>命令模式的关键在于引入抽象命令接口，只需要针对抽象命令接口编程来控制接收者的动作。</li>
+</ul>
+<h2 id="模式结构">模式结构</h2>
+<p>命令模式包含如下角色：</p>
+<ul>
+<li>Command: 抽象命令类</li>
+<li>ConcreteCommand: 具体命令类</li>
+<li>Invoker: 调用者</li>
+<li>Receiver: 接收者</li>
+<li>Client:客户类</li>
+</ul>
+<figure data-type="image" tabindex="4"><img src="https://yuncheng1998.github.io/post-images/1619628761074.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="5"><img src="https://yuncheng1998.github.io/post-images/1619628735723.png" alt="" loading="lazy"></figure>
+<h2 id="命令模式优点">命令模式优点</h2>
+<ul>
+<li>降低系统的耦合度，新的命令可以很容易的加入系统中</li>
+<li>可以方便的设计命令队列和宏命令，方便实现 <em>UNDO</em>、<em>REDO</em></li>
+</ul>
+<h2 id="命令模式缺点">命令模式缺点</h2>
+<p>​使用命令模式需要我们针对每一个命令都设计一个具体命令类，这样某些系统可能需要大量具体命令类。</p>
+<h2 id="适用环境">适用环境</h2>
+<ul>
+<li>需要将请求调用者和请求接收者解耦，使得调用者和接收者不直接交互</li>
+<li>需要在不同时间指定请求，将请求排队和执行请求</li>
+<li>需要支持 <em>UNDO</em>、<em>REDO</em> 操作</li>
+<li>需要将一组操作组合在一起实现宏命令</li>
+</ul>
+<p>源码<a href="https://github.com/yuncheng1998/PatternDesign">Github</a></p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E6%8F%90%E5%87%BA%E9%97%AE%E9%A2%98">提出问题</a></li>
+<li><a href="#%E5%91%BD%E4%BB%A4%E6%A8%A1%E5%BC%8F">命令模式</a>
+<ul>
+<li><a href="#undo-%E7%9A%84%E6%94%B9%E8%BF%9B">UNDO 的改进</a></li>
+</ul>
+</li>
+<li><a href="#%E9%98%9F%E5%88%97%E8%AF%B7%E6%B1%82">队列请求</a></li>
+<li><a href="#%E6%97%A5%E5%BF%97%E8%AF%B7%E6%B1%82">日志请求</a></li>
+<li><a href="#%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90">模式分析</a>
+<ul>
+<li><a href="#%E6%A8%A1%E5%BC%8F%E7%BB%93%E6%9E%84">模式结构</a></li>
+<li><a href="#%E5%91%BD%E4%BB%A4%E6%A8%A1%E5%BC%8F%E4%BC%98%E7%82%B9">命令模式优点</a></li>
+<li><a href="#%E5%91%BD%E4%BB%A4%E6%A8%A1%E5%BC%8F%E7%BC%BA%E7%82%B9">命令模式缺点</a></li>
+<li><a href="#%E9%80%82%E7%94%A8%E7%8E%AF%E5%A2%83">适用环境</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/mRjuvyBl6/">
+              <h3 class="post-title">
+                设计模式（五）单例模式
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
