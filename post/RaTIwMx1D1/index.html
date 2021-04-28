@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>设计模式（二）观察者模式 | 云程的BLOG</title>
-<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619502355741">
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619623596771">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="设计模式（二）观察者模式 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
@@ -20,10 +20,11 @@
 </script>
 
 
-    <meta name="description" content="提出需求
-​	这里我们依旧参考 HeadFirst 设计模式 书中提出的问题，假设要建立一个气象站的公告板，现在已经为你提供了一些API可以调用 :
+    <meta name="description" content="
+提出需求
+这里我们依旧参考 HeadFirst 设计模式 书中提出的问题，假设要建立一个气象站的公告板，现在已经为你提供了一些API可以调用 :
 public float getTemperature();
-public float g..." />
+public float ge..." />
     <meta name="keywords" content="" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
     <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
@@ -33,7 +34,7 @@ public float g..." />
       <div class="main-content">
         <div class="site-header">
   <a href="https://yuncheng1998.github.io">
-  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619502355741" alt="">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619623596771" alt="">
   </a>
   <h1 class="site-title">
     云程的BLOG
@@ -87,125 +88,175 @@ public float g..." />
                 2018-04-05
               </span>
               <span>
-                12 min read
+                11 min read
               </span>
               
             </div>
             
             <div class="post-content-wrapper">
               <div class="post-content">
-                <h4 id="提出需求">提出需求</h4>
-<p>​	这里我们依旧参考 <em>HeadFirst 设计模式</em> 书中提出的问题，假设要建立一个气象站的公告板，现在已经为你提供了一些API可以调用 :</p>
+                <!-- more -->
+<h1 id="提出需求">提出需求</h1>
+<p>这里我们依旧参考 <em>HeadFirst 设计模式</em> 书中提出的问题，假设要建立一个气象站的公告板，现在已经为你提供了一些API可以调用 :</p>
 <pre><code class="language-java">public float getTemperature();
 public float getHumidity();
 public float getPressure();
 </code></pre>
-<p>​	利用这些API你可以快速的从气象站中获取数据，我们可以为每一块布告板实现一个update()用来更新数据的功能，这样就可以简单的实现数据的实时更新</p>
+<p>利用这些API你可以快速的从气象站中获取数据，我们可以为每一块布告板实现一个update()用来更新数据的功能，这样就可以简单的实现数据的实时更新</p>
 <pre><code class="language-java">public void measurementsChange(){
     float temp = getTemperature();
     float humidity = getHumidity();
-	float pressure = getPressure();
+		float pressure = getPressure();
     
     currentConditionDisplay.update(temp, humidity, pressure);
     statisticsDisplay.update(temp, humidity, pressure);
     forecastDisplay.update(temp, humidity, pressure);
 }
 </code></pre>
-<p>​	建立一个改变测量数据时调用的函数，每次调用都从get方法中获取到实时的值，然后将他update到每一块布告板中，但是这样的设计使我在增添删除布告板时，必须对measurementChanged方法进行更改。</p>
-<h4 id="观察者模式">观察者模式</h4>
-<p>​	为了解决上面的设计问题，我们可以依靠观察者模式。观察者模式建立一种对象与对象之间的依赖关系，当一个对象改变时自动通知其他对象，其他对象会就此做出反应。发生改变的对象称为观察目标，被通知的对象称为观察者，一个目标可以对应多个观察者，每个观察者也可以观察多个目标，并且可以自由的订阅和取消。这有点像我们在出版社订阅报纸，也可以叫做发布-订阅（Publish/Subscribe）模式。</p>
-<p>​	<em>被观察者</em></p>
-<p>​	首先我们定义一个主题 (被观察者) 接口，主题应该有管理观察者的功能，就像报社需要对订报的客户进行管理一样。</p>
+<p>建立一个改变测量数据时调用的函数，每次调用都从get方法中获取到实时的值，然后将他update到每一块布告板中，但是这样的设计使我在增添删除布告板时，必须对measurementChanged方法进行更改。</p>
+<h1 id="观察者模式">观察者模式</h1>
+<p>为了解决上面的设计问题，我们可以依靠观察者模式。<strong>观察者模式建立一种对象与对象之间的依赖关系，当一个对象改变时自动通知其他对象，其他对象会就此做出反应</strong>。发生改变的对象称为观察目标，被通知的对象称为观察者，一个目标可以对应多个观察者，每个观察者也可以观察多个目标，并且可以自由的订阅和取消。这有点像我们在出版社订阅报纸，也可以叫做发布-订阅（Publish/Subscribe）模式。</p>
+<h2 id="被观察者">被观察者</h2>
+<p>首先我们定义一个主题 (被观察者) 接口，主题应该有管理观察者的功能，就像报社需要对订报的客户进行管理一样。</p>
 <pre><code class="language-java">interface Subject {
+
+    /**
+     * 注册观察者
+     */
     void registerObserver(Observer observer);
+
+    /**
+     * 删除观察者
+     */
     void removeObserver(Observer observer);
+
+    /**
+     * 通知所有观察者
+     */
     void notifyObservers(ArrayList&lt;Observer&gt; observers);
 }
 </code></pre>
-<p>​	<em>具体观察对象</em></p>
-<p>​	接下来我们就可以建立这个气象站这个具体的被观察对象，具体的被观察对象需要以下几点</p>
+<h2 id="具体观察对象">具体观察对象</h2>
+<p>接下来我们就可以建立这个气象站这个具体的被观察对象，具体的被观察对象需要以下几点</p>
 <ul>
 <li>发送给观察者的对象</li>
 <li>拥有一个观察者名单进行管理</li>
 <li>具体的管理方法</li>
 <li>数据改变时的发生的操作</li>
 </ul>
-<pre><code class="language-java">public class WeatherData implements Subject {
-    //首先写出这个气象站给每个布告牌发送的数据
+<pre><code class="language-java">/**
+ * 天气数据
+ */
+public class WeatherData implements Subject {
+
+    /**
+     * 天气数据
+     */
     private float temperature;
     private float humidity;
     private float pressure;
-    //通过一个ArrayList来管理需要通知的观察者
-    private ArrayList&lt;Observer&gt; observers;
-	//在实例化气象站后立刻得到管理名单
+
+    /**
+     * 通过一个ArrayList来管理需要通知的观察者
+     */
+    private final ArrayList&lt;Observer&gt; observers;
+
     WeatherData() {
         observers = new ArrayList&lt;&gt;();
     }
-	//对观察者进行管理
+
     @Override
     public void registerObserver(Observer observer) {
         observers.add(observer);
     }
 
+    /**
+     * 删除观察者
+     * 从列表中移除观察者
+     */
     @Override
     public void removeObserver(Observer observer) {
         int i = observers.indexOf(observer);
-        if (i &gt; 0) {
+        if (i &gt;= 0) {
             observers.remove(i);
             System.out.println(&quot;remove&quot;);
-            // public E remove(int index)  public boolean remove(Object o)
         }
     }
 
+    /**
+     * 通知观察者
+     */
     @Override
     public void notifyObservers(ArrayList&lt;Observer&gt; observers) {
         for (Observer observer : observers) {
             observer.update(temperature, humidity, pressure);
         }
     }
-	//数据改变时发生的操作，这里我们可以对数据进行一定的判断，防止推送太过频繁，后面会介绍
-    //例如这个公告板统计平均气温，每得到十个数据更新一次
-    private void measurementsChanged(float temperature, float humidity, float pressure) {
+
+    /**
+     * 当天气数据发生修改
+     */
+    private void measurementsChanged() {
         notifyObservers(observers);
     }
-	//模拟得到新的数据的方法，实际上由气象站提供，可以使用爬虫获取或者调用已有的API
+
+    /**
+     * 设置测量值
+     * 测量值设置后启用 天气数据发生修改 的方法
+     */
     void setMeasurements(float temperature, float humidity, float pressure) {
         this.temperature = temperature;
         this.humidity = humidity;
         this.pressure = pressure;
-        measurementsChanged(temperature, humidity, pressure);
+        measurementsChanged();
     }
 }
 </code></pre>
-<p>​	<em>观察者接口</em></p>
-<p>​	然后我们需要定义一个观察者的接口，他需要有更新自身数据的功能，在观察者模式中，将工作尽量交给主题（报社）来处理，让每个订阅者只需更新数据即收到的信息即可。这里我们的订阅的时天气数据，因此更新收到的温度、湿度、气压数据。</p>
-<pre><code class="language-java">interface Observer {
-    void update(float temperature, float humidity, float pressure);
+<h2 id="观察者接口">观察者接口</h2>
+<p>然后我们需要定义一个观察者的接口，他需要有更新自身数据的功能，在观察者模式中，将工作尽量交给主题（报社）来处理，让每个订阅者只需更新数据即收到的信息即可。这里我们的订阅的时天气数据，因此更新收到的温度、湿度、气压数据。</p>
+<pre><code class="language-java">/**
+ * 观察者
+ */
+interface Observer {
+
+    /**
+     * 更新数据
+     */
+    void update(float temp, float humidity, float pressure);
 }
 </code></pre>
-<p>​	<em>具体的观察者</em></p>
+<h2 id="具体的观察者">具体的观察者</h2>
 <p>公告牌需要更新得到的数据，并且在显示上进行更新。</p>
 <ul>
 <li>注册成为观察者</li>
 <li>保留对主题的引用方便以后的修改 -&gt; 读者自己取消订阅</li>
 <li>更新数据</li>
 </ul>
-<pre><code class="language-java">//这个布告板显示实时的信息
+<pre><code class="language-java">/**
+ * 天气展示板 观察者之一
+ */
 public class CurrentConditionDisplay implements Display, Observer {
+
+    /**
+     * 天气数据，仅展示温度和湿度
+     */
     private float temperature;
     private float humidity;
-    private Subject weatherData;
+    /**
+     * 要订阅的主题
+     */
+    private final Subject weatherData;
 
     CurrentConditionDisplay(Subject weatherData) {
         this.weatherData = weatherData;
         weatherData.registerObserver(this);
-    }	//这里注意保留weatherData的引用，方便以后的操作
+    }
 
     @Override
     public void display() {
         System.out.println(&quot;temperature: &quot; + temperature + &quot;, humidity: &quot; + humidity);
     }
-	
+
     @Override
     public void update(float temp, float humidity, float pressure) {
         this.temperature = temp;
@@ -216,29 +267,35 @@ public class CurrentConditionDisplay implements Display, Observer {
 </code></pre>
 <p>这里我们实现了一个Display用作显示的接口</p>
 <pre><code class="language-java">public interface Display {
-    void display();
-} 	
-</code></pre>
-<p><em>测试</em></p>
-<pre><code class="language-java">public class WeatherStation {
-    public static void main(String[] args) {
-        WeatherData weatherData = new WeatherData();
-        CurrentConditionDisplay currentConditionDisplay = new CurrentConditionDisplay(weatherData);
 
+    void display();
+}
+</code></pre>
+<h2 id="测试">测试</h2>
+<pre><code class="language-java">public class WeatherStation {
+
+    public static void main(String[] args) {
+
+        // 设置一个订阅的主题
+        WeatherData weatherData = new WeatherData();
+        // 布告板
+        CurrentConditionDisplay currentConditionDisplay = new CurrentConditionDisplay(weatherData);
+        // 天气数据变动
         weatherData.setMeasurements(18, 20, 10000);
         weatherData.setMeasurements(20, 30, 10200);
-        //利用保留的weatherData引用来取消注册，就无法接受到数据
+        // 取消订阅
         weatherData.removeObserver(currentConditionDisplay);
+        // 天气数据变动
         weatherData.setMeasurements(25, 46, 10060);
     }
 }
 </code></pre>
 <p>测试结果</p>
-<figure data-type="image" tabindex="1"><img src="01.png" alt="result0" loading="lazy"></figure>
-<p>​	我们发现，使用了观察者模式后，表现层和数据层实现了分离，观察者模式定义了稳定的消息更新传递机制，消息有具体的被观察者来定义被决定如何传输，通过调用notify()方法来实现数据的传递，也抽象了更新接口，把观察者接受更新的接口封装在Observer接口的update()方法中。</p>
-<h4 id="使用java内置的观察者模式">使用Java内置的观察者模式</h4>
-<p>​	Java中内置了观察者模式，在 java.util 包中内置了Observer接口和Observable类，使用方法与Observer接口和Subject接口相似，但这个内置的观察者模式还有着一些上面我们没有实现的功能 —— 获取数据的主动权和知道数据来源的功能。</p>
-<p>​	<em>Observable类源码</em></p>
+<figure data-type="image" tabindex="1"><img src="https://yuncheng1998.github.io/post-images/1619534460075.png" alt="" loading="lazy"></figure>
+<p>我们发现，使用了观察者模式后，<strong>表现层和数据层实现了分离</strong>，观察者模式定义了稳定的消息更新传递机制，消息有具体的被观察者来定义被决定如何传输，通过调用notify()方法来实现数据的传递，也抽象了更新接口，把观察者接受更新的接口封装在Observer接口的update()方法中。</p>
+<h1 id="使用java内置的观察者模式">使用Java内置的观察者模式</h1>
+<p>Java中内置了观察者模式，在 java.util 包中内置了Observer接口和Observable类，使用方法与Observer接口和Subject接口相似，但这个内置的观察者模式还有着一些上面我们没有实现的功能 —— 获取数据的主动权和知道数据来源的功能。</p>
+<h2 id="observable类源码">Observable类源码</h2>
 <pre><code class="language-java">/*
  * Copyright (c) 1994, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -247,13 +304,18 @@ public class CurrentConditionDisplay implements Display, Observer {
 package java.util;
 
 public class Observable {
-    private boolean changed = false;	//changed时判断是否需要进行通知的标识
+
+    // changed时判断是否需要进行通知的标识
+    private boolean changed = false;
+    // 	观察者
     private Vector&lt;Observer&gt; obs;
     
-    public Observable() {				//构造观察对象时需要分配一个观察者登记表
+    public Observable() {
         obs = new Vector&lt;&gt;();
     }
-
+    /**
+     * 添加一个观察者
+     */
     public synchronized void addObserver(Observer o) {
         if (o == null)
             throw new NullPointerException();
@@ -261,25 +323,29 @@ public class Observable {
             obs.addElement(o);
         }
     }
-
+    /**
+     * 删除
+     */
     public synchronized void deleteObserver(Observer o) {
         obs.removeElement(o);
     }
-	//notifyObservers()方法可以在具体的观察对象来自定义，无参数则通知全部
+    /**
+     * notifyObservers()方法可以在具体的观察对象来自定义，无参数则通知全部
+     */
     public void notifyObservers() {
         notifyObservers(null);
     }
-	//notifyObservers()在有对应观察者作为参数时，只传给该观察者
+    /**
+     * notifyObservers()在有对应观察者作为参数时，只传给该观察者
+     */
     public void notifyObservers(Object arg) {
         Object[] arrLocal;
-
         synchronized (this) {
             if (!changed)
                 return;
             arrLocal = obs.toArray();
             clearChanged();
         }
-
         for (int i = arrLocal.length-1; i&gt;=0; i--)
             ((Observer)arrLocal[i]).update(this, arg);
     }
@@ -287,8 +353,10 @@ public class Observable {
     public synchronized void deleteObservers() {
         obs.removeAllElements();
     }
-
-    protected synchronized void setChanged() {	//当要通知观察者时需要进行此操作
+    /**
+     * 当要通知观察者时需要进行此操作
+     */
+    protected synchronized void setChanged() {
         changed = true;
     }
 
@@ -306,8 +374,8 @@ public class Observable {
 }
 
 </code></pre>
-<p>​	Observable超类中实现了对观察者的管理具体方法，也拥有了观察者登记表，这样使得我们在编写具体观察者时可以直接使用父类的方法进行基本的管理</p>
-<p>​	<em>Observer接口源码</em></p>
+<p>Observable超类中实现了对观察者的管理具体方法，也拥有了观察者登记表，这样使得我们在编写具体观察者时可以直接使用父类的方法进行基本的管理</p>
+<h2 id="observer接口源码">Observer接口源码</h2>
 <pre><code class="language-java">/*
  * Copyright (c) 1994, 1998, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -320,35 +388,39 @@ public interface Observer {
 
 </code></pre>
 <p>与我们编写的Observer接口类似，但这里规定了一个观察对象参数和观察量参数，这样观察者就可以知道这是哪个观察对象传来的数据。</p>
-<p>​	<em>实现</em></p>
+<h2 id="实现">实现</h2>
 <p>首先我们实现具体的被观察者</p>
 <ul>
 <li>天气参数、当前参数</li>
 <li>参数发生变化调用的方法</li>
 </ul>
-<pre><code class="language-java">import java.util.Observable;
+<pre><code class="language-java">public class WeatherData extends Observable{
 
-import static java.lang.Math.abs;
-
-public class WeatherData extends Observable{
+    /**
+     * 天气数据
+     */
     private float temperature;
     private float humidity;
     private float pressure;
 
-    private float realTemperature;  //实时数据
+    /**
+     * 实时的天气数据
+     */
+    private float realTemperature;
     private float realHumidity;
     private float realPressure;
 
     WeatherData() {
-        
     }
-	//数据改变后measurementsChanged先被调用，判断是否更新当前数据，更新则然后执行setChange（）
-    //setChange()讲changed参数改为true，此时notifyObservers（）内部可以被执行
-    //在源码中发现，notifyObservers（）方法会遍历观察者列表进行update（）
-    //在观察者中重写update()更新自身参数
+
+    /**
+     * 数据改变后measurementsChanged先被调用，判断是否更新当前数据，更新则然后执行setChange()
+     *
+     */
     void measurementsChanged() {
-        //判断在温度差不超过两度时不更新数据，避免数据频繁更新
+        // 温差不超过2度时不更新数据，避免数据频繁更新
         if (abs(realTemperature-this.temperature)&gt;2) {
+            // 将changed参数改为true，此时notifyObservers()内部可以被执行
             setChanged();
             System.out.println(&quot;changed&quot;);
             this.temperature = realTemperature;
@@ -357,15 +429,22 @@ public class WeatherData extends Observable{
         } else {
             System.out.println(&quot;too Little&quot;);
         }
+        // 遍历观察者列表进行update，在观察者中重写update
         notifyObservers();
     }
-	//用于测试的改变数据
+
+    /**
+     * 用于测试的改变数据
+     */
     void setMeasurements(float temperature, float humidity, float pressure) {
         this.realTemperature = temperature;
         this.realHumidity = humidity;
         this.realPressure = pressure;
     }
-	//对外提供获取数据的接口
+
+    /**
+     * 对外提供获取数据的接口
+     */
     float getTemperature() {
         return temperature;
     }
@@ -378,20 +457,19 @@ public class WeatherData extends Observable{
         return pressure;
     }
 }
-
 </code></pre>
-<p><em>具体观察者</em></p>
-<pre><code class="language-java">import java.util.Observable;
-import java.util.Observer;
-
-public class CurrentConditionDisplay implements Observer, com.fafnir.ObserverPattern.myself.Display {
+<p>具体观察者</p>
+<pre><code class="language-java">public class CurrentConditionDisplay implements Observer, Display {
     private float temperature;
     private float humidity;
 
     CurrentConditionDisplay(Observable observable) {
         observable.addObserver(this);
     }
-	//这里的update()方法与上面实现的不同，采用的是观察者主动想被观察者索取数据
+
+    /**
+     * 这里的update()方法与上面实现的不同，采用的是观察者主动向被观察者索取数据
+     */
     @Override
     public void update(Observable o, Object arg) {
         if (o instanceof WeatherData) {
@@ -409,70 +487,85 @@ public class CurrentConditionDisplay implements Observer, com.fafnir.ObserverPat
 }
 
 </code></pre>
-<p><em>测试</em></p>
+<p>测试</p>
 <pre><code class="language-java">public class WeatherStation {
+    
     public static void main(String[] args) {
+        // 被订阅的主题：天气数据
         WeatherData weatherData = new WeatherData();
+        // 展示板订阅这个天气主题
         CurrentConditionDisplay currentConditionDisplay = new CurrentConditionDisplay(weatherData);
+        // 设置天气变量
         weatherData.setMeasurements(25, 60, 10600);
+        // 天气变量发生改变
         weatherData.measurementsChanged();
         weatherData.setMeasurements(29, 45, 10050);
         weatherData.measurementsChanged();
         weatherData.setMeasurements(30, 45, 10050);
         weatherData.measurementsChanged();
-
+        // 取消订阅
+        weatherData.deleteObserver(currentConditionDisplay);
+        weatherData.setMeasurements(25, 60, 10600);
+        weatherData.measurementsChanged();
     }
 }
 </code></pre>
-<p><em>结果</em></p>
-<figure data-type="image" tabindex="2"><img src="02.png" alt="result1" loading="lazy"></figure>
-<h4 id="设计原则">设计原则</h4>
+<p>结果</p>
+<figure data-type="image" tabindex="2"><img src="https://yuncheng1998.github.io/post-images/1619536683587.png" alt="" loading="lazy"></figure>
+<h1 id="总结">总结</h1>
+<h2 id="设计原则">设计原则</h2>
 <p><em>为了交互对象之间的松耦合设计而努力</em></p>
 <ul>
 <li>观察者模式提供了一种让两个对象实现松耦合的设计</li>
 </ul>
-<p>主题只知道观察者实现了Observer接口，他唯一以来的就是Observer接口的对象列表，主题负责对Observer进行管理，向Observer推送数据，他不在乎谁实现了观察者接口，因此在运行时可以随时修改为新的观察者。新的类型的观察者出现时，不需要修改主题代码，只需要新实现一个观察者接口然后向主题注册。这种对主题和观察者的独立复用，源于他们之间松耦合的设计。</p>
-<h4 id="缺点">缺点</h4>
+<p>主题只知道观察者实现了Observer接口，他唯一依赖的是Observer接口的对象列表，主题负责对Observer进行管理，向Observer推送数据，他不在乎谁实现了观察者接口，因此在运行时可以随时修改为新的观察者。新的类型的观察者出现时，不需要修改主题代码，只需要新实现一个观察者接口然后向主题注册。这种对主题和观察者的独立复用，源于他们之间松耦合的设计。</p>
+<h2 id="缺点">缺点</h2>
 <ul>
 <li>如果一个观察目标对象有很多直接和间接的观察者的话，将所有的观察者都通知到会花费很多时间。</li>
 <li>如果在观察者和观察目标之间有循环依赖的话，观察目标会触发它们之间进行循环调用，可能导致系统崩溃。</li>
 <li>观察者模式没有相应的机制让观察者知道所观察的目标对象是怎么发生变化的，而仅仅只是知道观察目标发生了变化。</li>
 </ul>
-<h4 id="应用环境">应用环境</h4>
+<h2 id="应用环境">应用环境</h2>
 <ul>
 <li>一个抽象模型有两个方面，其中一个方面依赖于另一个方面。将这些方面封装在独立的对象中使它们可以各自独立地改变和复用。</li>
 <li>一个对象的改变将导致其他一个或多个对象也发生改变，而不知道具体有多少对象将发生改变，可以降低对象之间的耦合度。</li>
 <li>一个对象必须通知其他对象，而并不知道这些对象是谁。</li>
 <li>需要在系统中创建一个触发链，A对象的行为将影响B对象，B对象的行为将影响C对象……，可以使用观察者模式创建一种链式触发机制。</li>
 </ul>
-<h4 id="源码">源码</h4>
+<h1 id="其他">其他</h1>
+<p>源码</p>
 <p><a href="https://github.com/yuncheng1998/PatternDesign">Github</a></p>
-<h4 id="参考">参考</h4>
+<p>参考</p>
 <p><a href="http://design-patterns.readthedocs.io/zh_CN/latest/behavioral_patterns/observer.html#">图说设计模式</a></p>
 
               </div>
               <div class="toc-container">
                 <ul class="markdownIt-TOC">
-<li>
-<ul>
-<li>
-<ul>
-<li>
-<ul>
 <li><a href="#%E6%8F%90%E5%87%BA%E9%9C%80%E6%B1%82">提出需求</a></li>
-<li><a href="#%E8%A7%82%E5%AF%9F%E8%80%85%E6%A8%A1%E5%BC%8F">观察者模式</a></li>
-<li><a href="#%E4%BD%BF%E7%94%A8java%E5%86%85%E7%BD%AE%E7%9A%84%E8%A7%82%E5%AF%9F%E8%80%85%E6%A8%A1%E5%BC%8F">使用Java内置的观察者模式</a></li>
+<li><a href="#%E8%A7%82%E5%AF%9F%E8%80%85%E6%A8%A1%E5%BC%8F">观察者模式</a>
+<ul>
+<li><a href="#%E8%A2%AB%E8%A7%82%E5%AF%9F%E8%80%85">被观察者</a></li>
+<li><a href="#%E5%85%B7%E4%BD%93%E8%A7%82%E5%AF%9F%E5%AF%B9%E8%B1%A1">具体观察对象</a></li>
+<li><a href="#%E8%A7%82%E5%AF%9F%E8%80%85%E6%8E%A5%E5%8F%A3">观察者接口</a></li>
+<li><a href="#%E5%85%B7%E4%BD%93%E7%9A%84%E8%A7%82%E5%AF%9F%E8%80%85">具体的观察者</a></li>
+<li><a href="#%E6%B5%8B%E8%AF%95">测试</a></li>
+</ul>
+</li>
+<li><a href="#%E4%BD%BF%E7%94%A8java%E5%86%85%E7%BD%AE%E7%9A%84%E8%A7%82%E5%AF%9F%E8%80%85%E6%A8%A1%E5%BC%8F">使用Java内置的观察者模式</a>
+<ul>
+<li><a href="#observable%E7%B1%BB%E6%BA%90%E7%A0%81">Observable类源码</a></li>
+<li><a href="#observer%E6%8E%A5%E5%8F%A3%E6%BA%90%E7%A0%81">Observer接口源码</a></li>
+<li><a href="#%E5%AE%9E%E7%8E%B0">实现</a></li>
+</ul>
+</li>
+<li><a href="#%E6%80%BB%E7%BB%93">总结</a>
+<ul>
 <li><a href="#%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99">设计原则</a></li>
 <li><a href="#%E7%BC%BA%E7%82%B9">缺点</a></li>
 <li><a href="#%E5%BA%94%E7%94%A8%E7%8E%AF%E5%A2%83">应用环境</a></li>
-<li><a href="#%E6%BA%90%E7%A0%81">源码</a></li>
-<li><a href="#%E5%8F%82%E8%80%83">参考</a></li>
 </ul>
 </li>
-</ul>
-</li>
-</ul>
-</li>
+<li><a href="#%E5%85%B6%E4%BB%96">其他</a></li>
 </ul>
 
               </div>

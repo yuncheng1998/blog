@@ -1,0 +1,441 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>设计模式（四）装饰者模式 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619623596771">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="设计模式（四）装饰者模式 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="提出需求
+下面是某家咖啡店的价格表，顾客可以自由组合出不同的Coffee和添加任意配料，现在我们需要进行设计Coffee店的订单系统。
+
+
+
+Coffee
+Price
+
+
+
+
+HouseBlend
+0.89
+
+
+DarkRoast
+0.99..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619623596771" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              设计模式（四）装饰者模式
+            </h2>
+            <div class="post-info">
+              <span>
+                2018-04-13
+              </span>
+              <span>
+                7 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="提出需求">提出需求</h1>
+<p>下面是某家咖啡店的价格表，顾客可以自由组合出不同的Coffee和添加任意配料，现在我们需要进行设计Coffee店的订单系统。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Coffee</th>
+<th style="text-align:center">Price</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">HouseBlend</td>
+<td style="text-align:center">0.89</td>
+</tr>
+<tr>
+<td style="text-align:center">DarkRoast</td>
+<td style="text-align:center">0.99</td>
+</tr>
+<tr>
+<td style="text-align:center">Decaf</td>
+<td style="text-align:center">1.05</td>
+</tr>
+<tr>
+<td style="text-align:center">Espresso</td>
+<td style="text-align:center">1.99</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Condiment</th>
+<th style="text-align:center">Price</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Milk</td>
+<td style="text-align:center">0.1</td>
+</tr>
+<tr>
+<td style="text-align:center">Mocha</td>
+<td style="text-align:center">0.2</td>
+</tr>
+<tr>
+<td style="text-align:center">Soy</td>
+<td style="text-align:center">0.15</td>
+</tr>
+<tr>
+<td style="text-align:center">Whip</td>
+<td style="text-align:center">0.1</td>
+</tr>
+</tbody>
+</table>
+<p>我们首先想到之前使用的工厂类，但是不同的是，本次我们核心需要并不是得到大量的对象，而是如何设计订单系统，即根据用户需求得到不同的结果。这就需要我们自己进行模式的探索，我们想到了使用继承</p>
+<pre><code class="language-java">abstract class Beverage {
+    getDescription();
+    cost();
+    //
+}
+
+class HouseBlendWithMilkandMocha extends Beverage {
+    cost();
+}
+
+class HouseBlendWithSoyandMochaandWhip extends Beverage {
+    cost();
+}
+//
+</code></pre>
+<p>按照这种设计，我们需要实现64个类，但如果允许顾客选择Double Mocha或者Coffee店有了新产品，那么这个子类数量级的增加是可怕的</p>
+<h1 id="装饰者模式">装饰者模式</h1>
+<p>日常使用的订单系统中，店员会根据需要先在价格中加上咖啡，然后根据顾客选择的配料每次在前一个价格上进行累加，这和装饰者模式是类似的。</p>
+<p>简单来说，我们需要一个基础类，然后在这个基础类中进行修饰，DoubleMocha加Whip的HouseBlend式咖啡可以如下表示</p>
+<p><img src="https://yuncheng1998.github.io/post-images/1619579777626.png" alt="" loading="lazy"><br>
+我们可以看出装饰者模式主要思想：<strong>动态地给一个对象增加一些额外的职责(Responsibility)，就增加对象功能来说，装饰模式比生成子类实现更为灵活。</strong></p>
+<h1 id="利用装饰者模式实现">利用装饰者模式实现</h1>
+<p>我们先定义一个Beverage抽象类，所有coffee都是这个类的子类，作为接口为所有的coffee进行类型的匹配。</p>
+<pre><code class="language-java">public abstract class Beverage {
+    String description = &quot;Unknown Beverage&quot;;
+
+    public String getDescription() {
+        return description;
+    }
+
+    public abstract double cost();
+}
+</code></pre>
+<p>然后我们要实现coffee，coffee只需要按照抽象类具体它的描述和价格</p>
+<pre><code class="language-java">public class HouseBlend extends Beverage {
+    HouseBlend() {
+        description = &quot;House Blend Coffee&quot;;
+    }
+    @Override
+    public double cost() {
+        return .89;
+    }
+}
+
+public class Espresso extends Beverage {
+    Espresso() {
+        description = &quot;Espresso&quot;;
+    }
+    @Override
+    public double cost() {
+        return 1.99;
+    }
+}
+
+public class Decaf extends Beverage {
+    Decaf() {
+        description = &quot;Decaf&quot;;
+    }
+    @Override
+    public double cost() {
+        return 1.05;
+    }
+}
+// ...
+</code></pre>
+<p>然后我们实现配料的接口，他的目的仅仅在于约束配料类的方法</p>
+<pre><code class="language-java">public abstract class CondimentDecorator extends Beverage{
+    public abstract String getDescription();
+}
+</code></pre>
+<p>下面实现配料的具体类，他们是具体的装饰者，给对象进一步添加描述并修改价格</p>
+<pre><code class="language-java">public class Milk extends CondimentDecorator {
+    Beverage beverage;
+
+    Milk(Beverage beverage) {
+        this.beverage = beverage;
+    }
+
+    @Override
+    public String getDescription() {
+        return beverage.getDescription() + &quot;, Milk&quot;;
+    }
+
+    @Override
+    public double cost() {
+        return beverage.cost() + .10;
+    }
+}
+
+public class Mocha extends CondimentDecorator {
+    private Beverage beverage;
+
+    Mocha(Beverage beverage){
+        this.beverage = beverage;
+    }
+
+    @Override
+    public String getDescription() {
+        return beverage.getDescription() + &quot;, Whip&quot;;
+    }
+
+    @Override
+    public double cost() {
+        return .10 + beverage.cost();
+    }
+}
+
+// ...
+</code></pre>
+<p>然后我们测试这个订单系统</p>
+<pre><code class="language-java">public class Starbucks {
+    public static void main(String[] args) {
+        Beverage beverage = new Espresso();
+        Order(beverage);
+
+        Beverage beverage1 = new HouseBlend();
+        beverage1 = new Mocha(beverage1);
+        beverage1 = new Mocha(beverage1);
+        beverage1 = new Whip(beverage1);
+        Order(beverage1);
+
+        Beverage beverage2 = new Decaf();
+        beverage2 = new Soy(beverage2);
+        beverage2 = new Milk(beverage2);
+        Order(beverage2);
+    }
+
+    private static void Order(Beverage beverage1) {
+        System.out.println(beverage1.getDescription() + &quot; $&quot; + beverage1.cost());
+    }
+}
+
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://yuncheng1998.github.io/post-images/1619579949534.png" alt="" loading="lazy"></figure>
+<h1 id="装饰者模式的组成">装饰者模式的组成</h1>
+<p>装饰者模式是一个比较简单的模式，逻辑框图也很容易理解，Component是得到所有对象的统一接口，进行装饰和装饰后得到的对象都是Component类型，在具体装饰者中，会有一个Component类型的变量来记录所装饰的对象。</p>
+<figure data-type="image" tabindex="2"><img src="https://yuncheng1998.github.io/post-images/1619579884792.png" alt="" loading="lazy"></figure>
+<center>装饰者模式框图</center>
+装饰者模式大多有着上述结构。
+<figure data-type="image" tabindex="3"><img src="https://yuncheng1998.github.io/post-images/1619579931482.png" alt="" loading="lazy"></figure>
+<center>装饰者模式创建对象</center>
+<h1 id="java-io">Java I/O</h1>
+<p>java.io是我们常用的包，这个包对I/O方法很好的用到了DecoratorPattern</p>
+<figure data-type="image" tabindex="4"><img src="https://yuncheng1998.github.io/post-images/1619588219585.png" alt="" loading="lazy"></figure>
+<ul>
+<li>基本组件
+<ul>
+<li>FileInputStream 读取文件</li>
+<li>ByteArrayInputStream 读取字节数组</li>
+</ul>
+</li>
+<li>装饰者
+<ul>
+<li>BufferedInputStream 先读取到缓冲区中</li>
+<li>DataInputStream 读入大数字</li>
+<li>PushbackInputStream 可以在内存中回退</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-java">// 组件
+InputStream inputStream = new FileInputStream(&quot;&quot;);
+// 缓冲流 装饰器
+BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+</code></pre>
+<h1 id="总结">总结</h1>
+<h2 id="代替继承">代替继承</h2>
+<ul>
+<li>
+<p>使用装饰模式来实现扩展比继承更加灵活，它以对客户透明的方式动态地给一个对象附加更多的责任。装饰模式可以<strong>在不需要创造更多子类的情况下，将对象的功能加以扩展</strong>。</p>
+</li>
+<li>
+<p>装饰模式与继承关系的目的都是要<strong>扩展对象的功能</strong>，但是装饰模式可以提供比继承更多的灵活性，他所采用的关联关系不会破坏类的封装性，而且继承是一种耦合度较大的静态关系，无法在程序运行时动态扩展。在软件开发阶段，关联关系虽然不会比继承关系减少编码量，但是到了软件维护阶段，由于关联关系使系统具有较好的松耦合性，因此使得系统更加容易维护。当然，关联关系的缺点是比继承关系要创建更多的对象。</p>
+</li>
+<li>
+<p>通过使用不同的具体装饰类以及这些装饰类的排列组合，可以创造出很多不同行为的组合。可以使用多个具体装饰类来装饰同一对象，得到功能更为强大的对象。</p>
+</li>
+<li>
+<p>具体构件类与具体装饰类可以独立变化，用户可以根据需要增加新的具体构件类和具体装饰类，在使用时再对其进行组合，原有代码无须改变，符合“开闭原则”</p>
+</li>
+</ul>
+<h2 id="缺点">缺点</h2>
+<p>用装饰模式进行系统设计时将产生很多小对象，这些对象的区别在于它们之间相互连接的方式有所不同，而不是它们的类或者属性值有所不同，同时还将产生很多具体装饰类。这些装饰类和小对象的产生将增加系统的复杂度，加大学习与理解的难度。</p>
+<h2 id="应用环境">应用环境</h2>
+<ul>
+<li>在不影响其他对象的情况下，以动态、透明的方式给单个对象添加职责。</li>
+<li>需要动态地给一个对象增加功能，这些功能也可以动态地被撤销。</li>
+<li>当不能采用继承的方式对系统进行扩充或者采用继承不利于系统扩展和维护时。不能采用继承的情况主要有两类：第一类是系统中存在大量独立的扩展，为支持每一种组合将产生大量的子类，使得子类数目呈爆炸性增长；第二类是因为类定义不能继承，如final类</li>
+</ul>
+<p>完整代码 [Github]</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E6%8F%90%E5%87%BA%E9%9C%80%E6%B1%82">提出需求</a></li>
+<li><a href="#%E8%A3%85%E9%A5%B0%E8%80%85%E6%A8%A1%E5%BC%8F">装饰者模式</a></li>
+<li><a href="#%E5%88%A9%E7%94%A8%E8%A3%85%E9%A5%B0%E8%80%85%E6%A8%A1%E5%BC%8F%E5%AE%9E%E7%8E%B0">利用装饰者模式实现</a></li>
+<li><a href="#%E8%A3%85%E9%A5%B0%E8%80%85%E6%A8%A1%E5%BC%8F%E7%9A%84%E7%BB%84%E6%88%90">装饰者模式的组成</a></li>
+<li><a href="#java-io">Java I/O</a></li>
+<li><a href="#%E6%80%BB%E7%BB%93">总结</a>
+<ul>
+<li><a href="#%E4%BB%A3%E6%9B%BF%E7%BB%A7%E6%89%BF">代替继承</a></li>
+<li><a href="#%E7%BC%BA%E7%82%B9">缺点</a></li>
+<li><a href="#%E5%BA%94%E7%94%A8%E7%8E%AF%E5%A2%83">应用环境</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/nWspF6viu/">
+              <h3 class="post-title">
+                设计模式（三）工厂模式
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

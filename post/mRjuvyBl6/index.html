@@ -1,0 +1,537 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>设计模式（五）单例模式 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619623596771">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="设计模式（五）单例模式 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="模式介绍
+模式要义 确保一个类只有一个实例，并同一个全局访问点
+单件模式 Singleton Pattern 是我们常用并且十分简单的一种设计模式，当我们要求在程序中只能有唯一的实例时，就可以使用单件模式设计。例如注册表、使用日志、打印机驱..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619623596771" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              设计模式（五）单例模式
+            </h2>
+            <div class="post-info">
+              <span>
+                2018-04-15
+              </span>
+              <span>
+                13 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="模式介绍">模式介绍</h1>
+<p><strong>模式要义</strong> 确保一个类只有一个实例，并同一个全局访问点</p>
+<p>单件模式 <em>Singleton Pattern</em> 是我们常用并且十分简单的一种设计模式，当我们要求在程序中只能有唯一的实例时，就可以使用单件模式设计。例如注册表、使用日志、打印机驱动等只能有一个实例的对象，如果制造出多个对象会引发一系列的问题。</p>
+<p>Java 通过 new 关键字来在堆中创建新的对象，我们要有唯一对象就要保证这个类只被 new 过一次，然后每次的使用该类对象时都获得的是该对象。设想当一个类的构造函数被私有化，那么唯一可以调用改构造函数的方法只能存在于类内部，这样我们就保证了不会在外部创建该类对象。既然这个对象是类的唯一对象，从类被实例化到卸载使用的都是该对象，我们可以在类中声明一个静态的实例对象，这样该对象在类加载时就会在方法区开辟空间，到类卸载后释放。</p>
+<h1 id="单件模式的两种类型">单件模式的两种类型</h1>
+<h2 id="饿汉式">饿汉式</h2>
+<p>饿汉式提前实例化出单例对象，在需要的时候直接返回这个对象</p>
+<pre><code class="language-java">public class SingletonWithHungry extends AbstractSingleton{
+
+    private static final SingletonWithHungry INSTANCE = new SingletonWithHungry();
+
+    private SingletonWithHungry() {
+    }
+    public static SingletonWithHungry getInstance() {
+        return INSTANCE;
+    }
+}
+</code></pre>
+<h2 id="懒汉式">懒汉式</h2>
+<p>懒汉式避免了提前实例化的造成的资源浪费，在第一次获取时完成实例化</p>
+<pre><code class="language-java">public class SingletonWithDoubleCheck extends AbstractSingleton {
+
+    private static SingletonWithDoubleCheck singletonWithDoubleCheck;
+    private SingletonWithDoubleCheck() {}
+
+    public static SingletonWithDoubleCheck getInstance() {
+        if (singletonWithDoubleCheck == null) {
+            singletonWithDoubleCheck = new SingletonWithDoubleCheck();
+        }
+        return singletonWithDoubleCheck;
+    }
+}
+</code></pre>
+<h1 id="改进">改进</h1>
+<h2 id="多线程下的懒汉式">多线程下的懒汉式</h2>
+<p>当启用多线程时，两个线程同时获取实例化的对象，第一条线程判断 instance == null 后，第二条线程也马上进入该语句判断，两条线程获得的结果都为 true，这样就会创造两个实例对象，这样使得单例失败。多线程的不稳定主要是由于在实例化是延迟加载的，假若我们可以在线程使用之外就将对象实例化出来，使用时不创建，而只是返回已有的实例对象即 <strong>饿汉式</strong>，这样就可以避免多线程引发的多对象异常。但直接实例化的方式丢失了延迟实例化带来的资源节约的好处。</p>
+<p>在 Java 中，为解决线程冲突问题，常用 <code>synchronized</code> 线程锁来进行线程的同步。将 getInstance 修改成线程同步方法，以 this 作为它的锁对象，这样保证在一条线程执行该方法时，其他线程不会同时执行。但这样有一个线程进入这个方法后，其他线程都必须做等待，即使对象已经被实例化了。这会让线程阻塞时间过长，影响系统的性能。</p>
+<pre><code class="language-java">public static synchronized SingletonWithDoubleCheck getInstance() {
+  if (singletonWithDoubleCheck == null) {
+    singletonWithDoubleCheck = new SingletonWithDoubleCheck();
+  }
+  return singletonWithDoubleCheck;
+}
+</code></pre>
+<h2 id="使用双重校验锁">使用双重校验锁</h2>
+<p>要改进线程安全的懒汉式，需要使所有线程都能<strong>非阻塞</strong>调用 getInstance() 方法，这样我们应该<strong>只在实例化对象时加锁</strong>。要注意的是，假若第一次使用时 Thread A 和 Thread B 同时进入第一个 if 判断语句，如果没有第二个 if 判断语句，那么两个线程都会 new SingletonWithDoubleCheck() ，只是执行顺序的先后问题，因此需要双重校验锁。</p>
+<p>另外注意对于双重校验锁必须使用 volatile 关键字修饰实例对象。对于<code>singletonWithDoubleCheck = new SingletonWithDoubleCheck()</code>这段代码其实是分三步执行的：</p>
+<ol>
+<li>在 Heap 中为 singletonWithDoubleCheck 分配内存空间</li>
+<li>初始化 singletonWithDoubleCheck</li>
+<li>将 singletonWithDoubleCheck 指向分配的内存地址</li>
+</ol>
+<p>但由于<strong>JVM 指令重排</strong>的特性，执行的顺序可能会变成 1 3 2，这样在多线程中可能会导致一个线程获得还没有初始化的实例，比如当 T<sub>1</sub> 刚执行了 1 和 3，此时 T<sub>2</sub> 调用 getInstance() 方法时就会得到一个还没有初始化的对象。这就是著名的 DCL 失效问题，在双重校验锁中使用 volatile 关键字由 Doug Lea 提出的，由于 Java 内存模型的改进使该方法可行。</p>
+<pre><code class="language-java">public class SingletonWithDoubleCheck extends AbstractSingleton {
+
+    /**
+     * 使用 volatile 关键字禁止 JVM 重排指令
+     */
+    private volatile static SingletonWithDoubleCheck singletonWithDoubleCheck;
+    
+    private SingletonWithDoubleCheck() {}
+
+    public static SingletonWithDoubleCheck getInstance() {
+        if (singletonWithDoubleCheck == null) {
+            synchronized (SingletonWithDoubleCheck.class) {
+                if (singletonWithDoubleCheck == null) {
+                    singletonWithDoubleCheck = new SingletonWithDoubleCheck();
+                }
+            }
+        }
+        return singletonWithDoubleCheck;
+    }
+}
+</code></pre>
+<h2 id="静态内部类实现">静态内部类实现</h2>
+<p>静态内部类的特点是当<strong>外部类加载时不会立即加载内部类</strong>，因此<strong>内部类的对象不会被立即实例化</strong>，这样我们就可以将对象在静态内部类中初始化，使得只有一个实例对象、对象延迟初始化并且由 JVM 实现线程安全。</p>
+<pre><code class="language-java">public class SingletonWithStaticInnerClass extends AbstractSingleton{
+
+    private SingletonWithStaticInnerClass() {}
+
+    /**
+     * 静态内部类
+     */
+    private static class SingletonInstance {
+        private static final SingletonWithStaticInnerClass INSTANCE = new SingletonWithStaticInnerClass();
+    }
+
+    public static SingletonWithStaticInnerClass getInstance() {
+        return SingletonInstance.INSTANCE;
+    }
+}
+</code></pre>
+<p>其线程安全的实现方式与 JVM 的设计有关，它会保证一个类的 &lt;client&gt;() 方法可以在多线程的环境中被正确的加锁和同步。如果有多个线程同时初始化一个类，那么只会有一个线程会执行这个类的 &lt;client&gt;() 方法，其他线程都需要等待。如果一个类的的 &lt;client&gt;() 方法耗时过长，可能会造成多个线程阻塞，但往往是很隐蔽的。可以看出INSTANCE在创建过程中是线程安全的，所以说静态内部类形式的单例可保证线程安全，也能保证单例的唯一性，同时也延迟了单例的实例化。但这种方法得到的对象不能由外部传入参数。</p>
+<h2 id="枚举实现">枚举实现</h2>
+<p><em>Enum</em> 是由 <em>Class</em> 实现的，其中可以包括成员变量和成员方法，并且有且仅有 <em>private</em> 构造器，防止额外的构造，与 <em>SingletonPattern</em> 中单例类构造类似，因此可以直接用 <em>Enum</em> 来实现单例模式。使用枚举实现在多次进行对象序列化和反序列化后仍然得到同一个实例对象。</p>
+<pre><code class="language-java">public enum  SingletonWithEnum {
+    INSTANCE;
+
+    SingletonWithEnum(){}
+}
+</code></pre>
+<h1 id="反射攻击和反序列化攻击">反射攻击和反序列化攻击</h1>
+<h2 id="反射攻击">反射攻击</h2>
+<p>我们来测试一下单例模式是否能抗住反射攻击，首先实现一个反射攻击的工具类</p>
+<pre><code class="language-java">/**
+ * 反射攻击器
+ */
+public class SingleReflectAttacker {
+
+    /**
+     * 反射攻击器
+     * @param classType 使用这个类通过反射拿到对象
+     * @param instance 实例对象
+     * @return 攻击成功为true
+     */
+    public static boolean attackWithReflect(Class&lt;?&gt; classType, AbstractSingleton instance) {
+        Constructor&lt;?&gt; c;
+        Object instanceFromReflect = null;
+        try {
+            c = classType.getDeclaredConstructor();
+            c.setAccessible(true);
+            instanceFromReflect = c.newInstance();
+        } catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return return instanceFromReflect != null &amp;&amp; instance != instanceFromReflect;
+    }
+
+    public static boolean attackWithReflect(Class&lt;?&gt; classType, SingletonWithEnum instance) {
+        attackWithReflectMethod1(classType);
+        attackWithReflectMethod2(classType);
+        return true;
+    }
+
+    public static void attackWithReflectMethod1(Class&lt;?&gt; classType) {
+        try {
+            Class.forName(classType.getName()).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void attackWithReflectMethod2(Class&lt;?&gt; classType) {
+        try {
+            Constructor[] constructors = classType.getDeclaredConstructors();
+            for (Constructor c : constructors) {
+                c.setAccessible(true);
+                c.newInstance();
+            }
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+</code></pre>
+<p>首先测试饿汉式</p>
+<pre><code class="language-java">boolean result;
+/**
+	* 普通饿汉式
+	*/
+result = SingleReflectAttacker.attackWithReflect(SingletonWithHungry.class,
+                                                 SingletonWithHungry.getInstance());
+System.out.println(&quot;【饿汉式】反射攻击结果: &quot; + result);
+</code></pre>
+<p>结果</p>
+<blockquote>
+<p>【饿汉式】反射攻击结果: true</p>
+</blockquote>
+<p>这说明普通的饿汉式无法阻拦反射攻击</p>
+<h3 id="如何改进">如何改进</h3>
+<p>反射是通过调用构造器来产生新对象的，那么我们在构造方法上增加一层判断，如果对象不为NULL，说明要产生新的对象，抛出异常</p>
+<pre><code class="language-java">/**
+	* 改进构造器
+	*/
+private SingletonWithHungrySafe() {
+  synchronized (SingletonWithHungrySafe.class) {
+    if (INSTANCE != null) {
+      throw new RuntimeException(&quot;单例模式被破坏&quot;);
+    }
+  }
+}
+</code></pre>
+<p>使用反射攻击测试</p>
+<pre><code class="language-java">result = SingleReflectAttacker.attackWithReflect(SingletonWithHungrySafe.class, SingletonWithHungrySafe.getInstance());
+System.out.println(&quot;【安全的饿汉式】反射攻击的结果: &quot; + result);
+</code></pre>
+<p>结果</p>
+<blockquote>
+<p>【安全的饿汉式】反射攻击的结果: false<br>
+java.lang.reflect.InvocationTargetException<br>
+at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)<br>
+at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)<br>
+at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)<br>
+at java.lang.reflect.Constructor.newInstance(Constructor.java:423)<br>
+at com.fafnir.SingletonPattern.SingleReflectAttacker.attackWithReflect(SingleReflectAttacker.java:25)<br>
+at com.fafnir.SingletonPattern.SingletonTest.main(SingletonTest.java:18)<br>
+Caused by: java.lang.RuntimeException: 单例模式被破坏<br>
+at com.fafnir.SingletonPattern.SingletonWithHungrySafe.<init>(SingletonWithHungrySafe.java:19)<br>
+... 6 more</p>
+</blockquote>
+<p>这为我们指出了避免反射攻击方法：通过一个状态字段避免重复调用构造方法，例如在双重校验锁中</p>
+<pre><code class="language-java">public class SingletonWithDoubleCheckSafe extends AbstractSingleton {
+
+    private volatile static SingletonWithDoubleCheckSafe singletonWithDoubleCheck;
+		/**
+     * 控制重复构造
+     */
+    private static boolean flag;
+
+    private SingletonWithDoubleCheckSafe() {
+        synchronized (SingletonWithDoubleCheckSafe.class) {
+          	// 如果flag为true说明已经构造过
+            if (!flag) {
+                flag = true;
+            } else {
+                throw new RuntimeException(&quot;单例模式被破坏&quot;);
+            }
+        }
+    }
+  	// ...
+}
+</code></pre>
+<p>在静态内部类中</p>
+<pre><code class="language-java">public class SingletonWithStaticInnerClass extends AbstractSingleton{
+
+    private static boolean flag;
+
+    private SingletonWithStaticInnerClass() {
+        synchronized (SingletonWithDoubleCheckSafe.class) {
+            if (!flag) {
+                flag = true;
+            } else {
+                throw new RuntimeException(&quot;单例模式被破坏&quot;);
+            }
+        }
+    }
+  	// ...
+}
+</code></pre>
+<h2 id="反序列化攻击">反序列化攻击</h2>
+<p>实现一个反序列攻击的工具类</p>
+<pre><code class="language-java">public class SingleDeserializeAttacker {
+
+    public static boolean attackWithDeserialize(AbstractSingleton instance) {
+
+        String path = Constants.PATH + instance.toString();
+        AbstractSingleton instanceFromDeserialize;
+        try {
+            // 写入序列化文件
+            ObjectOutputStream outputStream = new ObjectOutputStream(
+                    new FileOutputStream(path));
+            outputStream.writeObject(instance);
+            outputStream.close();
+            // 读序列化文件得到对象
+            ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(path));
+            instanceFromDeserialize = (AbstractSingleton) inputStream.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println(e);
+            return false;
+        }
+        return instance != instanceFromDeserialize;
+    }
+
+
+    public static boolean attackWithDeserialize(SingletonWithEnum instance) {
+
+        String path = Constants.PATH + instance.toString();
+        SingletonWithEnum instanceFromDeserialize = null;
+        try {
+            ObjectOutputStream outputStream = new ObjectOutputStream(
+                    new FileOutputStream(path));
+            outputStream.writeObject(instance);
+            outputStream.close();
+            ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(path));
+            instanceFromDeserialize = (SingletonWithEnum) inputStream.readObject();
+        } catch (ClassNotFoundException | IOException e) {
+            System.out.println(e);
+            return false;
+        }
+        return instance != instanceFromDeserialize;
+    }
+}
+</code></pre>
+<p>反序列化攻击饿汉式</p>
+<pre><code class="language-java">result = SingleDeserializeAttacker.attackWithDeserialize(SingletonWithHungry.getInstance());
+System.out.println(&quot;【饿汉式】反序列化攻击结果: &quot; + result);
+</code></pre>
+<p>结果</p>
+<blockquote>
+<p>【饿汉式】反序列化攻击结果: true</p>
+</blockquote>
+<p>如何改进：定义<code>readResolve</code> 方法，见<a href="https://www.jianshu.com/p/ea1d9bc40341">单例模式的攻击之序列化与反序列化</a></p>
+<pre><code class="language-java">public class SingletonWithHungrySafe extends AbstractSingleton {
+  	// ...
+
+  	/**
+  		* 
+  		*/
+    private Object readResolve() {
+        return INSTANCE;
+    }
+
+}
+</code></pre>
+<h1 id="模式结构">模式结构</h1>
+<p>单例模式是一个简单实用的设计模式， 在为了获得单例时使用，它主要有以下组成部分</p>
+<ul>
+<li>静态实例对象或引用</li>
+<li>私有构造函数</li>
+<li>静态 getInstance 方法 (全局访问点)</li>
+</ul>
+<h1 id="模式分析">模式分析</h1>
+<p>单例模式的目的是保证一个类仅有一个实例，并提供一个访问它的全局访问点。单例模式包含的角色只有一个，就是单例类——Singleton。单例类拥有一个私有构造函数，确保用户无法通过 new 关键字直接实例化它。除此之外，该模式中包含一个静态私有成员变量与静态公有的工厂方法，该工厂方法负责检验实例的存在性并实例化自己，然后存储在静态成员变量中，以确保只有一个实例被创建。## 优点</p>
+<ul>
+<li>提供了对唯一实例的受控访问。因为单例类封装了它的唯一实例，所以它可以严格控制客户怎样以及何时访问它，并为设计及开发团队提供了共享的概念。</li>
+<li>由于在系统内存中只存在一个对象，因此可以节约系统资源，对于一些需要频繁创建和销毁的对象，单例模式无疑可以提高系统的性能。</li>
+<li>允许可变数目的实例。可以基于单例模式进行扩展，使用与单例控制相似的方法来获得指定个数的对象实例。</li>
+</ul>
+<h2 id="缺点">缺点</h2>
+<ul>
+<li>由于单例模式中没有抽象层，因此单例类的扩展有很大的困难。</li>
+<li>单例类的职责过重，在一定程度上违背了“单一职责原则”。因为单例类既充当了工厂角色，提供了工厂方法，同时又充当了产品角色，包含一些业务方法，将产品的创建和产品的本身的功能融合到一起。</li>
+<li>滥用单例将带来一些负面问题，如为了节省资源将数据库连接池对象设计为单例类，可能会导致共享连接池对象的程序过多而出现连接池溢出；现在很多面向对象语言 ( 如 Java、C# ) 的运行环境都提供了自动垃圾回收的技术，因此，如果实例化的对象长时间不被利用，系统会认为它是垃圾，会自动销毁并回收资源，下次利用时又将重新实例化，这将导致对象状态的丢失。</li>
+</ul>
+<h2 id="适用环境">适用环境</h2>
+<ul>
+<li>系统只需要一个实例对象，如系统要求提供一个唯一的序列号生成器，或者需要考虑资源消耗太大而只允许创建一个对象。</li>
+<li>客户调用类的单个实例只允许使用一个公共访问点，除了该公共访问点，不能通过其他途径访问该实例。</li>
+<li>在一个系统中要求一个类只有一个实例时才应当使用单例模式。反过来，如果一个类可以有几个实例共存，就需要对单例模式进行改进，使之成为多例模式。</li>
+</ul>
+<h1 id="其他">其他</h1>
+<p>源码 <a href="https://github.com/yuncheng1998/PatternDesign">Github</a></p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E6%A8%A1%E5%BC%8F%E4%BB%8B%E7%BB%8D">模式介绍</a></li>
+<li><a href="#%E5%8D%95%E4%BB%B6%E6%A8%A1%E5%BC%8F%E7%9A%84%E4%B8%A4%E7%A7%8D%E7%B1%BB%E5%9E%8B">单件模式的两种类型</a>
+<ul>
+<li><a href="#%E9%A5%BF%E6%B1%89%E5%BC%8F">饿汉式</a></li>
+<li><a href="#%E6%87%92%E6%B1%89%E5%BC%8F">懒汉式</a></li>
+</ul>
+</li>
+<li><a href="#%E6%94%B9%E8%BF%9B">改进</a>
+<ul>
+<li><a href="#%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%8B%E7%9A%84%E6%87%92%E6%B1%89%E5%BC%8F">多线程下的懒汉式</a></li>
+<li><a href="#%E4%BD%BF%E7%94%A8%E5%8F%8C%E9%87%8D%E6%A0%A1%E9%AA%8C%E9%94%81">使用双重校验锁</a></li>
+<li><a href="#%E9%9D%99%E6%80%81%E5%86%85%E9%83%A8%E7%B1%BB%E5%AE%9E%E7%8E%B0">静态内部类实现</a></li>
+<li><a href="#%E6%9E%9A%E4%B8%BE%E5%AE%9E%E7%8E%B0">枚举实现</a></li>
+</ul>
+</li>
+<li><a href="#%E5%8F%8D%E5%B0%84%E6%94%BB%E5%87%BB%E5%92%8C%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%94%BB%E5%87%BB">反射攻击和反序列化攻击</a>
+<ul>
+<li><a href="#%E5%8F%8D%E5%B0%84%E6%94%BB%E5%87%BB">反射攻击</a>
+<ul>
+<li><a href="#%E5%A6%82%E4%BD%95%E6%94%B9%E8%BF%9B">如何改进</a></li>
+</ul>
+</li>
+<li><a href="#%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%94%BB%E5%87%BB">反序列化攻击</a></li>
+</ul>
+</li>
+<li><a href="#%E6%A8%A1%E5%BC%8F%E7%BB%93%E6%9E%84">模式结构</a></li>
+<li><a href="#%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90">模式分析</a>
+<ul>
+<li><a href="#%E7%BC%BA%E7%82%B9">缺点</a></li>
+<li><a href="#%E9%80%82%E7%94%A8%E7%8E%AF%E5%A2%83">适用环境</a></li>
+</ul>
+</li>
+<li><a href="#%E5%85%B6%E4%BB%96">其他</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/Dv7eAG5OJ/">
+              <h3 class="post-title">
+                设计模式（四）装饰者模式
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

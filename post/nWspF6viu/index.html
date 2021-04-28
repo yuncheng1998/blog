@@ -1,0 +1,671 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>设计模式（三）工厂模式 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619623596771">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="设计模式（三）工厂模式 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="提出问题
+在实际编码中，我们经常需要选择地 new 出多个对象，就像是零售店在售卖产品时，总是需要根据用户的临时选择来提供不同的商品对象：
+class Store {    
+    Product order(type) {
+      ..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619623596771" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              设计模式（三）工厂模式
+            </h2>
+            <div class="post-info">
+              <span>
+                2018-04-08
+              </span>
+              <span>
+                15 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="提出问题">提出问题</h1>
+<p>在实际编码中，我们经常需要选择地 new 出多个对象，就像是零售店在售卖产品时，总是需要根据用户的临时选择来提供不同的商品对象：</p>
+<pre><code class="language-java">class Store {    
+    Product order(type) {
+        Product production;
+        if(isMilk) {
+   			production = new Milk();          
+        } else if(isBread) {
+            production = new Bread();
+        }
+        return production;
+    }
+}
+</code></pre>
+<p>使用 new 是没有问题的，问题总是出现在改变的时候，一旦零售店增添了或者删减了新的产品，由于有<strong>大量实例化具体类</strong>，就必须对它本身代码做出修改。在理想情况下，我们的代码应该是<strong>对修改关闭而对扩展开放的</strong>。这样当商品发生改变时，零售店本身不需要发生改变，这时候我们考虑将变化的部分抽取出来并使用多态。</p>
+<h1 id="简单工厂模式">简单工厂模式</h1>
+<h2 id="pizza店的改进">Pizza店的改进</h2>
+<p>参考 <em>Head Firse 设计模式</em> 首先假设我们有一个 Pizza 的零售店，售卖各种不同种类的 Pizza，为了把变化的部分剥离出来，我们可以假想一个生产 Pizza 的工厂，根据我们的订单为我们返回不同种类的 Pizza，在零售店中我们使用多态来完成调用。</p>
+<pre><code class="language-java">/**	
+	* 首先实现一个Piiza的抽象类
+	* 包含Pizza的种类名字和对已完成的pizza的操作
+*/
+abstract class Pizza {
+    String name;
+
+    void brake() {
+        System.out.println(&quot;brake&quot;);
+    }
+    void cut() {
+        System.out.println(&quot;cut&quot;);
+    }
+    void box() {
+        System.out.println(&quot;box&quot;);
+    }
+}
+</code></pre>
+<p>然后我们由抽象类派生一些具体的 Pizza 类</p>
+<pre><code class="language-java">class CheesePizza extends Pizza {
+    CheesePizza() {
+        name = &quot;cheesePizza&quot;;
+    }
+}
+
+class PepperoniPizza extends Pizza {
+    PepperoniPizza() {
+        name = &quot;PepperoniPizza&quot;;
+    }
+}
+</code></pre>
+<p>然后我们制定一个生产 Pizza 的简单工厂，用来根据需要 new 出不同的对象</p>
+<pre><code class="language-java">class SimplePizzaFactory {
+    static Pizza createPizza(String type) {
+        Pizza pizza = null;
+        if(type.equals(&quot;cheese&quot;)) {
+            System.out.println(&quot;creating CheesePizza&quot;);
+            pizza = new CheesePizza();
+        }else if(type.equals(&quot;pepperoniPizza&quot;)) {
+            System.out.println(&quot;creating PepperoniPizza&quot;);
+            pizza = new PepperoniPizza();
+        }
+        return pizza;
+    }
+}
+</code></pre>
+<p>接下来就可以实现这个 Pizza 零售店</p>
+<pre><code class="language-java">class PizzaStore {
+    Pizza orderPizza(String type) {
+        Pizza pizza = SimplePizzaFactory.createPizza(type);
+
+        pizza.brake();
+        pizza.cut();
+        pizza.box();
+
+        return pizza;
+    }
+}
+</code></pre>
+<p>在简单工厂中，我们可以把 Factory 的 create 方法声明为静态方法，这样在我们调用时就不需要实例化 Factory 的对象直接用用类调用 create 方法来得到实例化的子类对象。</p>
+<p>下面我们进行测试</p>
+<pre><code class="language-java">public class SimpleFactoryTest {
+    public static void main(String[] args) {
+        PizzaStore pizzaStore = new PizzaStore();
+
+        Pizza pizza = pizzaStore.orderPizza(&quot;cheese&quot;);
+        System.out.println(pizza.name);
+    }
+}
+</code></pre>
+<p>得到最终结果</p>
+<figure data-type="image" tabindex="1"><img src="https://yuncheng1998.github.io/post-images/1619543185853.png" alt="" loading="lazy"></figure>
+<p>简单工厂模式又称<strong>静态工厂模式</strong>，作为一种创建模式，简单工厂将不同子类的实例化给剥离出来，专门定义一个类负责创建其他类的实例，我们只需要知道不同子类中的一个参数，然后利用参数对基类进行调用就可以得到不同的子类，被创建的子类有着相同的父类。</p>
+<h2 id="模式结构">模式结构</h2>
+<figure data-type="image" tabindex="2"><img src="https://yuncheng1998.github.io/post-images/1619542972776.png" alt="" loading="lazy"></figure>
+<p>Factory：用来得到实例化子类对象的工厂</p>
+<p>Product：抽象产品，所有对象的父类，描述所有对象共有的公共接口</p>
+<p>ConcreteProduct：具体的产品，创新对象都是它的实例化</p>
+<h2 id="模式分析">模式分析</h2>
+<h3 id="优点">优点</h3>
+<p>通过工厂模式将<strong>对象的创建和对象本身的业务处理</strong>分开，这样降低了系统的耦合度，同时关闭了修改，开放了扩展。客户端只需要知道具体产品对应的参数，无需知道类名和创建它的方法，实现了责任个分割，有专门的工厂类为他提供需要的对象实例。</p>
+<h3 id="缺点">缺点</h3>
+<p>使所有的操作集中在 Factory 上，但是这样使得 <strong>Factory 的职责过重</strong>，所有创建子类的逻辑分析都由 Factory 负担。在修改产品类型时必须对 Factory 进行修改，<strong>当产品类型较多时，不易于维护</strong>。</p>
+<h2 id="简单工厂模式应用情况">简单工厂模式应用情况</h2>
+<ul>
+<li>在客户端不需要知道得到类的全部情况，只需要知道对应参数时</li>
+<li>在需要创建的子类不多，工厂中逻辑业务不会过度复杂时</li>
+</ul>
+<h1 id="工厂方法模式">工厂方法模式</h1>
+<h2 id="连锁pizza店的问题">连锁Pizza店的问题</h2>
+<p>简单工厂更适合被看成一个编程习惯，工厂方法模式具有着超越静态工厂模式的优点，由抽象类定义生产方法，然后由具体类去实现，对于简单工厂来说，这样的模式使得有多个不同的工厂提供有细微差别的同类产品， 将 factory 这个基类可以派生出多个子类来提供对象，更加符合开闭原则。假设我们的 PizzaStore 开成了连锁店，那么会有产生各种地域风格的店，我们不能把 Pizza 的产生都放在 Store 中，我们需要将功能放到他们不同的子类中，相当于将简单工厂中的大工厂进行分解。这里我们可以用到工厂方法模式。</p>
+<p>对 Pizza 类及其子类的实现与简单工厂模式相同。</p>
+<p>对 PizzaStore 定义，这里我们不再需要显式的 Pizza 工厂，因为将对象的实例化转移到 PizzaStore 的子类中。</p>
+<pre><code class="language-java">abstract class PizzaStore {
+    Pizza orderPizza(String type) {
+        Pizza pizza = createPizza(type);
+
+        pizza.bake();
+        pizza.cut();
+        pizza.box();
+
+        return pizza;
+    }
+
+    abstract Pizza createPizza(String type);
+}
+</code></pre>
+<p>PizzaStore 的子类，由子类控制Pizza实例对象的生成</p>
+<pre><code class="language-java">class NewYorkPizzaStore extends PizzaStore {
+    @Override
+    Pizza createPizza(String type) {
+        Pizza pizza = null;
+        if(type.equals(&quot;cheese&quot;)) {
+            System.out.println(&quot;NewYorkCheese&quot;);
+            pizza = new NewYorkCheesePizza();
+        }
+        return pizza;
+    }
+}
+
+class ChicagoPizzaStore extends PizzaStore {
+    @Override
+    Pizza createPizza(String type) {
+        Pizza pizza = null;
+        if(type.equals(&quot;cheese&quot;)) {
+            System.out.println(&quot;ChicagoCheese&quot;);
+            pizza = new ChicagoCheesePizza();
+        }
+        return pizza;
+    }
+}
+</code></pre>
+<p>进行测试</p>
+<pre><code class="language-java">public class FactoryMethodTest {
+    public static void main(String[] args) {
+        PizzaStore newYorkPizzaStore = new NewYorkPizzaStore();
+        PizzaStore chicagoPizzaStore = new ChicagoPizzaStore();
+        Pizza pizza;
+        pizza = newYorkPizzaStore.orderPizza(&quot;cheese&quot;);
+        System.out.println(&quot;--------next--------&quot;);
+        pizza = chicagoPizzaStore.orderPizza(&quot;cheese&quot;);
+    }
+}
+</code></pre>
+<p>得到最终结果</p>
+<figure data-type="image" tabindex="3"><img src="https://yuncheng1998.github.io/post-images/1619543144712.png" alt="" loading="lazy"></figure>
+<p>我们发现 Store 本身已经不在进行 Pizza 实例对象的产生，而将他交给自己的子类对象来实现 create 方法，这就是工厂方法模式，父类工厂只负责接口，而具体的实现交给工厂子类实现，通过工厂子类觉得要哪一个具体类，这样保有了简单工厂的优点，同时也克服了工厂负担过重的缺点。</p>
+<h2 id="模式结构-2">模式结构</h2>
+<figure data-type="image" tabindex="4"><img src="https://yuncheng1998.github.io/post-images/1619543015249.png" alt="" loading="lazy"></figure>
+<p>Factory：抽象的工厂类，负责对产品共有的一些操作</p>
+<p>ConcreteFactory：具体工厂，负责不同大类的产品对象的创建、分担创建对象的工作</p>
+<p>Product：抽象产品，所有对象的父类，描述所有对象共有的公共接口</p>
+<p>ConcreteProduct：具体的产品，创新对象都是它的实例化</p>
+<h2 id="模式分析-2">模式分析</h2>
+<p>工厂方法模式是简单工厂模式的进一步抽象和推广。使用了面向对象的多态性，模式保持了简单工厂模式的优点，而且克服了它的缺点。在工厂方法模式中，核心的工厂类不再负责所有产品的创建，而是将具体创建工作交给子类去做。这个核心类仅仅负责给出具体工厂必须实现的接口，而不负责哪一个产品类被实例化这种细节，这使得工厂方法模式可以允许系统在不修改工厂角色的情况下引进新产品。但由于不同的具体工厂负责不同类的产品的生产，使得我们在增加新产品时需要格外多增加新的具体工厂类。</p>
+<h2 id="工厂方法模式的应用情况">工厂方法模式的应用情况</h2>
+<p>与简单工厂模式类似，在客户端需要得到产品时只需要调用抽象工厂，不必知道是哪一个具体工厂实现它的。</p>
+<h1 id="抽象工厂模式">抽象工厂模式</h1>
+<h2 id="原料供应问题">原料供应问题</h2>
+<p>工厂方法模式为我们提供了一种利用工厂获得不同类产品的方法，解决了分店时工厂压力过大的问题。现在，我们需要为不同的 PizzaStore 提供不同的原料。若果我们继续使用工厂方法模式那么我们大概会这样写。</p>
+<pre><code class="language-java">abstract class Dough {
+    abstract String name;
+}
+class ThickCrustDough extends Dough {
+    // ...
+}
+class ThinCrustDough extends Dough {
+    // ...
+}
+abstract class DoughFactory extends IngredientFactory {
+    Dough createDough(String type) {
+        if(...){
+            return new ThickCrustDough();
+        } else if(...){
+            return new //...
+        }
+    }
+}
+abstract class SauceFactory extends IngredientFactory {
+    //...
+}
+//...
+</code></pre>
+<p>当我们的原料变得越来越多，利用工厂方法模式编写就会变得复杂，我们<strong>需要定义多种原料的工厂</strong>，并且它们与原料工厂有着复杂的继承关系，这使得整个程序的耦合性大大的提高，复杂的继承关系不利于后面代码的维护，同时也违反了一个重要的原则 —— 对扩展开放、对修改关闭。为了解决这个问题，我们需要用组合来替代复杂的继承。<br>
+我们发现，每个地方都提供符合当地特色的原料家族来供应当地的 Pizza 店，我们可以对应建造不同区域的 IngredientFactory 来提供不同的原料家族。这就是抽象工厂模式——提供一个接口，用于创建相关或依赖对象的家族，而不需要指明具体类。这个工厂类时抽象的，因此命名为抽象工厂模式。<br>
+首先是一个 Pizza 的具体类来规定 Pizza 的组成和操作。</p>
+<pre><code class="language-java">public abstract class Pizza {
+    private String name;
+    public Dough dough;
+    public Sauce sauce;
+    Veggies veggies[];
+    Cheese cheese;
+    Clams clams;
+
+    abstract void prepare();
+
+    void bake() {
+        System.out.println(&quot;bake&quot;);
+    }
+    void cut() {
+        System.out.println(&quot;cut&quot;);
+    }
+    void box() {
+        System.out.println(&quot;box&quot;);
+    }
+    void setName(String name) {
+        this.name = name;
+    }
+    String getName() {
+        return this.name;
+    }
+}
+</code></pre>
+<p>然后我们定义原料</p>
+<pre><code class="language-java">abstract class Dough {
+    abstract String getName();
+}
+abstract class Cheese {
+    abstract String getName();
+}
+abstract class Sauce {
+    abstract String getName();
+}
+abstract class Clams {
+    abstract String getName();
+}
+abstract class Veggies {
+}
+
+//具体原料
+class ThickCrustDough extends Dough {
+    @Override
+    String getName() {
+        return &quot;ThickCrustDough&quot;;
+    }
+}
+class ThinCrustDough extends Dough {
+    @Override
+    String getName() {
+        return &quot;ThinCrustDough&quot;;
+    }
+}
+class MarinaraSauce extends Sauce {
+    @Override
+    String getName() {
+        return &quot;MarinaraSauce&quot;;
+    }
+}
+class PlumTomatoSauce extends Sauce {
+    @Override
+    String getName() {
+        return &quot;PlumTomatoSauce&quot;;
+    }
+}
+class MozzarellaCheese extends Cheese {
+    String getName() {
+        return &quot;MozzarellaCheese&quot;;
+    }
+}
+class FeshClams extends Clams {
+    @Override
+    String getName() {
+        return &quot;FleshClams&quot;;
+    }
+}
+class FrozenClams extends Clams {
+    @Override
+    String getName() {
+        return &quot;FrozenClams&quot;;
+    }
+}
+class Onion extends Veggies {
+    //...
+}
+class Garlic extends Veggies {
+	//...
+}
+</code></pre>
+<p>然后定义原料工厂的抽象类，作为调用工厂的统一接口。</p>
+<pre><code class="language-java">public interface IngredientFactory {
+    Dough createDough();
+    Sauce createSauce();
+    Cheese createCheese();
+    Veggies[] createVeggies();
+    Clams createClams();
+}
+</code></pre>
+<p>然后是各个地方工厂的具体类</p>
+<pre><code class="language-java">//Chicago原料工厂
+public class ChicagoIngredientFactory implements IngredientFactory {
+    @Override
+    public Dough createDough() {
+        return new ThickCrustDough();
+    }
+
+    @Override
+    public Sauce createSauce() {
+        return new PlumTomatoSauce();
+    }
+
+    @Override
+    public Cheese createCheese() {
+        return new MozzarellaCheese();
+    }
+
+    @Override
+    public Veggies[] createVeggies() {
+        return new Veggies[]{new Garlic(), new Mushroom()};
+    }
+
+    @Override
+    public Clams createClams() {
+        return new FrozenClams();
+    }
+}
+
+//NewYork原料工厂
+public class NewYorkIngredientFactory implements IngredientFactory {
+    @Override
+    public Dough createDough() {
+        return new ThinCrustDough();
+    }
+
+    @Override
+    public Sauce createSauce() {
+        return new MarinaraSauce();
+    }
+
+    @Override
+    public Cheese createCheese() {
+        return new ReggianoCheese();
+    }
+
+    @Override
+    public Veggies[] createVeggies() {
+        return new Veggies[]{new Garlic(), new Onion(), new Mushroom()};
+    }
+
+    public Clams createClams() {
+        return new FeshClams();
+    }
+}
+</code></pre>
+<p>PizzaStore 的抽象类，用来处理 pizza 的订单和获得信息</p>
+<pre><code class="language-java">abstract class PizzaStore {
+
+    void orderPizza(String type) {
+        Pizza pizza;
+        pizza = createPizza(type);
+        pizza.prepare();
+        pizza.bake();
+        pizza.cut();
+        pizza.box();
+        System.out.println(this.getInfo(pizza));
+    }
+
+    private String getInfo(Pizza pizza) {
+        return &quot;Ingredients are &quot; + pizza.dough.getName() + &quot;, &quot; + pizza.sauce.getName();
+    }
+
+    protected abstract Pizza createPizza(String type);
+}
+
+</code></pre>
+<p>下面是 PizzaStore 的具体类，制作不同种类 Pizza 的具体执行者，并获得从和构造器中的原料工厂得到的原料。</p>
+<pre><code class="language-java">//ChicagoPizzaStore
+public class ChicagoPizzaStore extends PizzaStore {
+    private Pizza pizza = null;
+
+    @Override
+    protected Pizza createPizza(String item) {
+        IngredientFactory pizzaIngredientFactory = new ChicagoIngredientFactory();
+        if (item.equals(&quot;cheese&quot;)) {
+            pizza = new CheesePizza(pizzaIngredientFactory);
+            pizza.setName(&quot;Chicago style cheese Pizza&quot;);
+        } else if (item.equals(&quot;clam&quot;)) {
+            pizza = new ClamPizza(pizzaIngredientFactory);
+            pizza.setName(&quot;Chicago style clam Pizza&quot;);
+        }
+        return pizza;
+    }
+}
+//NewYorkPizzaStore
+class NewYorkPizzaStore extends PizzaStore {
+    private Pizza pizza = null;
+
+    protected Pizza createPizza(String item) {
+        IngredientFactory pizzaIngredientFactory = new NewYorkIngredientFactory();
+
+        if (item.equals(&quot;cheese&quot;)) {
+            pizza = new CheesePizza(pizzaIngredientFactory);
+            pizza.setName(&quot;New York Style Cheese Pizza&quot;);
+        } else if (item.equals(&quot;clam&quot;)) {
+            pizza = new ClamPizza(pizzaIngredientFactory);
+            pizza.setName(&quot;New York Style Clam Pizza&quot;);
+        }
+        return pizza;
+    }
+}
+</code></pre>
+<p>测试我们的 PizzaStore</p>
+<pre><code class="language-java">public class AbstractFactoryTest {
+    public static void main(String[] args) {
+        NewYorkPizzaStore newYorkPizzaStore = new NewYorkPizzaStore();
+        ChicagoPizzaStore chicagoPizzaStore = new ChicagoPizzaStore();
+
+        newYorkPizzaStore.orderPizza(&quot;cheese&quot;);
+        System.out.println(&quot;----next-----&quot;);
+        newYorkPizzaStore.orderPizza(&quot;clam&quot;);
+
+        System.out.println(&quot;----next-----&quot;);
+        chicagoPizzaStore.orderPizza(&quot;cheese&quot;);
+        System.out.println(&quot;----next-----&quot;);
+        chicagoPizzaStore.orderPizza(&quot;clam&quot;);
+        System.out.println(&quot;----next-----&quot;);
+
+    }
+}
+</code></pre>
+<p>得到最终结果<br>
+<img src="https://yuncheng1998.github.io/post-images/1619543243746.png" alt="" loading="lazy"></p>
+<h2 id="模式结构-3">模式结构</h2>
+<p><img src="https://yuncheng1998.github.io/post-images/1619543082324.png" alt="" loading="lazy"><br>
+AbstractFactory：抽象工厂，创建产品类调用的统一接口<br>
+ConcreteFactory：具体工厂，负责提供需要的具体对象<br>
+AbstractProduct：抽象产品<br>
+Product：具体产品</p>
+<h2 id="模式分析-3">模式分析</h2>
+<h3 id="优点-2">优点</h3>
+<p>相比于工厂方法利用一个抽象接口创建产品，并用具体类决定实例化那一个具体类，抽象工厂模式则<strong>提供一个抽象接口来创建一个产品家族</strong>，而每个具体工厂负责创建具体产品方法。另外与工厂方法的继承不同的是抽象工厂模式更多的通过组合的方式创建一组对象的集合。</p>
+<p>抽象工厂模式隔离了具体类的生成，使得客户并不需要知道什么被创建。由于这种隔离，更换一个具体工厂就变得相对容易。所有的具体工厂都实现了抽象工厂中定义的那些公共接口，因此只需改变具体工厂的实例，就可以在某种程度上改变整个软件系统的行为。另外，应用抽象工厂模式可以实现高内聚低耦合的设计目的，因此抽象工厂模式得到了广泛的应用。</p>
+<p>当一个产品族中的多个对象被设计成一起工作时，它能够保证客户端始终只使用同一个产品族中的对象。这对一些需要根据当前环境来决定其行为的软件系统来说，是一种非常实用的设计模式。</p>
+<p>增加新的具体工厂和产品族很方便，无须修改已有系统，符合“开闭原则”。</p>
+<h3 id="缺点-2">缺点</h3>
+<p>在添加新的产品对象时，难以扩展抽象工厂来生产新种类的产品，这是因为在抽象工厂角色中规定了所有可能被创建的产品集合，要支持新种类的产品就意味着要对该接口进行扩展，而这将涉及到对抽象工厂角色及其所有子类的修改，显然会带来较大的不便。</p>
+<p>开闭原则的倾斜性（增加新的工厂和产品族容易，增加新的产品等级结构麻烦）。</p>
+<h2 id="抽象工厂模式的应用情况">抽象工厂模式的应用情况</h2>
+<ul>
+<li>系统中有多于一个的产品族，而每次只使用其中某一产品族。</li>
+<li>属于同一个产品族的产品将在一起使用，这一约束必须在系统的设计中体现出来。</li>
+<li>系统提供一个产品类的库，所有的产品以同样的接口出现，从而使客户端不依赖于具体实现。</li>
+</ul>
+<h1 id="结">结</h1>
+<p>工厂模式在作为一种创建型模式的主要功能就是在一个高内聚低耦合的前提下提供不同的实例化对象，这使得代码结构更加层次化，便于后期的扩展，在实际情况中根据需要选择不同的工厂模式。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E6%8F%90%E5%87%BA%E9%97%AE%E9%A2%98">提出问题</a></li>
+<li><a href="#%E7%AE%80%E5%8D%95%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F">简单工厂模式</a>
+<ul>
+<li><a href="#pizza%E5%BA%97%E7%9A%84%E6%94%B9%E8%BF%9B">Pizza店的改进</a></li>
+<li><a href="#%E6%A8%A1%E5%BC%8F%E7%BB%93%E6%9E%84">模式结构</a></li>
+<li><a href="#%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90">模式分析</a>
+<ul>
+<li><a href="#%E4%BC%98%E7%82%B9">优点</a></li>
+<li><a href="#%E7%BC%BA%E7%82%B9">缺点</a></li>
+</ul>
+</li>
+<li><a href="#%E7%AE%80%E5%8D%95%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F%E5%BA%94%E7%94%A8%E6%83%85%E5%86%B5">简单工厂模式应用情况</a></li>
+</ul>
+</li>
+<li><a href="#%E5%B7%A5%E5%8E%82%E6%96%B9%E6%B3%95%E6%A8%A1%E5%BC%8F">工厂方法模式</a>
+<ul>
+<li><a href="#%E8%BF%9E%E9%94%81pizza%E5%BA%97%E7%9A%84%E9%97%AE%E9%A2%98">连锁Pizza店的问题</a></li>
+<li><a href="#%E6%A8%A1%E5%BC%8F%E7%BB%93%E6%9E%84-2">模式结构</a></li>
+<li><a href="#%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90-2">模式分析</a></li>
+<li><a href="#%E5%B7%A5%E5%8E%82%E6%96%B9%E6%B3%95%E6%A8%A1%E5%BC%8F%E7%9A%84%E5%BA%94%E7%94%A8%E6%83%85%E5%86%B5">工厂方法模式的应用情况</a></li>
+</ul>
+</li>
+<li><a href="#%E6%8A%BD%E8%B1%A1%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F">抽象工厂模式</a>
+<ul>
+<li><a href="#%E5%8E%9F%E6%96%99%E4%BE%9B%E5%BA%94%E9%97%AE%E9%A2%98">原料供应问题</a></li>
+<li><a href="#%E6%A8%A1%E5%BC%8F%E7%BB%93%E6%9E%84-3">模式结构</a></li>
+<li><a href="#%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90-3">模式分析</a>
+<ul>
+<li><a href="#%E4%BC%98%E7%82%B9-2">优点</a></li>
+<li><a href="#%E7%BC%BA%E7%82%B9-2">缺点</a></li>
+</ul>
+</li>
+<li><a href="#%E6%8A%BD%E8%B1%A1%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F%E7%9A%84%E5%BA%94%E7%94%A8%E6%83%85%E5%86%B5">抽象工厂模式的应用情况</a></li>
+</ul>
+</li>
+<li><a href="#%E7%BB%93">结</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/RaTIwMx1D1/">
+              <h3 class="post-title">
+                设计模式（二）观察者模式
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
