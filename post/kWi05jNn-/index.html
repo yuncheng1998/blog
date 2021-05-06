@@ -1,0 +1,335 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hive学习记录（一） | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1620316975178">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Hive学习记录（一） | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="
+Hive可以简单理解为：在Hadoop之上添加了自己的SQL解析和优化器，写一段SQL，解析为Java代码，然后去执行MapReduce，底层数据还是在HDFS上。
+
+Hive的结构
+
+用户接口
+
+CLI（Command Line Int..." />
+    <meta name="keywords" content="大数据" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1620316975178" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Hive学习记录（一）
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-05-05
+              </span>
+              <span>
+                9 min read
+              </span>
+              
+                <a href="https://yuncheng1998.github.io/tag/oPb0H1bRX/" class="post-tag">
+                  # 大数据
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <blockquote>
+<p>Hive可以简单理解为：在Hadoop之上添加了自己的SQL解析和优化器，写一段SQL，解析为Java代码，然后去执行MapReduce，底层数据还是在HDFS上。</p>
+</blockquote>
+<h1 id="hive的结构">Hive的结构</h1>
+<figure data-type="image" tabindex="1"><img src="https://yuncheng1998.github.io/post-images/1620208999875.png" alt="" loading="lazy"></figure>
+<p><strong>用户接口</strong></p>
+<ul>
+<li>CLI（Command Line Interface）：采用交互形式使用 Hive 命令行与 Hive进行交互</li>
+<li>JDBC/ODBC：是Hive 的基于 JDBC 操作提供的客户端</li>
+<li>Web UI：通过浏览器访问 Hive</li>
+</ul>
+<p><strong>元数据存储</strong><br>
+存储在Hive中的数据的描述信息，通常包括：表的名字，表的列和分区及其属性，表的属性（内部表和外部表），表的数据所在目录。Metastore默认存在自带的Derby数据库中，不适合多用户操作，并且数据存储目录不固定，跟着Hive走，不方便管理，因此<strong>通常存储在自己创建的MySQL库</strong>，Hive和MySQL之间通过 MetaStore服务交互。</p>
+<p><strong>Driver</strong><br>
+包含了编译器、优化器、执行器，对HQL查询语句进行词法分析、语法分析、编译、优化以及生成逻辑执行计划。生成的逻辑执行计划存储在HDFS中，并随后由MapReduce调用执行。<br>
+Hive 的核心是驱动引擎， 驱动引擎由四部分组成：</p>
+<ol>
+<li>解释器 <em>Interpreter</em> ：将 <em>HQL</em> 语句转换为抽象语法树 <em>AST</em></li>
+<li>编译器 <em>Compiler</em> ：将语法树 <em>AST</em> 编译为逻辑执行计划 <em>Logical Plan</em></li>
+<li>优化器 <em>Optimizer</em> ：对逻辑执行计划进行优化生成 <em>Optimized Logical Plan</em></li>
+<li>执行器 <em>Executor</em> ：调用底层的运行框架执行逻辑执行计划</li>
+</ol>
+<p><strong>执行流程</strong><br>
+HQL通过命令行或者客户端提交，经过 <em>Compiler</em>，运用<em>MetaStore</em> 中的元数据进行类型检测和语法分析，生成一个逻辑方案 <em>Logical Plan</em> ，然后通过的优化处理，产生一个MapReduce任务。</p>
+<h1 id="hive的特性">Hive的特性</h1>
+<p>Hive 的存储结构包括：数据库、表、视图、分区和表数据等。</p>
+<ul>
+<li>数据库，表，分区对应HDFS上的一个<strong>目录</strong>。</li>
+<li>表数据对应HDFS对应目录下的<strong>文件</strong>。</li>
+</ul>
+<p>Hive中所有的数据都存储在HDFS中，没有专门的数据存储格式，因为 Hive 是读模式<em>Schema On Read</em> (加载数据时不进行校验，读取数据时如果不合法的是NULL)。</p>
+<p>Hive包含的数据模型包括：<em>Database、Table、External Table、Partition、Bucket、View</em></p>
+<ul>
+<li>数据库 <em>Database</em>：为 <em>${hive.metastore.warehouse.dir}</em> 目录下一个文件夹</li>
+<li>内部表 <em>Table</em>：所属<em>Database</em> 目录下一个文件夹</li>
+<li>外部表 <em>External Table</em>：与 <em>Table</em> 类似，不过其数据存放位置可以指定任意 HDFS 目录路径</li>
+<li>分区表 <em>Partition</em>：<em>Table</em> 目录下的子目录</li>
+<li>分桶表 <em>Bucket</em>：同一个表目录或者分区目录下根据某个字段的值进行 <em>Hash</em> 散列之后的多个文件</li>
+<li>视图 <em>View</em>：与传统数据库类似，只读，基于基本表创建</li>
+</ul>
+<h1 id="内部表-外部表-分区表和-bucket表">内部表、外部表、分区表和 Bucket表</h1>
+<h2 id="内部表和外部表">内部表和外部表</h2>
+<p>删除内部表，会删除表元数据和数据<br>
+删除外部表，只删除元数据，不删除数据<br>
+如果数据的所有处理都在Hive中进行，倾向于内部表，如果Hive和其他工具要针对相同的数据集进行处理，外部表更合适。</p>
+<h2 id="分区表">分区表</h2>
+<p>分区又分为<strong>单值分区</strong>和<strong>范围分区</strong>。单值分区又分为<strong>静态分区</strong>和<strong>动态分区</strong>。假如有一张表名为<em>order_info</em> 表，记录<em>order_id</em>、<em>date_key</em>字段。我们便可以创建分区<em>date_key</em>，并将相应数据导入指定分区（目录名为“分区键=键值”）<br>
+<img src="https://yuncheng1998.github.io/post-images/1620202290611.png" alt="" loading="lazy"><br>
+注意的是分区键的值不一定要基于表的某一列（字段），它可以指定任意值，只要查询的时候指定相应的分区键来查询即可。我们可以对分区进行添加、删除、重命名、清空等操作。因为分区在特定的区域（子目录）下检索数据，它作用同DNMS分区一样，都是为了减少扫描成本。</p>
+<h3 id="单值分区">单值分区</h3>
+<p>根据<strong>插入时是否需要手动指定分区</strong>可以分为</p>
+<ul>
+<li>单值静态分区：导入数据时需要手动指定分区。</li>
+<li>单值动态分区：导入数据时，系统可以动态判断目标分区。</li>
+</ul>
+<p>静态分区的创建和写入</p>
+<pre><code class="language-sql">CREATE [EXTERNAL] TABLE &lt;table_name&gt;
+    (&lt;col_name&gt; &lt;data_type&gt; [, &lt;col_name&gt; &lt;data_type&gt; ...])
+    -- 指定分区键和数据类型
+    PARTITIONED BY  (&lt;partition_key&gt; &lt;data_type&gt;, ...) 
+    -- 分桶
+    [CLUSTERED BY ...] 
+    -- 字段和类型
+    [ROW FORMAT &lt;row_format&gt;] 
+    -- 存储格式
+    [STORED AS TEXTFILE|ORC|CSVFILE]
+    [LOCATION '&lt;file_path&gt;']    
+    [TBLPROPERTIES ('&lt;property_name&gt;'='&lt;property_value&gt;', ...)];
+</code></pre>
+<pre><code class="language-sql">-- 覆盖写入
+INSERT OVERWRITE TABLE &lt;table_name&gt; 
+    PARTITION (&lt;partition_key&gt;=&lt;partition_value&gt;[, &lt;partition_key&gt;=&lt;partition_value&gt;, ...]) 
+    SELECT &lt;select_statement&gt;;
+ 
+-- 追加写入
+INSERT INTO TABLE &lt;table_name&gt; 
+    PARTITION (&lt;partition_key&gt;=&lt;partition_value&gt;[, &lt;partition_key&gt;=&lt;partition_value&gt;, ...])
+    SELECT &lt;select_statement&gt;;
+</code></pre>
+<p>动态分区的创建和写入<br>
+创建方式与静态分区表一样，一张表可同时设定静态和动态分区，只是<strong>动态分区键需要放在静态分区建的后面</strong>（因为HDFS上的动态分区目录下不能包含静态分区的子目录），如下 spk 即 static partition key， dpk 即 dynamic partition key。</p>
+<pre><code class="language-sql">CREATE TABLE &lt;table_name&gt;
+PARTITIONED BY ([&lt;spk&gt; &lt;data_type&gt;, ... ,] &lt;dpk&gt; &lt;data_type&gt;, [&lt;dpk&gt;
+&lt;data_type&gt;,...]);
+-- ...
+</code></pre>
+<pre><code class="language-sql">-- 开启动态分区支持，并设置最大分区数
+set hive.exec.dynamic.partition=true;
+set hive.exec.max.dynamic.partitions=2000;
+ 
+-- &lt;dpk&gt;为动态分区键， &lt;spk&gt;为静态分区键
+INSERT (OVERWRITE | INTO) TABLE &lt;table_name&gt;
+    PARTITION ([&lt;spk&gt;=&lt;value&gt;, ..., ] &lt;dpk&gt;, [..., &lt;dpk&gt;]) 
+    SELECT &lt;select_statement&gt;; 
+</code></pre>
+<h3 id="范围分区">范围分区</h3>
+<p>范围分区则对应分区键的一个区间，只要落在指定区间内的记录都被存储在对应的分区下。分区范围需要手动指定，分区的范围为<strong>前闭后开区间 [最小值, 最大值)</strong>。最后出现的分区可以使用 MAXVALUE 作为上限，MAXVALUE 代表该分区键的数据类型所允许的最大值。</p>
+<pre><code class="language-sql">CREATE [EXTERNAL] TABLE &lt;table_name&gt;
+    (&lt;col_name&gt; &lt;data_type&gt;, &lt;col_name&gt; &lt;data_type&gt;, ...)
+    PARTITIONED BY RANGE (&lt;partition_key&gt; &lt;data_type&gt;, ...) 
+    -- 为分区字段指定范围
+        (PARTITION [&lt;partition_name&gt;] VALUES LESS THAN (&lt;cutoff&gt;), 
+            [PARTITION [&lt;partition_name&gt;] VALUES LESS THAN (&lt;cutoff&gt;),
+              ...
+            ]
+            PARTITION [&lt;partition_name&gt;] VALUES LESS THAN (&lt;cutoff&gt;|MAXVALUE) 
+        )
+    [ROW FORMAT &lt;row_format&gt;] [STORED AS TEXTFILE|ORC|CSVFILE]
+    [LOCATION '&lt;file_path&gt;']    
+    [TBLPROPERTIES ('&lt;property_name&gt;'='&lt;property_value&gt;', ...)];
+</code></pre>
+<h2 id="分桶表">分桶表</h2>
+<p>为什么要分桶？分区提供了一个<strong>隔离数据和优化查询</strong>的可行方案，但是并非所有的数据集都可以形成合理的分区，分区的数量也不是越多越好，过多的分区条件可能会导致很多分区上没有数据。同时 Hive 会限制动态分区可以创建的最大分区数，用来避免过多分区文件对文件系统产生负担。鉴于以上原因，Hive 还提供了一种更加细粒度的数据拆分方案：分桶表 (bucket Table)。分桶概念和 Java 数据结构中的<em>HashMap</em>  的分桶概念是一致的。<br>
+<img src="https://yuncheng1998.github.io/post-images/1620208361991.png" alt="" loading="lazy"></p>
+<p>在实际存储中，Hive将表中的记录按分桶键的哈希值分散进多个文件中，这些小文件称为桶。分桶表的建表方式如下</p>
+<pre><code class="language-sql">CREATE [EXTERNAL] TABLE &lt;table_name&gt;
+    (&lt;col_name&gt; &lt;data_type&gt; [, &lt;col_name&gt; &lt;data_type&gt; ...])]
+    [PARTITIONED BY ...] 
+    -- 设置分桶字段为、排序字段和排序方式、分散到几个桶中
+    CLUSTERED BY (&lt;col_name&gt;) 
+        [SORTED BY (&lt;col_name&gt; [ASC|DESC] [, &lt;col_name&gt; [ASC|DESC]...])] 
+        INTO &lt;num_buckets&gt; BUCKETS  
+    [ROW FORMAT &lt;row_format&gt;] 
+    [STORED AS TEXTFILE|ORC|CSVFILE]
+    [LOCATION '&lt;file_path&gt;']    
+    [TBLPROPERTIES ('&lt;property_name&gt;'='&lt;property_value&gt;', ...)];
+</code></pre>
+<p>分桶表在写入数据时<strong>不会自动进行分桶、排序</strong>，需要<strong>人工</strong>先进行分桶、排序后再写入数据。确保目标表中的数据和它定义的分布一致。<br>
+方法一：打开enforce bucketing开关。</p>
+<pre><code class="language-sql">SET hive.enforce.bucketing=true;
+INSERT (INTO|OVERWRITE) TABLE &lt;bucketed_table&gt; SELECT &lt;select_statement&gt;
+[SORT BY &lt;sort_key&gt; [ASC|DESC], [&lt;sort_key&gt; [ASC|DESC], ...]];
+</code></pre>
+<p>方法二：将reducer个数设置为目标表的桶数，并在 SELECT 语句中用 DISTRIBUTE BY &lt;bucket_key&gt;对查询结果按目标表的分桶键分进reducer中。</p>
+<pre><code class="language-sql">SET mapred.reduce.tasks = &lt;num_buckets&gt;; 
+INSERT (INTO|OVERWRITE) TABLE &lt;bucketed_table&gt;
+SELECT &lt;select_statement&gt;
+DISTRIBUTE BY &lt;bucket_key&gt;, [&lt;bucket_key&gt;, ...] 
+[SORT BY &lt;sort_key&gt; [ASC|DESC], [&lt;sort_key&gt; [ASC|DESC], ...]]; 
+</code></pre>
+<p>在Hive中，ORC事务表必须进行分桶（为了提高效率）。每个桶的文件大小应在100~200MB之间（ORC表压缩后的数据）。通常做法是先分区后分桶。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#hive%E7%9A%84%E7%BB%93%E6%9E%84">Hive的结构</a></li>
+<li><a href="#hive%E7%9A%84%E7%89%B9%E6%80%A7">Hive的特性</a></li>
+<li><a href="#%E5%86%85%E9%83%A8%E8%A1%A8-%E5%A4%96%E9%83%A8%E8%A1%A8-%E5%88%86%E5%8C%BA%E8%A1%A8%E5%92%8C-bucket%E8%A1%A8">内部表、外部表、分区表和 Bucket表</a>
+<ul>
+<li><a href="#%E5%86%85%E9%83%A8%E8%A1%A8%E5%92%8C%E5%A4%96%E9%83%A8%E8%A1%A8">内部表和外部表</a></li>
+<li><a href="#%E5%88%86%E5%8C%BA%E8%A1%A8">分区表</a>
+<ul>
+<li><a href="#%E5%8D%95%E5%80%BC%E5%88%86%E5%8C%BA">单值分区</a></li>
+<li><a href="#%E8%8C%83%E5%9B%B4%E5%88%86%E5%8C%BA">范围分区</a></li>
+</ul>
+</li>
+<li><a href="#%E5%88%86%E6%A1%B6%E8%A1%A8">分桶表</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/Qe7mvB1pJ/">
+              <h3 class="post-title">
+                复用类
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

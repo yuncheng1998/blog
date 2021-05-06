@@ -2,11 +2,11 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>跳跃表 | 云程的BLOG</title>
-<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1619502355741">
+<title>数据结构（一）跳跃表 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1620316975178">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
-<link rel="alternate" type="application/atom+xml" title="跳跃表 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="alternate" type="application/atom+xml" title="数据结构（一）跳跃表 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
@@ -32,7 +32,7 @@ Redis中实现了skiplist这种..." />
       <div class="main-content">
         <div class="site-header">
   <a href="https://yuncheng1998.github.io">
-  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1619502355741" alt="">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1620316975178" alt="">
   </a>
   <h1 class="site-title">
     云程的BLOG
@@ -79,7 +79,7 @@ Redis中实现了skiplist这种..." />
         <div class="post-detail">
           <article class="post">
             <h2 class="post-title">
-              跳跃表
+              数据结构（一）跳跃表
             </h2>
             <div class="post-info">
               <span>
@@ -187,6 +187,7 @@ Redis中的跳跃表是实现有序集合对象的一种数据结构，适应的
 </code></pre>
 <h2 id="为什么不选择树">为什么不选择树</h2>
 <p>跳表插入元素、删除元素、查找元素的时间复杂度与平衡二叉树相同为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>l</mi><mi>o</mi><msubsup><mi>g</mi><mn>2</mn><mi>n</mi></msubsup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(log_2^n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">o</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.664392em;"><span style="top:-2.4518920000000004em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.24810799999999997em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>，输出区间内元素的复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>。而红黑树对输出区间内元素的支持性较差，每次需要从首位置来查找。与B+树比较来看，B+树提供了指向了下一个元素的指针，可以方便的获得区间内元素，增删改查的时间复杂度与跳跃表相同，但跳跃表的实现较B+树更为简单。</p>
+<p>参考 <a href="https://juejin.cn/post/6844904205501595661">redis的zset有多牛？请把耳朵递过来</a></p>
 
               </div>
               <div class="toc-container">
