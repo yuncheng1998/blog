@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://yuncheng1998.github.io</id>
     <title>云程的BLOG</title>
-    <updated>2021-05-06T16:26:55.897Z</updated>
+    <updated>2021-05-12T05:45:19.770Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://yuncheng1998.github.io"/>
     <link rel="self" href="https://yuncheng1998.github.io/atom.xml"/>
@@ -10,6 +10,83 @@
     <logo>https://yuncheng1998.github.io/images/avatar.png</logo>
     <icon>https://yuncheng1998.github.io/favicon.ico</icon>
     <rights>All rights reserved 2021, 云程的BLOG</rights>
+    <entry>
+        <title type="html"><![CDATA[深入理解 Spark SQL 的 Catalyst Optimizer]]></title>
+        <id>https://yuncheng1998.github.io/post/_jwaRGZp3/</id>
+        <link href="https://yuncheng1998.github.io/post/_jwaRGZp3/">
+        </link>
+        <updated>2021-05-06T04:30:39.000Z</updated>
+        <content type="html"><![CDATA[<p><a href="https://databricks.com/blog/2015/04/13/deep-dive-into-spark-sqls-catalyst-optimizer.html">Deep Dive into Spark SQL’s Catalyst Optimizer</a></p>
+<h1 id="前言">前言</h1>
+<blockquote>
+<p><em>Spark SQL</em> 的核心是<em>Catalyst</em> 优化器，它以一种全新的方式利用高级语言的特性（例如：<em>Scala</em> 的模式匹配和<em>Quasiquotes</em>）构建一个可扩展的查询优化器。</p>
+</blockquote>
+<p>Spark SQL架构图<br>
+<img src="https://yuncheng1998.github.io/post-images/1620289726602.svg" alt="" loading="lazy"><br>
+<em>Catalyst</em> 核心是<strong>表示树</strong>和<strong>操作树的规则</strong>。在框架的顶层，构建了专门用于关系型查询处理的库（表达式，逻辑查询计划）以及处理查询执行的不同阶段的几组规则（分析，逻辑优化，物理计划和将部分查询编译为 Java 字节码的代码生成）。对于后者，我们使用了另一个 <em>Scala</em> 特性<em>Quasiquotes</em>，它使得在运行时从组合表达式生成代码机器变得非常简单。最后，<em>Catalyst</em> 提供了若干公共的扩展点，包括扩展数据源和用户自定义类型。</p>
+<h1 id="catalyst-的核心"><em>Catalyst</em> 的核心</h1>
+<h2 id="树">树</h2>
+<p>Catalyst 中的主要数据类型是<strong>由节点对象组成的树</strong>。每个节点有<strong>一个节点类型</strong>和<strong>零个或多个子节点</strong>。新的节点类型在 Scala 中定义为 TreeNode 类的子类。这些对象是不可变的，可以使用函数转换进行操作</p>
+<p>举个简单的例子，假设我们有以下三个节点类型，可以用更简化的表达式表示为：</p>
+<ul>
+<li><code>Literal(value: Int)</code>：代表常量</li>
+<li><code>Attribute(name: String)</code>：代表输入一行数据的一个属性，例如：“x”</li>
+<li><code>Add(left: TreeNode, right: TreeNode)</code>：对两个表达式加和</li>
+</ul>
+<p>这些类构建成树；例如，表达式 <code>x+(1+2)</code>，可以在 Scala 代码中表示为：<br>
+<img src="https://yuncheng1998.github.io/post-images/1620289407166.png" alt="" loading="lazy"></p>
+<h2 id="规则">规则</h2>
+<p>规则用于对树进行操作，是一个将一棵树转换为另外一棵树的方法。最常见的方式是<strong>使用一组模式匹配函数</strong>，找到并替换<strong>特定结构的子树</strong>。模式匹配是许多函数式编程语言的特性，允许从代数数据类型的嵌套结构中进行值提取。在<em>Catalyst</em> 中，树提供的转换方法可以递归地应用模式匹配函数到树的所有节点。例如，我们可以实现一个常量合并操作的规则：</p>
+<pre><code class="language-scala">tree.transform {
+  case Add(Literal(c1), Literal(c2)) =&gt; Literal(c1+c2)
+}
+</code></pre>
+<p>这条规则将树 <code>x+(1+2)</code>转换为一颗新树：<code>x+3</code>。实践中，规则需要执行多次才能完全转换一棵树。<em>Catalyst</em> 将规则分成批次，执行各个批次直到树不再更新为止。每条规则可以非常简单且是自包含的，但最终仍会在树上产生比较大的全局效果。在上面的例子中，就重复地应用规则不断折叠一棵大树。</p>
+<p>另一个例子：第一个批次分析一个表达式并将类型赋给所有属性，而第二个批次可能使用这些类型进行不断折叠。每个批次之后，开发者还可以在生成的新树上运行健全性检查（例如，查看所有的属性都指定了类型），通常这也同样通过递归匹配来编写。</p>
+<h1 id="在-spark-sql-中的使用">在 <em>Spark SQL</em> 中的使用</h1>
+<p>我们在四个阶段使用了 Catalyst 通用树转换操作框架</p>
+<ol>
+<li>分析：语法树和元数据 <em>（Catalog）</em> 绑定，得到<em>Resolved Logical Plan（Analyzed Logical Plan）</em></li>
+<li>逻辑优化：使用<em>RBO</em>（逻辑优化规则）和<em>CBO</em>（成本优化规则）进行优化，得到新的语法树</li>
+<li>物理计划：将<em>Logical Plan</em> 转换为多个<em>Physical Plans</em> ，使用<em>Cost Model</em> 选择最佳的<em>Physical Plans</em></li>
+<li>代码生成：编译部分查询为<em>Java</em> 字节码<br>
+<img src="https://yuncheng1998.github.io/post-images/1620289744620.svg" alt="" loading="lazy"></li>
+</ol>
+<h2 id="分析">分析</h2>
+<p>Spark SQL 以一个需要计算的关系开始，其来自<em>SQL Parser</em>返回的抽象语法树*（AST）*或来自使用 API 构造的 DataFrame 对象。在两种情况下，关系可能包含<strong>未解析的属性引用或关系</strong>，例如：在 SQL 查询 <code>SELECT col FROM sales</code>，col 的类型，甚至是否是一个合法的列名，在我们查询表 sales 之前都是未知的。如果我们不知道其类型或者没有匹配到输入表（或别名），那么这个属性就未被解析。<em>Spark SQL</em> 使用 <em>Catalyst</em> 规则和一个 <em>Catalyst</em> 对象去追踪所有数据源的表来解析这些属性。从未绑定的属性和数据类型构建一个<strong>未解析的逻辑计划</strong>，然后应用规则执行下面的步骤：</p>
+<ol>
+<li>通过名字从 <em>Catalog</em> 中查找关系。</li>
+<li>映射命名属性，如 <em>col</em>，到输入的给定操作符子项。</li>
+<li>检查哪些属性<strong>引用了相同的值</strong>给它们<strong>一个相同的 ID</strong>（之后允许针对 <code>col = col</code> 这样的表达式进行优化）。</li>
+<li>通过表达式传递和强制类型：举个例子，我们无法知道 <code>1 + col</code> 的返回类型，直到解析 col 并可能将其子表达式转换为兼容类型。</li>
+</ol>
+<p><a href="https://github.com/apache/spark/blob/fedbfc7074dd6d38dc5301d66d1ca097bc2a21e0/sql/catalyst/src/main/scala/org/apache/spark/sql/catalyst/analysis/Analyzer.scala">Analyzer.scala</a>。</p>
+<h2 id="逻辑优化">逻辑优化</h2>
+<p>逻辑优化阶段对逻辑计划应用标准的<strong>基于规则的优化</strong>。这些规则包括：常数折叠（constant folding）、谓词下推（predicate pushdown）、投影剪枝（projection pruning）、空传播（null propagation）、布尔表达式简化（Boolean expression simplification）和其他规则。</p>
+<p><a href="https://github.com/apache/spark/blob/fedbfc7074dd6d38dc5301d66d1ca097bc2a21e0/sql/catalyst/src/main/scala/org/apache/spark/sql/catalyst/optimizer/Optimizer.scala">Optimizer.scala</a>。</p>
+<h2 id="物理计划">物理计划</h2>
+<p><em>Spark SQL</em> 将一个逻辑计划使用匹配 <em>Spark</em> 执行引擎的物理操作符生成一个或多个的物理计划，然后应用<strong>成本模型</strong>选择其中一个。</p>
+<p>基于成本的优化器只用于选择连接算法：对于已知的很小的关系，Spark SQL 使用 broadcast join（点对点的广播工具）。</p>
+<p>物理计划同样执行<strong>基于规则的物理优化</strong>，如在一个 <em>Spark</em> 的 <em>map</em> 操作执行流水线投影*（Piplining Projection）*或过滤。除此之外，还可以从逻辑计划将操作推到支持谓词或投影下推的数据源。</p>
+<p><a href="https://github.com/apache/spark/blob/fedbfc7074dd6d38dc5301d66d1ca097bc2a21e0/sql/core/src/main/scala/org/apache/spark/sql/execution/SparkStrategies.scala">SparkStrategies.scala</a>.</p>
+<h2 id="代码生成">代码生成</h2>
+<p>最后阶段包括是生成在机器上运行的 Java 字节码。因为 <em>Spark SQL</em> 经常对内存中的数据集进行操作，而处理是受 <em>cpu</em> 约束的，所以我们希望支持代码生成以加快执行速度。代码生成引擎相当于一个编译器，<em>Catalyst</em> 依赖于 <em>Scala</em> 语言的一个特殊功能——<strong>准引号</strong>，以简化代码生成。<em>Quasiquotes</em> <strong>允许用 <em>Scala</em> 语言编程构造 <em>AST</em></strong> ，然后在<strong>运行时将其提供给 <em>Scala</em> 编译器生成字节码</strong>。我们使用 <em>Catalyst</em> 将一个表示 <em>SQL</em> 表达式的树转换为一个表示 <em>Scala</em> 代码的 <em>AST</em> 来计算该表达式，然后编译并运行生成的代码。</p>
+<p>以上面的 <em>Add</em>、 <em>Attribute</em> 和 <em>Literal</em> 树节点为例，它允许我们编写如 <em>(x + y) + 1</em> 之类的表达式。如果没有代码生成，则必须通过遍历 <em>Add</em>、 <em>Attribute</em> 和 <em>Literal</em> 节点的树来解释每一行数据中的这类表达式，这将引入大量分支和虚函数调用，从而降低执行速度。通过代码生成，我们可以编写一个函数将特定的表达式树转换为 <em>Scala AST</em>，如下所示:</p>
+<pre><code class="language-scala">def compile(node: Node): AST = node match {
+  // 常量
+  case Literal(value) =&gt; q&quot;$value&quot;
+	// 属性
+  case Attribute(name) =&gt; q&quot;row.get($name)&quot;
+	// 操作符 ”+“
+  case Add(left, right) =&gt; q&quot;${compile(left)} + ${compile(right)}&quot;
+}
+</code></pre>
+<p>以 <em>q</em> 开头的字符串是准引号，尽管看起来像字符串，但在编译时被 <em>Scala</em> 编译器解析，并表示其中代码的 <em>AST</em>。</p>
+<p><em>Quasiquotes</em> 可以将变量或其他 <em>AST</em> 拼接到这些变量中，并使用 <em>$</em> 符号表示。例如，<em>Literal (1)</em> 将成为1的 Scala AST，而 *Attribute (“x”)*将成为 <em>row.get (“x”)</em>。最后，像 <em>Add (Literal (1) ，Attribute (“x”)</em> 这样的树会成为 <em>Scala</em> 表达式的 <em>AST</em>：<em>1+row.get (“x”)</em>。</p>
+<p><em>Quasiquotes</em> 会在编译时进行类型检查以确保只有合适的 <em>ASTs</em> 或者字面量能够被替换，这比字符串连接更有用，而且是<strong>直接生成 <em>Scala AST</em> 树</strong>而不是在运行时运行 <em>Scala</em> 解析器。此外，由于每个节点代码的生成规则不需要知晓其子节点是如何构建的，因此它们是高度可组合的。最后，如果 <em>Catalyst</em> 缺少表达式级别的优化，<em>Scala</em> 编译器会对代码进行进一步的优化。<br>
+<a href="https://github.com/apache/spark/blob/fedbfc7074dd6d38dc5301d66d1ca097bc2a21e0/sql/catalyst/src/main/scala/org/apache/spark/sql/catalyst/expressions/codegen/CodeGenerator.scala">CodeGenerator.scala</a>。</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Hive学习记录（一）]]></title>
         <id>https://yuncheng1998.github.io/post/kWi05jNn-/</id>
@@ -160,15 +237,15 @@ DISTRIBUTE BY &lt;bucket_key&gt;, [&lt;bucket_key&gt;, ...]
 ]]></content>
     </entry>
     <entry>
-        <title type="html"><![CDATA[复用类]]></title>
+        <title type="html"><![CDATA[《Java编程思想》——复用类]]></title>
         <id>https://yuncheng1998.github.io/post/Qe7mvB1pJ/</id>
         <link href="https://yuncheng1998.github.io/post/Qe7mvB1pJ/">
         </link>
         <updated>2021-04-12T05:35:36.000Z</updated>
         <content type="html"><![CDATA[<p>复用代码是 <em>Java</em> 众多引人注目的功能之一，如何实现对已有类更加灵巧的复用是程序设计中需要考虑的重要问题。本文是在研读 <em>Thinking in Java</em> 复用类一章后的思考与总结。</p>
-<h4 id="复用的方法">复用的方法</h4>
-<p>要使用现有类而不破坏现有代码主要有两种方式，组合与继承。前者直接在新的类中产生现有类的对象，后者则是在现有类的形式中添加代码。二者均是利用现有类型产生新类型，均在新类中包含了现有类的引用，对于组合这种引用是显式的，而对于继承则是隐式的。</p>
-<h4 id="组合">组合</h4>
+<h1 id="复用的方法">复用的方法</h1>
+<p>要使用现有类而不破坏现有代码主要有两种方式：<strong>组合与继承</strong>。前者直接<strong>在新的类中产生现有类的对象</strong>，后者则是在<strong>现有类的形式中添加代码</strong>。二者均是利用现有类型产生新类型，均在新类中包含了现有类的引用，对于组合这种引用是<strong>显式</strong>的，而对于继承则是<strong>隐式</strong>的。</p>
+<h2 id="组合">组合</h2>
 <p>在新类中显式地产生现有类的对象，新类是由现有类组合而成的。现有类的对象默认初始化为 <em>null</em>，若我们需要进行初始化，有以下四种方式</p>
 <ol>
 <li>
@@ -178,23 +255,21 @@ DISTRIBUTE BY &lt;bucket_key&gt;, [&lt;bucket_key&gt;, ...]
 <p>在类的构造器中</p>
 </li>
 <li>
-<p>使用对象前进行惰性初始化</p>
-<p>当不必要每次都生成对象时，使用惰性初始化可以减少负担</p>
+<p>使用对象前进行惰性初始化：当不必要每次都生成对象时，使用惰性初始化可以减少负担</p>
 </li>
 <li>
-<p>使用实例初始化</p>
-<p>实例初始化是在类内部的一个代码块，在创建对象时执行，为该类的实例对象赋值</p>
+<p>使用实例初始化：实例初始化是在类内部的一个代码块，在创建对象时执行，为该类的实例对象赋值</p>
 </li>
 </ol>
-<h4 id="继承">继承</h4>
+<h2 id="继承">继承</h2>
 <p>使用 <em>extends</em> 关键字实现类的继承，子类会自动得到超类中可以继承的所有的域和方法。可以认为在子类中包含了一个超类的引用 <em>super</em>，在子类中可以通过 <em>super</em> 关键字可以使用超类。</p>
-<p>要明确的是，在继承中 <em>JVM</em> 先加载超类，然后加载子类。创建子类对象时，会在子类对象的构造器中默认调用超类的无参构造器 <em>super()</em>（若要使用有参构造器则必须进行覆盖）。这个超类对象以 <em>super</em> 关键字来指代。<br>
-<img src="https://yuncheng1998.github.io/post-images/1618205840756.png" alt="超类子类" loading="lazy"><br>
+<p>要明确的是，在继承中 <em>JVM</em> <strong>先加载超类，然后加载子类</strong>。创建子类对象时，会在子类对象的构造器中默认调用超类的无参构造器 <em>super()</em>（若要使用有参构造器则必须进行覆盖）。这个超类对象以 <em>super</em> 关键字来指代。<br>
+<img src="https://yuncheng1998.github.io/post-images/1620319318664.png" alt="" loading="lazy"><br>
 一个有继承关系的子类如上图所示，其中包括了子类特有的方法，子类重写超类中的方法和超类中提供的调用接口。超类中提供的接口会自动被子类继承，若要在子类中调用现有类的方法需要使用 <em>super</em> 进行指代。</p>
-<h4 id="代理">代理</h4>
+<h2 id="代理">代理</h2>
 <p>代理是一种复用类的设计模式，是继承与组合的中庸之道，<em>Java</em> 中并没有直接提供对代理的支持。代理的思想是建立一个包含了现有对象（目标对象）的代理对象，在代理对象中对目标对象进行包装和扩展。即对目标类加一层包装，对于目标对象的方法进行选择性的提供，这样就可以让用户调用代理对象来避免其使用目标对象中不希望暴露给使用者的方法。<br>
-<img src="https://yuncheng1998.github.io/post-images/1618205799288.png" alt="复用类" loading="lazy"></p>
-<h4 id="组合与继承的选择">组合与继承的选择</h4>
+<img src="https://yuncheng1998.github.io/post-images/1620319685165.png" alt="" loading="lazy"></p>
+<h1 id="组合与继承的选择">组合与继承的选择</h1>
 <p>组合与继承是实现复用类功能的两个主要方式，我们常听说设计模式中强调少用继承来降低程序的耦合性，因此在选择组合与继承时常常偏向于组合。但我们需要理解组合与继承的设计思想，才能做出更好的选择。</p>
 <ul>
 <li>
@@ -205,7 +280,7 @@ DISTRIBUTE BY &lt;bucket_key&gt;, [&lt;bucket_key&gt;, ...]
 </li>
 </ul>
 <p>另外，如果必须实现向上转型，那么继承是必要的</p>
-<h4 id="总结">总结</h4>
+<h1 id="总结">总结</h1>
 <p>继承和组合都能从现有类型中产生新的类型，组合将现有类型作为新类型底层实现的一部分加以复用，而继承复用的是接口。对于继承、组合或代理的选择需要综合程序耦合性、灵活性、是否需要多态机制等多方面考虑，需要理解这几种方式的设计思想才能做出更好的选择。</p>
 ]]></content>
     </entry>
@@ -2393,105 +2468,6 @@ class Solution {
 <li>使用Map映射池</li>
 <li>使用策略模式</li>
 </ol>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[数据结构（一）跳跃表]]></title>
-        <id>https://yuncheng1998.github.io/post/tiao-yue-biao/</id>
-        <link href="https://yuncheng1998.github.io/post/tiao-yue-biao/">
-        </link>
-        <updated>2021-04-11T14:25:23.000Z</updated>
-        <content type="html"><![CDATA[<p>最早在Redis设计与实现这本书中看到关于Redis中跳跃表的介绍，后来又在Java中使用跳表实现的ConcurrentSkipListMap，才发现这种数据结构有着广泛的应用。</p>
-<h2 id="redis中的跳跃表">Redis中的跳跃表</h2>
-<p>Redis中实现了skiplist这种有序的数据结构，以Redis的设计与实现中图示为例<br>
-<img src="https://yuncheng1998.github.io/post-images/1618151152233.png" alt="Redis-skip-list" loading="lazy"><br>
-这表示一个如下所示的跳跃表<br>
-<img src="https://yuncheng1998.github.io/post-images/1618151184016.png" alt="redis-skip-list-2" loading="lazy"><br>
-其中第一列为表头节点，有32层，但在此跳跃表中只有用到了5层，第一层是所有节点，每一个节点都有50%的概率会在上一层中包含，这样可以提高每个节点的访问速度，相当于为链表增加了二分查找的功能。这样即有着省去了链表需要从头到尾遍历的过程，也有着链表插入和删除很快的优点。<br>
-下面是跳跃表的插入和删除的过程<br>
-<img src="https://yuncheng1998.github.io/post-images/1618151211971.png" alt="skip-list-add-and-delete" loading="lazy"><br>
-跳跃表相当于为链表增加了一层索引，先通过索引确定大概位置，然后在进行逐步的细化，是一种空间换时间的方式。<br>
-Redis中的跳跃表是实现有序集合对象的一种数据结构，适应的Redis需要快速增删改查的需求。</p>
-<h2 id="concurrentskiplistmap中的跳跃表">ConcurrentSkipListMap中的跳跃表</h2>
-<p>ConcurrentSkipListMap的设计在有元素插入后，会进一步确定该元素是否需要建立索引，判断标准完全采用抛硬币的方式来实现</p>
-<pre><code class="language-java">int rnd = ThreadLocalRandom.nextSecondarySeed();
-    // 0x80000001展开为二进制为10000000000000000000000000000001
-    // 只有两头是1
-    // 这里(rnd &amp; 0x80000001) == 0
-    // 相当于排除了负数（负数最高位是1），排除了奇数（奇数最低位是1）
-    // 只有最高位最低位都不为1的数跟0x80000001做&amp;操作才会为0
-    // 也就是正偶数
-    if ((rnd &amp; 0x80000001) == 0) { // test highest and lowest bits
-        // 默认level为1，也就是只要到这里了就会至少建立一层索引
-        int level = 1, max;
-        // 随机数从最低位的第二位开始，有几个连续的1则level就加几
-        // 因为最低位肯定是0，正偶数嘛
-        // 比如，1100110，level就加2
-        while (((rnd &gt;&gt;&gt;= 1) &amp; 1) != 0)
-            ++level;
-
-        // 用于记录目标节点建立的最高的那层索引节点
-        Index&lt;K,V&gt; idx = null;
-        // 取头索引节点（这是最高层的头索引节点）
-        HeadIndex&lt;K,V&gt; h = head;
-        // 如果生成的层数小于等于当前最高层的层级
-        // 也就是跳表的高度不会超过现有高度
-        if (level &lt;= (max = h.level)) {
-            // 从第一层开始建立一条竖直的索引链表
-            // 这条链表使用down指针连接起来
-            // 每个索引节点里面都存储着目标节点这个数据节点
-            // 最后idx存储的是这条索引链表的最高层节点
-            for (int i = 1; i &lt;= level; ++i)
-                idx = new Index&lt;K,V&gt;(z, idx, null);
-        }
-        else { // try to grow by one level
-            // 如果新的层数超过了现有跳表的高度
-            // 则最多只增加一层
-            // 比如现在只有一层索引，那下一次最多增加到两层索引，增加多了也没有意义
-            level = max + 1; // hold in array and later pick the one to use
-            // idxs用于存储目标节点建立的竖起索引的所有索引节点
-            // 其实这里直接使用idx这个最高节点也是可以完成的
-            // 只是用一个数组存储所有节点要方便一些
-            // 注意，这里数组0号位是没有使用的
-            @SuppressWarnings(&quot;unchecked&quot;)Index&lt;K,V&gt;[] idxs =
-                    (Index&lt;K,V&gt;[])new Index&lt;?,?&gt;[level+1];
-            // 从第一层开始建立一条竖的索引链表（跟上面一样，只是这里顺便把索引节点放到数组里面了）
-            for (int i = 1; i &lt;= level; ++i)
-                idxs[i] = idx = new Index&lt;K,V&gt;(z, idx, null);
-
-            // 自旋
-            for (;;) {
-                // 旧的最高层头索引节点
-                h = head;
-                // 旧的最高层级
-                int oldLevel = h.level;
-                // 再次检查，如果旧的最高层级已经不比新层级矮了
-                // 说明有其它线程先一步修改了值，从头来过
-                if (level &lt;= oldLevel) // lost race to add level
-                    break;
-                // 新的最高层头索引节点
-                HeadIndex&lt;K,V&gt; newh = h;
-                // 头节点指向的数据节点
-                Node&lt;K,V&gt; oldbase = h.node;
-                // 超出的部分建立新的头索引节点
-                for (int j = oldLevel+1; j &lt;= level; ++j)
-                    newh = new HeadIndex&lt;K,V&gt;(oldbase, newh, idxs[j], j);
-                // 原子更新头索引节点
-                if (casHead(h, newh)) {
-                    // h指向新的最高层头索引节点
-                    h = newh;
-                    // 把level赋值为旧的最高层级的
-                    // idx指向的不是最高的索引节点了
-                    // 而是与旧最高层平齐的索引节点
-                    idx = idxs[level = oldLevel];
-                    break;
-                }
-            }
-        }
-</code></pre>
-<h2 id="为什么不选择树">为什么不选择树</h2>
-<p>跳表插入元素、删除元素、查找元素的时间复杂度与平衡二叉树相同为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>l</mi><mi>o</mi><msubsup><mi>g</mi><mn>2</mn><mi>n</mi></msubsup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(log_2^n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">o</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.664392em;"><span style="top:-2.4518920000000004em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.24810799999999997em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>，输出区间内元素的复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>。而红黑树对输出区间内元素的支持性较差，每次需要从首位置来查找。与B+树比较来看，B+树提供了指向了下一个元素的指针，可以方便的获得区间内元素，增删改查的时间复杂度与跳跃表相同，但跳跃表的实现较B+树更为简单。</p>
-<p>参考 <a href="https://juejin.cn/post/6844904205501595661">redis的zset有多牛？请把耳朵递过来</a></p>
 ]]></content>
     </entry>
 </feed>

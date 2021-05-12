@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>设计模式（三）工厂模式 | 云程的BLOG</title>
-<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1620318411043">
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1620798316520">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="设计模式（三）工厂模式 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
@@ -34,7 +34,7 @@ class Store {
       <div class="main-content">
         <div class="site-header">
   <a href="https://yuncheng1998.github.io">
-  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1620318411043" alt="">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1620798316520" alt="">
   </a>
   <h1 class="site-title">
     云程的BLOG
@@ -191,8 +191,8 @@ class PepperoniPizza extends Pizza {
 <figure data-type="image" tabindex="1"><img src="https://yuncheng1998.github.io/post-images/1619543185853.png" alt="" loading="lazy"></figure>
 <p>简单工厂模式又称<strong>静态工厂模式</strong>，作为一种创建模式，简单工厂将不同子类的实例化给剥离出来，专门定义一个类负责创建其他类的实例，我们只需要知道不同子类中的一个参数，然后利用参数对基类进行调用就可以得到不同的子类，被创建的子类有着相同的父类。</p>
 <h2 id="模式结构">模式结构</h2>
-<figure data-type="image" tabindex="2"><img src="https://yuncheng1998.github.io/post-images/1619542972776.png" alt="" loading="lazy"></figure>
-<p>Factory：用来得到实例化子类对象的工厂</p>
+<p><img src="https://yuncheng1998.github.io/post-images/1620324605372.png" alt="" loading="lazy"><br>
+Factory：用来得到实例化子类对象的工厂</p>
 <p>Product：抽象产品，所有对象的父类，描述所有对象共有的公共接口</p>
 <p>ConcreteProduct：具体的产品，创新对象都是它的实例化</p>
 <h2 id="模式分析">模式分析</h2>
@@ -262,11 +262,11 @@ class ChicagoPizzaStore extends PizzaStore {
 }
 </code></pre>
 <p>得到最终结果</p>
-<figure data-type="image" tabindex="3"><img src="https://yuncheng1998.github.io/post-images/1619543144712.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://yuncheng1998.github.io/post-images/1619543144712.png" alt="" loading="lazy"></figure>
 <p>我们发现 Store 本身已经不在进行 Pizza 实例对象的产生，而将他交给自己的子类对象来实现 create 方法，这就是工厂方法模式，父类工厂只负责接口，而具体的实现交给工厂子类实现，通过工厂子类觉得要哪一个具体类，这样保有了简单工厂的优点，同时也克服了工厂负担过重的缺点。</p>
 <h2 id="模式结构-2">模式结构</h2>
-<figure data-type="image" tabindex="4"><img src="https://yuncheng1998.github.io/post-images/1619543015249.png" alt="" loading="lazy"></figure>
-<p>Factory：抽象的工厂类，负责对产品共有的一些操作</p>
+<p><img src="https://yuncheng1998.github.io/post-images/1620324621921.png" alt="" loading="lazy"><br>
+Factory：抽象的工厂类，负责对产品共有的一些操作</p>
 <p>ConcreteFactory：具体工厂，负责不同大类的产品对象的创建、分担创建对象的工作</p>
 <p>Product：抽象产品，所有对象的父类，描述所有对象共有的公共接口</p>
 <p>ConcreteProduct：具体的产品，创新对象都是它的实例化</p>
@@ -539,7 +539,7 @@ class NewYorkPizzaStore extends PizzaStore {
 <p>得到最终结果<br>
 <img src="https://yuncheng1998.github.io/post-images/1619543243746.png" alt="" loading="lazy"></p>
 <h2 id="模式结构-3">模式结构</h2>
-<p><img src="https://yuncheng1998.github.io/post-images/1619543082324.png" alt="" loading="lazy"><br>
+<p><img src="https://yuncheng1998.github.io/post-images/1620324639524.png" alt="" loading="lazy"><br>
 AbstractFactory：抽象工厂，创建产品类调用的统一接口<br>
 ConcreteFactory：具体工厂，负责提供需要的具体对象<br>
 AbstractProduct：抽象产品<br>

@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>设计模式（六）命令模式 | 云程的BLOG</title>
-<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1620318411043">
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1620798316520">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="设计模式（六）命令模式 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
@@ -31,7 +31,7 @@
       <div class="main-content">
         <div class="site-header">
   <a href="https://yuncheng1998.github.io">
-  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1620318411043" alt="">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1620798316520" alt="">
   </a>
   <h1 class="site-title">
     云程的BLOG
@@ -686,7 +686,11 @@ public class CeilingFanOffCommand extends CeilingFanCommand {
 <li>命令模式的关键在于引入抽象命令接口，只需要针对抽象命令接口编程来控制接收者的动作。</li>
 </ul>
 <h2 id="模式结构">模式结构</h2>
-<p>命令模式包含如下角色：</p>
+<p><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>U</mi><mi>M</mi><mi>L</mi><mi mathvariant="normal">图</mi></mrow><annotation encoding="application/x-tex">UML图</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.10903em;">U</span><span class="mord mathdefault" style="margin-right:0.10903em;">M</span><span class="mord mathdefault">L</span><span class="mord cjk_fallback">图</span></span></span></span><br>
+<img src="https://yuncheng1998.github.io/post-images/1620324894801.png" alt="" loading="lazy"><br>
+<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="normal">时</mi><mi mathvariant="normal">序</mi><mi mathvariant="normal">图</mi></mrow><annotation encoding="application/x-tex">时序图</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0em;vertical-align:0em;"></span><span class="mord cjk_fallback">时</span><span class="mord cjk_fallback">序</span><span class="mord cjk_fallback">图</span></span></span></span><br>
+<img src="https://yuncheng1998.github.io/post-images/1620324909465.png" alt="" loading="lazy"><br>
+命令模式包含如下角色：</p>
 <ul>
 <li>Command: 抽象命令类</li>
 <li>ConcreteCommand: 具体命令类</li>
@@ -694,8 +698,6 @@ public class CeilingFanOffCommand extends CeilingFanCommand {
 <li>Receiver: 接收者</li>
 <li>Client:客户类</li>
 </ul>
-<figure data-type="image" tabindex="4"><img src="https://yuncheng1998.github.io/post-images/1619628761074.png" alt="" loading="lazy"></figure>
-<figure data-type="image" tabindex="5"><img src="https://yuncheng1998.github.io/post-images/1619628735723.png" alt="" loading="lazy"></figure>
 <h2 id="命令模式优点">命令模式优点</h2>
 <ul>
 <li>降低系统的耦合度，新的命令可以很容易的加入系统中</li>

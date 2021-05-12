@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>设计模式（四）装饰者模式 | 云程的BLOG</title>
-<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1620318411043">
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1620798316520">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="设计模式（四）装饰者模式 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
@@ -46,7 +46,7 @@ DarkRoast
       <div class="main-content">
         <div class="site-header">
   <a href="https://yuncheng1998.github.io">
-  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1620318411043" alt="">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1620798316520" alt="">
   </a>
   <h1 class="site-title">
     云程的BLOG
@@ -301,15 +301,15 @@ public class Mocha extends CondimentDecorator {
 </code></pre>
 <figure data-type="image" tabindex="1"><img src="https://yuncheng1998.github.io/post-images/1619579949534.png" alt="" loading="lazy"></figure>
 <h1 id="装饰者模式的组成">装饰者模式的组成</h1>
-<p>装饰者模式是一个比较简单的模式，逻辑框图也很容易理解，Component是得到所有对象的统一接口，进行装饰和装饰后得到的对象都是Component类型，在具体装饰者中，会有一个Component类型的变量来记录所装饰的对象。</p>
-<figure data-type="image" tabindex="2"><img src="https://yuncheng1998.github.io/post-images/1619579884792.png" alt="" loading="lazy"></figure>
+<p>装饰者模式是一个比较简单的模式，逻辑框图也很容易理解，Component是得到所有对象的统一接口，进行装饰和装饰后得到的对象都是Component类型，在具体装饰者中，会有一个Component类型的变量来记录所装饰的对象。<br>
+<img src="https://yuncheng1998.github.io/post-images/1620324768329.png" alt="" loading="lazy"></p>
 <center>装饰者模式框图</center>
 装饰者模式大多有着上述结构。
-<figure data-type="image" tabindex="3"><img src="https://yuncheng1998.github.io/post-images/1619579931482.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://yuncheng1998.github.io/post-images/1620324761312.png" alt="" loading="lazy"></figure>
 <center>装饰者模式创建对象</center>
 <h1 id="java-io">Java I/O</h1>
 <p>java.io是我们常用的包，这个包对I/O方法很好的用到了DecoratorPattern</p>
-<figure data-type="image" tabindex="4"><img src="https://yuncheng1998.github.io/post-images/1619588219585.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://yuncheng1998.github.io/post-images/1620324753577.png" alt="" loading="lazy"></figure>
 <ul>
 <li>基本组件
 <ul>

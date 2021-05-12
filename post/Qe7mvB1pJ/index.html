@@ -2,11 +2,11 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>复用类 | 云程的BLOG</title>
-<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1620318411043">
+<title>《Java编程思想》——复用类 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1620798316520">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
-<link rel="alternate" type="application/atom+xml" title="复用类 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="alternate" type="application/atom+xml" title="《Java编程思想》——复用类 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
@@ -22,8 +22,8 @@
 
     <meta name="description" content="复用代码是 Java 众多引人注目的功能之一，如何实现对已有类更加灵巧的复用是程序设计中需要考虑的重要问题。本文是在研读 Thinking in Java 复用类一章后的思考与总结。
 复用的方法
-要使用现有类而不破坏现有代码主要有两种方式，..." />
-    <meta name="keywords" content="" />
+要使用现有类而不破坏现有代码主要有两种方式：..." />
+    <meta name="keywords" content="Java编程思想,读书笔记,Java" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
     <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
   </head>
@@ -32,7 +32,7 @@
       <div class="main-content">
         <div class="site-header">
   <a href="https://yuncheng1998.github.io">
-  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1620318411043" alt="">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1620798316520" alt="">
   </a>
   <h1 class="site-title">
     云程的BLOG
@@ -79,7 +79,7 @@
         <div class="post-detail">
           <article class="post">
             <h2 class="post-title">
-              复用类
+              《Java编程思想》——复用类
             </h2>
             <div class="post-info">
               <span>
@@ -89,14 +89,26 @@
                 4 min read
               </span>
               
+                <a href="https://yuncheng1998.github.io/tag/7QYcQg3R8/" class="post-tag">
+                  # Java编程思想
+                </a>
+              
+                <a href="https://yuncheng1998.github.io/tag/WrIED4MPc/" class="post-tag">
+                  # 读书笔记
+                </a>
+              
+                <a href="https://yuncheng1998.github.io/tag/wqVbydjG9/" class="post-tag">
+                  # Java
+                </a>
+              
             </div>
             
             <div class="post-content-wrapper">
               <div class="post-content">
                 <p>复用代码是 <em>Java</em> 众多引人注目的功能之一，如何实现对已有类更加灵巧的复用是程序设计中需要考虑的重要问题。本文是在研读 <em>Thinking in Java</em> 复用类一章后的思考与总结。</p>
-<h4 id="复用的方法">复用的方法</h4>
-<p>要使用现有类而不破坏现有代码主要有两种方式，组合与继承。前者直接在新的类中产生现有类的对象，后者则是在现有类的形式中添加代码。二者均是利用现有类型产生新类型，均在新类中包含了现有类的引用，对于组合这种引用是显式的，而对于继承则是隐式的。</p>
-<h4 id="组合">组合</h4>
+<h1 id="复用的方法">复用的方法</h1>
+<p>要使用现有类而不破坏现有代码主要有两种方式：<strong>组合与继承</strong>。前者直接<strong>在新的类中产生现有类的对象</strong>，后者则是在<strong>现有类的形式中添加代码</strong>。二者均是利用现有类型产生新类型，均在新类中包含了现有类的引用，对于组合这种引用是<strong>显式</strong>的，而对于继承则是<strong>隐式</strong>的。</p>
+<h2 id="组合">组合</h2>
 <p>在新类中显式地产生现有类的对象，新类是由现有类组合而成的。现有类的对象默认初始化为 <em>null</em>，若我们需要进行初始化，有以下四种方式</p>
 <ol>
 <li>
@@ -106,23 +118,21 @@
 <p>在类的构造器中</p>
 </li>
 <li>
-<p>使用对象前进行惰性初始化</p>
-<p>当不必要每次都生成对象时，使用惰性初始化可以减少负担</p>
+<p>使用对象前进行惰性初始化：当不必要每次都生成对象时，使用惰性初始化可以减少负担</p>
 </li>
 <li>
-<p>使用实例初始化</p>
-<p>实例初始化是在类内部的一个代码块，在创建对象时执行，为该类的实例对象赋值</p>
+<p>使用实例初始化：实例初始化是在类内部的一个代码块，在创建对象时执行，为该类的实例对象赋值</p>
 </li>
 </ol>
-<h4 id="继承">继承</h4>
+<h2 id="继承">继承</h2>
 <p>使用 <em>extends</em> 关键字实现类的继承，子类会自动得到超类中可以继承的所有的域和方法。可以认为在子类中包含了一个超类的引用 <em>super</em>，在子类中可以通过 <em>super</em> 关键字可以使用超类。</p>
-<p>要明确的是，在继承中 <em>JVM</em> 先加载超类，然后加载子类。创建子类对象时，会在子类对象的构造器中默认调用超类的无参构造器 <em>super()</em>（若要使用有参构造器则必须进行覆盖）。这个超类对象以 <em>super</em> 关键字来指代。<br>
-<img src="https://yuncheng1998.github.io/post-images/1618205840756.png" alt="超类子类" loading="lazy"><br>
+<p>要明确的是，在继承中 <em>JVM</em> <strong>先加载超类，然后加载子类</strong>。创建子类对象时，会在子类对象的构造器中默认调用超类的无参构造器 <em>super()</em>（若要使用有参构造器则必须进行覆盖）。这个超类对象以 <em>super</em> 关键字来指代。<br>
+<img src="https://yuncheng1998.github.io/post-images/1620319318664.png" alt="" loading="lazy"><br>
 一个有继承关系的子类如上图所示，其中包括了子类特有的方法，子类重写超类中的方法和超类中提供的调用接口。超类中提供的接口会自动被子类继承，若要在子类中调用现有类的方法需要使用 <em>super</em> 进行指代。</p>
-<h4 id="代理">代理</h4>
+<h2 id="代理">代理</h2>
 <p>代理是一种复用类的设计模式，是继承与组合的中庸之道，<em>Java</em> 中并没有直接提供对代理的支持。代理的思想是建立一个包含了现有对象（目标对象）的代理对象，在代理对象中对目标对象进行包装和扩展。即对目标类加一层包装，对于目标对象的方法进行选择性的提供，这样就可以让用户调用代理对象来避免其使用目标对象中不希望暴露给使用者的方法。<br>
-<img src="https://yuncheng1998.github.io/post-images/1618205799288.png" alt="复用类" loading="lazy"></p>
-<h4 id="组合与继承的选择">组合与继承的选择</h4>
+<img src="https://yuncheng1998.github.io/post-images/1620319685165.png" alt="" loading="lazy"></p>
+<h1 id="组合与继承的选择">组合与继承的选择</h1>
 <p>组合与继承是实现复用类功能的两个主要方式，我们常听说设计模式中强调少用继承来降低程序的耦合性，因此在选择组合与继承时常常偏向于组合。但我们需要理解组合与继承的设计思想，才能做出更好的选择。</p>
 <ul>
 <li>
@@ -133,30 +143,21 @@
 </li>
 </ul>
 <p>另外，如果必须实现向上转型，那么继承是必要的</p>
-<h4 id="总结">总结</h4>
+<h1 id="总结">总结</h1>
 <p>继承和组合都能从现有类型中产生新的类型，组合将现有类型作为新类型底层实现的一部分加以复用，而继承复用的是接口。对于继承、组合或代理的选择需要综合程序耦合性、灵活性、是否需要多态机制等多方面考虑，需要理解这几种方式的设计思想才能做出更好的选择。</p>
 
               </div>
               <div class="toc-container">
                 <ul class="markdownIt-TOC">
-<li>
+<li><a href="#%E5%A4%8D%E7%94%A8%E7%9A%84%E6%96%B9%E6%B3%95">复用的方法</a>
 <ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#%E5%A4%8D%E7%94%A8%E7%9A%84%E6%96%B9%E6%B3%95">复用的方法</a></li>
 <li><a href="#%E7%BB%84%E5%90%88">组合</a></li>
 <li><a href="#%E7%BB%A7%E6%89%BF">继承</a></li>
 <li><a href="#%E4%BB%A3%E7%90%86">代理</a></li>
+</ul>
+</li>
 <li><a href="#%E7%BB%84%E5%90%88%E4%B8%8E%E7%BB%A7%E6%89%BF%E7%9A%84%E9%80%89%E6%8B%A9">组合与继承的选择</a></li>
 <li><a href="#%E6%80%BB%E7%BB%93">总结</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
 </ul>
 
               </div>
