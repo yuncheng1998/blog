@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://yuncheng1998.github.io</id>
     <title>云程的BLOG</title>
-    <updated>2021-05-12T06:05:07.705Z</updated>
+    <updated>2021-05-12T06:15:50.563Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://yuncheng1998.github.io"/>
     <link rel="self" href="https://yuncheng1998.github.io/atom.xml"/>
@@ -16,83 +16,6 @@
         <link href="https://yuncheng1998.github.io/post/V9E4IhAbX/">
         </link>
         <updated>2021-05-12T06:04:33.000Z</updated>
-        <content type="html"><![CDATA[<p><a href="https://databricks.com/blog/2015/04/13/deep-dive-into-spark-sqls-catalyst-optimizer.html">Deep Dive into Spark SQL’s Catalyst Optimizer</a></p>
-<h1 id="前言">前言</h1>
-<blockquote>
-<p><em>Spark SQL</em> 的核心是<em>Catalyst</em> 优化器，它以一种全新的方式利用高级语言的特性（例如：<em>Scala</em> 的模式匹配和<em>Quasiquotes</em>）构建一个可扩展的查询优化器。</p>
-</blockquote>
-<p>Spark SQL架构图<br>
-<img src="https://yuncheng1998.github.io/post-images/1620289726602.svg" alt="" loading="lazy"><br>
-<em>Catalyst</em> 核心是<strong>表示树</strong>和<strong>操作树的规则</strong>。在框架的顶层，构建了专门用于关系型查询处理的库（表达式，逻辑查询计划）以及处理查询执行的不同阶段的几组规则（分析，逻辑优化，物理计划和将部分查询编译为 Java 字节码的代码生成）。对于后者，我们使用了另一个 <em>Scala</em> 特性<em>Quasiquotes</em>，它使得在运行时从组合表达式生成代码机器变得非常简单。最后，<em>Catalyst</em> 提供了若干公共的扩展点，包括扩展数据源和用户自定义类型。</p>
-<h1 id="catalyst-的核心"><em>Catalyst</em> 的核心</h1>
-<h2 id="树">树</h2>
-<p>Catalyst 中的主要数据类型是<strong>由节点对象组成的树</strong>。每个节点有<strong>一个节点类型</strong>和<strong>零个或多个子节点</strong>。新的节点类型在 Scala 中定义为 TreeNode 类的子类。这些对象是不可变的，可以使用函数转换进行操作</p>
-<p>举个简单的例子，假设我们有以下三个节点类型，可以用更简化的表达式表示为：</p>
-<ul>
-<li><code>Literal(value: Int)</code>：代表常量</li>
-<li><code>Attribute(name: String)</code>：代表输入一行数据的一个属性，例如：“x”</li>
-<li><code>Add(left: TreeNode, right: TreeNode)</code>：对两个表达式加和</li>
-</ul>
-<p>这些类构建成树；例如，表达式 <code>x+(1+2)</code>，可以在 Scala 代码中表示为：<br>
-<img src="https://yuncheng1998.github.io/post-images/1620289407166.png" alt="" loading="lazy"></p>
-<h2 id="规则">规则</h2>
-<p>规则用于对树进行操作，是一个将一棵树转换为另外一棵树的方法。最常见的方式是<strong>使用一组模式匹配函数</strong>，找到并替换<strong>特定结构的子树</strong>。模式匹配是许多函数式编程语言的特性，允许从代数数据类型的嵌套结构中进行值提取。在<em>Catalyst</em> 中，树提供的转换方法可以递归地应用模式匹配函数到树的所有节点。例如，我们可以实现一个常量合并操作的规则：</p>
-<pre><code class="language-scala">tree.transform {
-  case Add(Literal(c1), Literal(c2)) =&gt; Literal(c1+c2)
-}
-</code></pre>
-<p>这条规则将树 <code>x+(1+2)</code>转换为一颗新树：<code>x+3</code>。实践中，规则需要执行多次才能完全转换一棵树。<em>Catalyst</em> 将规则分成批次，执行各个批次直到树不再更新为止。每条规则可以非常简单且是自包含的，但最终仍会在树上产生比较大的全局效果。在上面的例子中，就重复地应用规则不断折叠一棵大树。</p>
-<p>另一个例子：第一个批次分析一个表达式并将类型赋给所有属性，而第二个批次可能使用这些类型进行不断折叠。每个批次之后，开发者还可以在生成的新树上运行健全性检查（例如，查看所有的属性都指定了类型），通常这也同样通过递归匹配来编写。</p>
-<h1 id="在-spark-sql-中的使用">在 <em>Spark SQL</em> 中的使用</h1>
-<p>我们在四个阶段使用了 Catalyst 通用树转换操作框架</p>
-<ol>
-<li>分析：语法树和元数据 <em>（Catalog）</em> 绑定，得到<em>Resolved Logical Plan（Analyzed Logical Plan）</em></li>
-<li>逻辑优化：使用<em>RBO</em>（逻辑优化规则）和<em>CBO</em>（成本优化规则）进行优化，得到新的语法树</li>
-<li>物理计划：将<em>Logical Plan</em> 转换为多个<em>Physical Plans</em> ，使用<em>Cost Model</em> 选择最佳的<em>Physical Plans</em></li>
-<li>代码生成：编译部分查询为<em>Java</em> 字节码<br>
-<img src="https://yuncheng1998.github.io/post-images/1620289744620.svg" alt="" loading="lazy"></li>
-</ol>
-<h2 id="分析">分析</h2>
-<p>Spark SQL 以一个需要计算的关系开始，其来自<em>SQL Parser</em>返回的抽象语法树*（AST）*或来自使用 API 构造的 DataFrame 对象。在两种情况下，关系可能包含<strong>未解析的属性引用或关系</strong>，例如：在 SQL 查询 <code>SELECT col FROM sales</code>，col 的类型，甚至是否是一个合法的列名，在我们查询表 sales 之前都是未知的。如果我们不知道其类型或者没有匹配到输入表（或别名），那么这个属性就未被解析。<em>Spark SQL</em> 使用 <em>Catalyst</em> 规则和一个 <em>Catalyst</em> 对象去追踪所有数据源的表来解析这些属性。从未绑定的属性和数据类型构建一个<strong>未解析的逻辑计划</strong>，然后应用规则执行下面的步骤：</p>
-<ol>
-<li>通过名字从 <em>Catalog</em> 中查找关系。</li>
-<li>映射命名属性，如 <em>col</em>，到输入的给定操作符子项。</li>
-<li>检查哪些属性<strong>引用了相同的值</strong>给它们<strong>一个相同的 ID</strong>（之后允许针对 <code>col = col</code> 这样的表达式进行优化）。</li>
-<li>通过表达式传递和强制类型：举个例子，我们无法知道 <code>1 + col</code> 的返回类型，直到解析 col 并可能将其子表达式转换为兼容类型。</li>
-</ol>
-<p><a href="https://github.com/apache/spark/blob/fedbfc7074dd6d38dc5301d66d1ca097bc2a21e0/sql/catalyst/src/main/scala/org/apache/spark/sql/catalyst/analysis/Analyzer.scala">Analyzer.scala</a>。</p>
-<h2 id="逻辑优化">逻辑优化</h2>
-<p>逻辑优化阶段对逻辑计划应用标准的<strong>基于规则的优化</strong>。这些规则包括：常数折叠（constant folding）、谓词下推（predicate pushdown）、投影剪枝（projection pruning）、空传播（null propagation）、布尔表达式简化（Boolean expression simplification）和其他规则。</p>
-<p><a href="https://github.com/apache/spark/blob/fedbfc7074dd6d38dc5301d66d1ca097bc2a21e0/sql/catalyst/src/main/scala/org/apache/spark/sql/catalyst/optimizer/Optimizer.scala">Optimizer.scala</a>。</p>
-<h2 id="物理计划">物理计划</h2>
-<p><em>Spark SQL</em> 将一个逻辑计划使用匹配 <em>Spark</em> 执行引擎的物理操作符生成一个或多个的物理计划，然后应用<strong>成本模型</strong>选择其中一个。</p>
-<p>基于成本的优化器只用于选择连接算法：对于已知的很小的关系，Spark SQL 使用 broadcast join（点对点的广播工具）。</p>
-<p>物理计划同样执行<strong>基于规则的物理优化</strong>，如在一个 <em>Spark</em> 的 <em>map</em> 操作执行流水线投影*（Piplining Projection）*或过滤。除此之外，还可以从逻辑计划将操作推到支持谓词或投影下推的数据源。</p>
-<p><a href="https://github.com/apache/spark/blob/fedbfc7074dd6d38dc5301d66d1ca097bc2a21e0/sql/core/src/main/scala/org/apache/spark/sql/execution/SparkStrategies.scala">SparkStrategies.scala</a>.</p>
-<h2 id="代码生成">代码生成</h2>
-<p>最后阶段包括是生成在机器上运行的 Java 字节码。因为 <em>Spark SQL</em> 经常对内存中的数据集进行操作，而处理是受 <em>cpu</em> 约束的，所以我们希望支持代码生成以加快执行速度。代码生成引擎相当于一个编译器，<em>Catalyst</em> 依赖于 <em>Scala</em> 语言的一个特殊功能——<strong>准引号</strong>，以简化代码生成。<em>Quasiquotes</em> <strong>允许用 <em>Scala</em> 语言编程构造 <em>AST</em></strong> ，然后在<strong>运行时将其提供给 <em>Scala</em> 编译器生成字节码</strong>。我们使用 <em>Catalyst</em> 将一个表示 <em>SQL</em> 表达式的树转换为一个表示 <em>Scala</em> 代码的 <em>AST</em> 来计算该表达式，然后编译并运行生成的代码。</p>
-<p>以上面的 <em>Add</em>、 <em>Attribute</em> 和 <em>Literal</em> 树节点为例，它允许我们编写如 <em>(x + y) + 1</em> 之类的表达式。如果没有代码生成，则必须通过遍历 <em>Add</em>、 <em>Attribute</em> 和 <em>Literal</em> 节点的树来解释每一行数据中的这类表达式，这将引入大量分支和虚函数调用，从而降低执行速度。通过代码生成，我们可以编写一个函数将特定的表达式树转换为 <em>Scala AST</em>，如下所示:</p>
-<pre><code class="language-scala">def compile(node: Node): AST = node match {
-  // 常量
-  case Literal(value) =&gt; q&quot;$value&quot;
-	// 属性
-  case Attribute(name) =&gt; q&quot;row.get($name)&quot;
-	// 操作符 ”+“
-  case Add(left, right) =&gt; q&quot;${compile(left)} + ${compile(right)}&quot;
-}
-</code></pre>
-<p>以 <em>q</em> 开头的字符串是准引号，尽管看起来像字符串，但在编译时被 <em>Scala</em> 编译器解析，并表示其中代码的 <em>AST</em>。</p>
-<p><em>Quasiquotes</em> 可以将变量或其他 <em>AST</em> 拼接到这些变量中，并使用 <em>$</em> 符号表示。例如，<em>Literal (1)</em> 将成为1的 Scala AST，而 *Attribute (“x”)*将成为 <em>row.get (“x”)</em>。最后，像 <em>Add (Literal (1) ，Attribute (“x”)</em> 这样的树会成为 <em>Scala</em> 表达式的 <em>AST</em>：<em>1+row.get (“x”)</em>。</p>
-<p><em>Quasiquotes</em> 会在编译时进行类型检查以确保只有合适的 <em>ASTs</em> 或者字面量能够被替换，这比字符串连接更有用，而且是<strong>直接生成 <em>Scala AST</em> 树</strong>而不是在运行时运行 <em>Scala</em> 解析器。此外，由于每个节点代码的生成规则不需要知晓其子节点是如何构建的，因此它们是高度可组合的。最后，如果 <em>Catalyst</em> 缺少表达式级别的优化，<em>Scala</em> 编译器会对代码进行进一步的优化。<br>
-<a href="https://github.com/apache/spark/blob/fedbfc7074dd6d38dc5301d66d1ca097bc2a21e0/sql/catalyst/src/main/scala/org/apache/spark/sql/catalyst/expressions/codegen/CodeGenerator.scala">CodeGenerator.scala</a>。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[深入理解 Spark SQL 的 Catalyst Optimizer]]></title>
-        <id>https://yuncheng1998.github.io/post/_jwaRGZp4/</id>
-        <link href="https://yuncheng1998.github.io/post/_jwaRGZp4/">
-        </link>
-        <updated>2021-05-06T04:30:39.000Z</updated>
         <content type="html"><![CDATA[<p><a href="https://databricks.com/blog/2015/04/13/deep-dive-into-spark-sqls-catalyst-optimizer.html">Deep Dive into Spark SQL’s Catalyst Optimizer</a></p>
 <h1 id="前言">前言</h1>
 <blockquote>
@@ -2456,6 +2379,95 @@ class Solution {
     }
 }
 </code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[代码整洁之道]]></title>
+        <id>https://yuncheng1998.github.io/post/clean-code/</id>
+        <link href="https://yuncheng1998.github.io/post/clean-code/">
+        </link>
+        <updated>2021-04-11T14:29:15.000Z</updated>
+        <content type="html"><![CDATA[<p>在一家公司实习，接手了一个权限相关的模块，正处一个新版本上线的时机，这个模块也是从其他模块中拆分出来的，上一任从老代码搬运过来并进行重构，后又由我接手来继续接受重构并进行新权限功能的开发。在重构期间开始读 <em>Robert C. Martin</em> 所著的 <em>代码整洁之道</em> 。在此期间对我起到了很大的指导作用。</p>
+<h2 id="方法应该是什么样的">方法应该是什么样的</h2>
+<h3 id="短小只做一件事">短小，只做一件事</h3>
+<p>方法之所以写的冗长因为它做了太多的事情，一个好的方法应该短小清晰，过于长的代码是难以理解和维护的，因此应尽可能的将长方法进行拆分，首先要理解原方法的含义，然后将它所做的任务拆分成若干子任务，每个子任务进行以面向对象的思想进行封装。并且要规范的命名和写清楚 <em>javadoc</em> 注释。</p>
+<h3 id="抽象层级">抽象层级</h3>
+<p>这是一个容易被忽视的事情，并不是所有方法都在同一层级上。将方法按抽象层级进行区分并注意调用的位置，适合自顶向下的读代码习惯。</p>
+<p>例如要从文件中获得字符串的List，现有一个读取文件的方法 <em>readFile</em> 和一个将字符串转换为字符数组 <em>convertString2List</em> 的方法。</p>
+<ol>
+<li>两个方法都在 <em>main</em> 中调用</li>
+<li><em>main</em> 中调用 <em>readFile</em>，<em>readFile</em> 中调用 <em>convertString2List</em></li>
+</ol>
+<h3 id="不要返回-null">不要返回 <em>null</em></h3>
+<p>低层级的方法尽量避免返回值为 <em>null</em> 的情况发生，来避免高层级代码需要进行的判空处理。应该及时在低层级代码判断null，如果为错误时抛出异常，或者返回空对象</p>
+<h3 id="参数">参数</h3>
+<p>对于诸如 <em>completeArg</em> 方法，使用 <em>Arg completeArg(Arg arg)</em> 通常要优于使用 <em>void completeArg(Arg arg)</em></p>
+<p>对于参数中有 <em>Boolean</em> 类型的方法，若其在做两件不同的事情，应该将其拆分</p>
+<p>对于有很多参数的方法，例如 <em>String generateSql(String tableName, String idName, String eiName, String authCondition, String ei)</em> 这样一个生成 <em>SQL</em> 语句的方法，前三个参数作为列名，完全可以用一个单独的类进行封装。若只在本类中调用，可以将其设置为私有类。然后使用对象作为参数<em>String generateSql(SqlArg sqlArg, String authCondition, String ei)</em></p>
+<h3 id="无副作用">无副作用</h3>
+<p>有些方法具有副作用在于当该方法被调用后，有一些调用者未预见的事情发生了。这主要是是由于命名不规范和违反了只做一件事原则而产生的</p>
+<h3 id="不要有输出参数">不要有输出参数</h3>
+<p>输出参数是面向过程所遗留下的产物，例如上面所提到的 <em>void completeArg(Arg arg)</em>，这类方法应该被改造为 <em>arg.completeArg()</em>，参数多数自然而染得被看作是输入，输入又输出的参数会给人造成迷惑</p>
+<h3 id="分隔指令与询问">分隔指令与询问</h3>
+<p>例如 <em>Java</em> 中的 <em>Set</em> 的 <em>add</em> 方法，会返回一个 <em>boolean</em> 类型表示插入是否成功，<em>contains</em> 用来判断集合中是否包含这个值。<em>add</em> 是指令、<em>contains</em> 是询问，应避免使用 <em>add</em> 来替代 <em>contains</em>。当然对于多线程应另行考虑。</p>
+<h3 id="异常">异常</h3>
+<p>除了模块提供的对外 <em>API</em> ，内部的方法应使用异常而不是错误码。调用的方法并判断返回值是错误码，这本身就违反了分隔指令与询问的原则。当使用 <em>try-catch</em> 去处理异常时，try代码块与catch代码块中分别做了两件不同的事，完全可以将其抽离出作为两个方法。另外对于 <em>try</em> 中有多行代码是容易给人造成混乱的，因为这样不知道异常是由哪些语句抛出的。良好的错误处理的<em>try-catch</em>语句必然是干净整洁的。</p>
+<h3 id="结构化编程">结构化编程</h3>
+<p><em>Dijkstra</em> 的结构化编程对于较长的方法是有重要作用的，保证这些方法只有一个出口、永远不会有goto语句，可以使这些方法的处理逻辑更加清晰。</p>
+<h3 id="如何处理-switch">如何处理 <em>switch</em></h3>
+<p>避免 <em>switch</em> 语句使代码违反单一权责原则和开闭原则的最好方法是使用工厂，将 <em>switch</em> 放到抽象工厂内部，用多态来接收返回值。</p>
+<h2 id="对象与数据结构">对象与数据结构</h2>
+<p>对象和数据结构应该作为两个不同的概念进行区分</p>
+<ul>
+<li>对象曝露行为，隐藏数据</li>
+<li>数据结构曝露数据，没有明显行为</li>
+</ul>
+<p>通常所写的 <em>DTO</em>、<em>Bean</em> 都是数据结构，开放 <em>get</em>、<em>set</em> 方法可供调用。而 <em>Service</em> 的实现作为对象只去调用曝露的方法而不会关心内部的实现，对于对象我们应该仔细考虑哪些接口适合曝露出来。</p>
+<p>对象和数据结构是一个对立的概念，数据结构更适合过程式代码，在不改动既有数据结构的前提下添加方法。而对象适合面向对象的代码，可以在不改动现有方法的情况下添加新的类。</p>
+<p><em>The Law of Demeter</em> 是一个检验对象的使用是否标准的好方法。</p>
+<blockquote>
+<p>类C的的方法f只调用以下对象的方法</p>
+<ul>
+<li>C</li>
+<li>f 创作的对象</li>
+<li>作为参数传递给 f 的对象</li>
+<li>C 的实体变量持有的对象</li>
+</ul>
+</blockquote>
+<p>Redis 是使用 C语言编写的数据库，内部实现了多种数据结构：动态字符串、字典、压缩表、链表、跳跃表以及整数集合。但又基于数据结构实现了对象系统，每种对象可以根据需要选择不同的数据结构实现，数据结构应该考虑如何有效的存储数据。对象系统则提供交互方法，内部使用指针根据需要选用不同的数据结构。</p>
+<h2 id="异常-2">异常</h2>
+<h3 id="不可控异常">不可控异常</h3>
+<p><em>Java</em> 区分可控异常和运行时异常，可控异常的使用需要在方法签名中对异常进行声明，使用可控异常的底层代码会使所有调用它的方法选择继续上抛还是处理。异常旨在可以在较远处处理错误，抛出的异常打破了代码的封装。例如我们自定义异常时，可以将其自 <em>RuntimeException</em> 类继承，在代码中抛出该异常，然后由 <em>Controller</em> 层一个统一的异常处理器对抛出的异常进行处理。</p>
+<h3 id="好的异常捕获">好的异常捕获</h3>
+<p>先写 <em>try-catch-finally</em> 语句，自上而下的编程方式容易梳理抽象逻辑，因此先写出异常捕获语句，将其分为三个语句块，这三个语句块分别在做不同的事情，因此可以考虑将其再拆分为方法。</p>
+<p>如果一个方法抛出了多个异常，应该如何进行处理？在调用时使用 <em>try-catch</em> 对每个异常进行捕获是丑陋的做法，对于这样的情况，可以使用代理进行解决。为这个方法的对象建立一个代理，在代理类中对抛出多个异常的方法进行包装，在这个包装中进行记录日志等处理，统一抛出一个异常告诉调用者出现了异常。</p>
+<p>抛出异常应提供足够的环境说明，而不是简单的只通过堆栈信息来追踪错误信息。使用日志系统来记录操作的初衷，和发生时参数等信息，这些信息被日志系统记录下来有利于错误信息的监控。</p>
+<h3 id="特例模式">特例模式</h3>
+<p>特例模式同样继承自普通类，但内部封装的是异常处理。诸如某些操作可能返回 <em>null</em>，而这可能作为一种特殊的情况考虑，就可以将其返回 <em>null</em> 的情况修改为返回特例类，有这个特殊对象来处理相应的逻辑，无论如何，null值是不应该被返回和传递的。</p>
+<h2 id="类应该是什么样的">类应该是什么样的</h2>
+<h3 id="自上而下的原则">自上而下的原则</h3>
+<p>类从一组变量列表开始，顺序应为公共静态变量，私有静态变量，私有实体变量。</p>
+<p>之后为公共方法，该公共方法调用的私有方法紧跟其后。</p>
+<h3 id="单一权责">单一权责</h3>
+<p>一个类只应该有一个权责，即只有一条修改的理由。如何判断类是否拥有了过多权责可以用以下方法：</p>
+<ol>
+<li>是否能明确的为该类命名</li>
+<li>类中是否有过多实体变量</li>
+</ol>
+<p>好的类应该是足够内聚的，将过大的类拆分成内聚的小类，防止过分的耦合。</p>
+<h3 id="开闭原则">开闭原则</h3>
+<p>好的类要符合开闭原则，对于逻辑复杂的业务，合理的利用设计模式进行类的设计，使系统适应持续性的修改。因此类应该为了适合修改而组织（系统功能级别的修改），新增功能时尽可能少修改现有的类，而是通过扩展系统来添加新的特性。</p>
+<h2 id="系统层级的整洁">系统层级的整洁</h2>
+<p>系统层级是一个较高的抽象层级，这里主要关注功能实现的框架，而不是一些具体的编码规范。系统应该是整洁的，避免侵害性的架构。</p>
+<h3 id="分离构造和使用">分离构造和使用</h3>
+<p>分隔系统的构造和使用，让应用程序对构造过程一无所知，只是希望一切拿来即用。起始过程中构造对象会造成复杂的依赖关系，并且我们需要关系在每个环境中是否创建出了正确的对象，这又加大了单元测试的复杂程度，因此需要将构造与使用分开。对象的构造通常我们使用依赖注入或工厂来实现，工厂由应用程序决定何时创建对象，但细节却隔离于应用程序之外。依赖注入是 <em>Spring</em> 注入所提供的一个重要的功能，当我们需要某一对象时，只需要将其注入使用即可，构造过程由 <em>Spring</em> 来提供。</p>
+<h3 id="切面">切面</h3>
+<p><em>AOP</em> 使得增加新功能时不破坏原有的代码，避免了紧耦合问题。简单的情况下可以使用 Java 代理来实现一个功能在切面层级上的田间，但代理的复杂度和代码量让代码整洁变得很难，并且代理无法在系统范围内指定执行点，因此仍然需要 <em>AOP</em> 框架来实现。</p>
+<h3 id="如何处理代码中大量的if-else待补充">如何处理代码中大量的if-else(待补充)</h3>
+<ol>
+<li>使用Map映射池</li>
+<li>使用策略模式</li>
+</ol>
 ]]></content>
     </entry>
 </feed>
