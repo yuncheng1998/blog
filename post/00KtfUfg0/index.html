@@ -1,0 +1,213 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>分布式缓存的设计 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1622808282544">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="分布式缓存的设计 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="相比本地缓存，分布式缓存在设计使用上需要注意以下几点：
+缓存失效
+在用缓存时不可避免地会涉及缓存失效，失效有多种原因，比如过期时间设置不合理大量Key同时过期，请求直接访问数据库进而导致数据库压力陡增，再比如批量重建缓存导致缓存雪崩。对这一..." />
+    <meta name="keywords" content="微服务" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1622808282544" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              分布式缓存的设计
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-05-28
+              </span>
+              <span>
+                5 min read
+              </span>
+              
+                <a href="https://yuncheng1998.github.io/tag/jLQkKauw0/" class="post-tag">
+                  # 微服务
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <p>相比本地缓存，分布式缓存在设计使用上需要注意以下几点：</p>
+<h2 id="缓存失效">缓存失效</h2>
+<p>在用缓存时不可避免地会涉及缓存失效，失效有多种原因，比如过期时间设置不合理大量Key同时过期，请求直接访问数据库进而导致数据库压力陡增，再比如批量重建缓存导致缓存雪崩。对这一问题有多种解决方案，就仅针对缓存本身而言需要错开各Key过期时间及分批次刷新</p>
+<h2 id="缓存穿透">缓存穿透</h2>
+<p>在缓存失效中更为普遍的是缓存穿透：请求一个数据库不存在的记录，程序上不去缓存这些不存在记录对应的key，进而导致每次请求都去查数据库，这是缓存设计最容易被遗漏的地方。一般情况下不会有问题，不会有大量这种“错误”的请求，但如果被攻击利用就可能是致命的，原本要保护数据库资源的缓存完全失效。知道原理后解决的方案也简单：无论请求条件在数据库中存不存在都加入到缓存即可。当然这样会带来两个问题：1）现在为空不代表以后一直为空，2）可能存在大量值为空的垃圾记录。第一个问题是关于缓存一致性，如果Key为查询条件，需要设置业务上比较合理的过期时间，如果key为Id，只要在持久化到数据库时更新缓存中Id对应的值即可，第二个问题多为攻击情况下会产生很多为空的记录，以Redis为例，常用操作（时间复杂度为O(1)）对Key的数量并不敏感，这些记录只会占用一定的空间，对性能影响有限，当然考虑存储的压力我们也可以用BloomFilter或Hyperloglog来避免这一问题，如果是IP路由则本地BloomFilter或Hyperloglog，反之也可以使用分布式方案，分布式BloomFilter可用如Redis的Orestes-Bloomfilter、Rebloom （以Redis模块的方式加载）、Redisson，分布式Hyperloglog为Redis自带的数据结构。缓存穿透还有一种特殊的场景：高并发访问某一新增的、未被缓存的记录，在第一条请求从数据库读取到加入缓存并生效的时间窗口内大量的并发会穿透缓存给数据库带来很大的压力，这也极有可能被用于攻击，解决的方法可以是限流，当然这种做法过于粗暴，限流应该是保障系统可用性的最后几道屏障，是不得以而为之的，可以是数据变更时先写缓存再写数据库，这可能会带来一致性风险，也可以是写完数据库后立刻更新缓存（不等到读取时再更新缓存），但并不是所有记录都需要缓存，这可能会导致大量不必要的缓存开销，还可以是对穿透到数据库查询的代码进行加锁，笔者认为这种方法最为优雅，实现的伪代码如下：</p>
+<pre><code class="language-java">  /**
+    * 假定有并发请求1、2、3
+    * 请求1先进入synchronized代码块，请求2、3等待
+    * 请求1会查询数据库并更新缓存，退出synchronized
+    * 请求2、3依次进入synchronized并命中缓存
+    */
+  // 先从缓存读取对应id的信息流
+  var record = cache.get(&quot;feed:&quot; + id)
+  if (record == null) {
+    // 缓存未命中时加锁，要求串行化执行
+    synchronized {
+      // 再次尝试从缓存读取对应id的信息流
+      record = cache.get(&quot;feed:&quot; + id)
+      if (record == null) {
+        // 从数据库读取并更新缓存
+        record = db.feed.get(id)
+        cache.put(&quot;feed:&quot; + id, record)
+      }
+    }
+  }
+</code></pre>
+<h2 id="缓存一致性">缓存一致性</h2>
+<p>缓存与数据库的数据一致性视不同情况而定，大部分场景下都要求是一致的，即数据库数据变更要同步刷新到缓存中，但刷新缓存可能会是一个耗时、耗IO的操作，尤其是数据批量变更时缓存数据的延时不可忽视，另外存在多级缓存时也需要考虑缓存内的数据同步，在缓存设计时数据同步及一致性问题要重点考虑</p>
+<h2 id="热点数据">热点数据</h2>
+<p>现实场景中我们的数据不大可能做到均匀分布，必定会出现冷热分化，缓存用于存放热点数据，但有一些特殊情况下会出了极热点的数据，这些数据会对分布式缓存的个别节点造成很大的压力，如业务上存在这种场景需要考虑做多级缓存为这些极热点的数据添加前置缓存层或是将Key Hash化以规避数据倾斜</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E7%BC%93%E5%AD%98%E5%A4%B1%E6%95%88">缓存失效</a></li>
+<li><a href="#%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F">缓存穿透</a></li>
+<li><a href="#%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7">缓存一致性</a></li>
+<li><a href="#%E7%83%AD%E7%82%B9%E6%95%B0%E6%8D%AE">热点数据</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/kX9yjKh02/">
+              <h3 class="post-title">
+                分布式事务
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

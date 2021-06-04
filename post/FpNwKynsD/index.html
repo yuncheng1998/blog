@@ -1,0 +1,234 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>分布式锁 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1622808282544">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="分布式锁 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="
+如非必要切勿用锁。一方面锁会将并行逻辑转成串行严重影响性能，另一方面还要考虑锁的容错，处理不当可能导致死锁。
+
+分布式锁的替代方案
+Set化后的MQ替代分布式锁
+可以按用户ID做Set（用户ID % Set数）进而分成多个组，为不同的组创..." />
+    <meta name="keywords" content="微服务" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1622808282544" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              分布式锁
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-05-28
+              </span>
+              <span>
+                5 min read
+              </span>
+              
+                <a href="https://yuncheng1998.github.io/tag/jLQkKauw0/" class="post-tag">
+                  # 微服务
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <blockquote>
+<p>如非必要切勿用锁。一方面锁会将并行逻辑转成串行严重影响性能，另一方面还要考虑锁的容错，处理不当可能导致死锁。</p>
+</blockquote>
+<h1 id="分布式锁的替代方案">分布式锁的替代方案</h1>
+<h2 id="set化后的mq替代分布式锁">Set化后的MQ替代分布式锁</h2>
+<p>可以按用户ID做Set（用户ID % Set数）进而分成多个组，为不同的组创建不同的MQ队列，这样一个用户同一时间只在一个队列中，一个队列的处理是串行化的，实现了锁的功能，同时又有多个Set来完成并行化，在性能上会好于分布式锁。</p>
+<h2 id="使用乐观锁">使用乐观锁</h2>
+<p>创建一个更新版本字段（update_version）,每次更新时版本加1，更新的条件是版本号要等于传入版本号：</p>
+<pre><code class="language-java">  var (balance,currentVersion) = db.account.getBalanceAndVersion(id)
+  if(balance &lt; amount){
+    return error(&quot;余额少于扣款金额&quot;)
+  }
+  // 此操作对应的SQL: UPDATE account SET balance = balance  - &lt;amount&gt; , update_verison = update_verison + 1 WHERE id = &lt;id&gt; AND update_version = &lt;currentVersion&gt;
+  if(db.account.updateBalance(id, -amount, currentVersion) == 0){
+  return error(&quot;扣款失败&quot;) // 或递归执行此代码进行重试
+  }
+</code></pre>
+<h1 id="使用分布式锁需要注意的问题">使用分布式锁需要注意的问题</h1>
+<h2 id="锁释放与超时">锁释放与超时</h2>
+<p>在单机情况下，我们只需要在使用完锁后在finally代码中将其释放掉，但在分布式环境下由于网络是不可靠的，节点可能宕机，会导致锁无法释放，所以我们必须要设置超时时间。超时时间设置过长会导致服务异常后无法及时获取新的锁，过短又有可能在业务没有执行完锁提前释放了。优雅但复杂的方法是使用心跳超时设置，即与占有锁的服务保持心跳，在心跳超时后再释放锁。</p>
+<h2 id="性能及高可用">性能及高可用</h2>
+<p>出于性能考虑，一般分布式锁都是非公平锁，如果要保证加锁顺序而选用公平锁时要注意对性能的影响，加解锁操作本身要保证性能及可用性，避免单点，锁信息要持久化，慎用自旋避免CPU浪费。</p>
+<blockquote>
+<p>在激烈竞争的情况下，非公平锁的性能高于公平锁的性能的一个原因是：在恢复一个被挂起的线程与该线程真正开始运行之间存在着严重的延迟。假设线程 A 持有一个锁，并且线程 B 请求这个锁。由于这个锁已被线程 A 持有，因此 B 将被挂起。当 A 释放锁时，B 将被唤醒，因此会再次尝试获取锁。与此同时如果 C 也请求这个锁,那么 C 很可能会在 B 被完全唤醒之前获得、使用以及释放这个锁。这样 的情况是一种“双赢”的局面：B 获得锁的时刻并没有推迟，C 更早地获得了锁，并且吞吐量也获得了􏰀高。</p>
+<p>当持有锁的时间相对较长，或者请求锁的平均时间间隔较长，那么应该使用公平锁。在这些情况下，”插队”带来的吞吐量提升(当锁处于可用状态时，线程却还处于被唤醒的过程中)则可能不会出现</p>
+<p><em>—— 《Java并发编程实战》</em></p>
+</blockquote>
+<h2 id="数据一致性">数据一致性</h2>
+<p>分布式锁要合理设置锁标记以区分是哪个实例、哪个线程的操作，可重入锁要做好计数及相应的unlock次数，同时必须保证数据的一致，这要求我们只能选择CP特性的服务作为分布式锁的中间件。</p>
+<h1 id="主流的分布式锁">主流的分布式锁</h1>
+<h2 id="关系型数据库">关系型数据库</h2>
+<p>由关系型数据库的某些特性来实现，比如使用主键唯一性约束及数据一致来确保同一时间只有一个请求能获得锁，这一方案实现简单，但对高并发场景或可重入时存在比较大的性能瓶颈。</p>
+<h2 id="redis">Redis</h2>
+<p>可使用Redis单线程、原子化操作（<em>setnx</em>）来实现，这一方案也很简单，但因为没有原子化的值比较方法，无法原子化确认占用锁的是否是当前实例的当前线程导致比较难实现重入锁，另外Redis单节点有高可用问题，多节点引入RedLock也存在比较大的<a href="https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html">争议</a>。当然在绝大多数情况下大家还是可以放心使用的。</p>
+<h2 id="zookeeper">Zookeeper</h2>
+<p>可使用Zookeeper的持久节点（PERSISTENT）、临时节点（EPHEMERAL），时序节点（SEQUENTIAL ）的特性组合及watcher接口实现，这一方案可保证最为严格的数据一致性、在性能及高可用也有着比较好的表现，推荐对一致性高要求极高、并发量大的场景使用。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E6%9B%BF%E4%BB%A3%E6%96%B9%E6%A1%88">分布式锁的替代方案</a>
+<ul>
+<li><a href="#set%E5%8C%96%E5%90%8E%E7%9A%84mq%E6%9B%BF%E4%BB%A3%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81">Set化后的MQ替代分布式锁</a></li>
+<li><a href="#%E4%BD%BF%E7%94%A8%E4%B9%90%E8%A7%82%E9%94%81">使用乐观锁</a></li>
+</ul>
+</li>
+<li><a href="#%E4%BD%BF%E7%94%A8%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E9%9C%80%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E9%97%AE%E9%A2%98">使用分布式锁需要注意的问题</a>
+<ul>
+<li><a href="#%E9%94%81%E9%87%8A%E6%94%BE%E4%B8%8E%E8%B6%85%E6%97%B6">锁释放与超时</a></li>
+<li><a href="#%E6%80%A7%E8%83%BD%E5%8F%8A%E9%AB%98%E5%8F%AF%E7%94%A8">性能及高可用</a></li>
+<li><a href="#%E6%95%B0%E6%8D%AE%E4%B8%80%E8%87%B4%E6%80%A7">数据一致性</a></li>
+</ul>
+</li>
+<li><a href="#%E4%B8%BB%E6%B5%81%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81">主流的分布式锁</a>
+<ul>
+<li><a href="#%E5%85%B3%E7%B3%BB%E5%9E%8B%E6%95%B0%E6%8D%AE%E5%BA%93">关系型数据库</a></li>
+<li><a href="#redis">Redis</a></li>
+<li><a href="#zookeeper">Zookeeper</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/00KtfUfg0/">
+              <h3 class="post-title">
+                分布式缓存的设计
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

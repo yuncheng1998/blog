@@ -1,0 +1,273 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>分布式事务 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1622808282544">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="分布式事务 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="分布式环境下我们必须假定网络是不可靠，它可能中断、超时，消息可能乱序、丢包，所以分布式事务就是基于这个前提下设计的。常见的分布式事务有二阶段提交、补偿型事务和通知型事务。
+二阶段提交
+二阶段提交（Two-phase commit proto..." />
+    <meta name="keywords" content="微服务" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1622808282544" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              分布式事务
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-05-28
+              </span>
+              <span>
+                7 min read
+              </span>
+              
+                <a href="https://yuncheng1998.github.io/tag/jLQkKauw0/" class="post-tag">
+                  # 微服务
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <p>分布式环境下我们必须假定网络是不可靠，它可能中断、超时，消息可能乱序、丢包，所以分布式事务就是基于这个前提下设计的。常见的分布式事务有二阶段提交、补偿型事务和通知型事务。</p>
+<h1 id="二阶段提交">二阶段提交</h1>
+<p>二阶段提交（<em>Two-phase commit protocol</em>）简称2PC是最基础的分布式事务方案。它将事务分为提交请求和提交两个阶段，另外它还定义了两个角色：协调器（<em>coordinator</em>）、参与者（<em>cohorts</em>）</p>
+<figure data-type="image" tabindex="1"><img src="https://yuncheng1998.github.io/post-images/1622183011309.png" alt="" loading="lazy"></figure>
+<h2 id="提交请求阶段">提交请求阶段</h2>
+<ol>
+<li>协调器向所有参与者发送事务提交请求命令，并等待所有参与者的答复。</li>
+<li>每个参与者执行收到的事务提交请求。</li>
+<li>每个参与者执行事务成功则返回同意（<em>agreement</em>），反之返回中止（<em>abort</em>）。</li>
+</ol>
+<h2 id="提交阶段">提交阶段</h2>
+<ol>
+<li>如果协调器收到的都是同意，那么它：
+<ol>
+<li>向所有参与者发送提交（<em>commit</em>）命令。</li>
+<li>每个参与者执行提交操作，释放上一步打开的本地锁和资源。</li>
+<li>每个参与者返回确认（<em>acknowledgment</em>）。</li>
+<li>协调器在收到所有确认后完成事务。</li>
+</ol>
+</li>
+<li>如果协调器收到有包含中止命令，那么它：
+<ol>
+<li>向所有参与者发送回滚（<em>rollback</em>）命令。</li>
+<li>每个参与者执行回滚操作，释放上一步打开的本地锁和资源。</li>
+<li>每个参与者返回确认（<em>acknowledgment</em>）。</li>
+<li>协调器在收到所有确认后回滚事务。</li>
+</ol>
+</li>
+</ol>
+<h2 id="分析">分析</h2>
+<p>2PC是CP设计，势必会损失可用性，它的问题在于：</p>
+<ul>
+<li>同步阻塞，执行中所有参与者的事务都会阻塞，所占的锁及资源不会释放。</li>
+<li>数据不一致，在<strong>提交阶段</strong>如果出现网络故障部分参与者可能会收不到提交命令从而导致数据不一致。</li>
+<li>单点故障，作为事务处理重要组成的协调器存在单点问题。</li>
+</ul>
+<h1 id="补偿型事务">补偿型事务</h1>
+<p>补偿性事务（<em>Try-Confirm-Cancel</em>）简称<em>TCC</em>，<em>Try</em> 对应于<em>2PC</em> 的提交请求阶段，<em>Confirm</em> 对应的提交阶段的成功处理，<em>Cancel</em> 对应的是提交阶段的回滚处理，但与<em>2PC</em> 本质的区别在于：<em>2PC</em> 是两个阶段只有一个事务，<strong>而<em>TCC</em> 分别对应了三个事务操作</strong>。</p>
+<h2 id="try-阶段"><em>Try</em> 阶段</h2>
+<p>完成业务检查及资源预处理，以订单支付为例，用户发起订单支付后对应冻结操作：</p>
+<ol>
+<li>资金服务在本地事务下冻结支付金额（<em>UPDATE account SET balance_freeze = balance_freeze+&lt;支付金额&gt; WHERE id = &lt;当前账户&gt;</em>）</li>
+<li>优惠券服务在本地事务下冻结使用的优惠券（<em>UPDATE coupon SET status = 'FREEZE' WHERE id = &lt;使用的优惠券&gt;</em>）</li>
+<li>积分服务在本地事务下冻结支付成功后奖励的积分（<em>UPDATE account SET points_freeze = points_freeze+&lt;奖励积分&gt; WHERE id = &lt;当前账户&gt;</em>）</li>
+</ol>
+<h2 id="confirm-阶段"><em>Confirm</em> 阶段</h2>
+<p>确认并执行业务，执行只涉及<em>Try</em> 阶段预处理的资源：</p>
+<ol>
+<li>资金服务在本地事务下解冻支付金额并完成实际扣款（<em>UPDATE account SET balance_freeze = balance_freeze-&lt;支付金额&gt; , balance = balance+&lt;支付金额&gt; WHERE id = &lt;当前账户&gt;</em>）</li>
+<li>优惠券服务在本地事务下解冻使用的优惠券并完成优惠券的使用（<em>UPDATE coupon SET status = USED WHERE id = &lt;使用的优惠券&gt;</em>）</li>
+<li>积分服务在本地事务下解冻积分并完成积分奖励（<em>UPDATE account SET points_freeze = points_freeze-&lt;奖励积分&gt; , points = points+&lt;奖励积分&gt;  WHERE id = &lt;当前账户&gt;</em>）</li>
+</ol>
+<h2 id="cancel-阶段"><em>Cancel</em> 阶段</h2>
+<p>取消执行的业务，释放<em>Try</em> 阶段预留的资源，如果出现余额不足、优惠券不可用等情况则执行回滚操作，执行<em>Try</em> 的逆向操作，使最终结果看上去没有发生过一样，如对应的：</p>
+<ol>
+<li>积分服务在本地事务下解冻积分（<em>UPDATE account SET points_freeze = points_freeze-&lt;奖励积分&gt; WHERE id = &lt;当前账户&gt;</em>）</li>
+<li>优惠券服务在本地事务下解冻使用的优惠券（<em>UPDATE coupon SET status = UNUSED WHERE id = &lt;使用的优惠券&gt;</em>）</li>
+<li>资金服务在本地事务下解冻支付金额（<em>UPDATE account SET balance_freeze = balance_freeze-&lt;支付金额&gt; WHERE id = &lt;当前账户&gt;</em>）</li>
+</ol>
+<h2 id="分析-2">分析</h2>
+<p>相比于2PC中所有请求提交阶段占用的资源都在等待提交阶段释放，两个阶段之间需要等待所有参与者响应，所以花费的时间会比较久，TCC不存在全局长事务，它将一个大事务分成三个阶段，每个阶段的每个实例都有一个个独立的本地事务，每个本地事务都各自提交，只在需要的时候回滚，所以TCC有着比2PC更高的性能。</p>
+<p>但事务补偿对业务的侵入比较大，一次事务需要涉及3个阶段的代码编写，一方面提高了开发维护的成本，另一方面它也不适用于无法自己主导的工程，比如与三方服务之间的事务处理。</p>
+<h1 id="通知型事务">通知型事务</h1>
+<p>通知型事务为了解决2PC性能问题及TCC业务侵入问题，它将事务看作消息，使用MQ来传递，分为可靠通知和最大努力通知。</p>
+<h2 id="最大努力通知">最大努力通知</h2>
+<p>最大努力通知的前提是服务存在依赖，上游成功后下游要求必定成功，如果失败会有一定的策略重试，如果重试策略还失败，上游服务需要提供一个查询的接口以便获取上游服务事务成功后的数据。这一方案最直接的使用场景是跨系统间的数据处理，比如业务系统与支付网关，在支付网关支付成功后意味着钱已经流转，网关会通知（异步回调）作为下游的业务系统，一次失败后再会重试几次，如果再失败就需要业务系统主动来网关查询处理结果，而这过程中要求下游回调接口必须幂等。</p>
+<h2 id="可靠通知">可靠通知</h2>
+<p>可以理解为支持回滚的最大努通知，在重试策略也失败后可靠通知会执行事务回滚，这样一来就没有服务依赖及必须成功的约束，反之服务需要提供事务回滚逻辑，对业务有少许侵入。</p>
+<h1 id="分布式事务设计原则">分布式事务设计原则</h1>
+<p>无论是哪种分布式事务，都需要类似有事务协调器这一服务，都需要确保以下几个内容：</p>
+<ul>
+<li>事务协调器与各参与者（业务服务）内的调用必须幂等，即重试不会导致数据异常。</li>
+<li>事务协调器与各参与者（业务服务）内的调用必须有超时时间，不能无限或长时间地等待。</li>
+<li>事务必须能确保发送到事务协调器，这是大前提，对于MQ而言可使用AMQP规范的实现，如RabbitMQ，开启AMQP的事务机制</li>
+</ul>
+<p>我们回看分布式事务下的ACID保证，原子性（Atomicity）和持久性（Durability）与传统事务无异，但一致性（Consistency）与隔离性（Isolation）上除了2PC、3PC完全满足外不同实现的补偿型与通知型事务都有或多或少的缺失，它们都强调最终一致性，即允许在一段可接受的时间内各节点数据不一致，由于它们多半是将大事务分解成一个个本地小事务，所以在一段时间也存在隔离性问题。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E4%BA%8C%E9%98%B6%E6%AE%B5%E6%8F%90%E4%BA%A4">二阶段提交</a>
+<ul>
+<li><a href="#%E6%8F%90%E4%BA%A4%E8%AF%B7%E6%B1%82%E9%98%B6%E6%AE%B5">提交请求阶段</a></li>
+<li><a href="#%E6%8F%90%E4%BA%A4%E9%98%B6%E6%AE%B5">提交阶段</a></li>
+<li><a href="#%E5%88%86%E6%9E%90">分析</a></li>
+</ul>
+</li>
+<li><a href="#%E8%A1%A5%E5%81%BF%E5%9E%8B%E4%BA%8B%E5%8A%A1">补偿型事务</a>
+<ul>
+<li><a href="#try-%E9%98%B6%E6%AE%B5"><em>Try</em> 阶段</a></li>
+<li><a href="#confirm-%E9%98%B6%E6%AE%B5"><em>Confirm</em> 阶段</a></li>
+<li><a href="#cancel-%E9%98%B6%E6%AE%B5"><em>Cancel</em> 阶段</a></li>
+<li><a href="#%E5%88%86%E6%9E%90-2">分析</a></li>
+</ul>
+</li>
+<li><a href="#%E9%80%9A%E7%9F%A5%E5%9E%8B%E4%BA%8B%E5%8A%A1">通知型事务</a>
+<ul>
+<li><a href="#%E6%9C%80%E5%A4%A7%E5%8A%AA%E5%8A%9B%E9%80%9A%E7%9F%A5">最大努力通知</a></li>
+<li><a href="#%E5%8F%AF%E9%9D%A0%E9%80%9A%E7%9F%A5">可靠通知</a></li>
+</ul>
+</li>
+<li><a href="#%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99">分布式事务设计原则</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/RPVoJEAnp/">
+              <h3 class="post-title">
+                幂等
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,191 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CP与AP的取舍 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1622808282544">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="CP与AP的取舍 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="CAP理论
+分布式系统设计要考虑三个核心要素：一致性（Consistency）、可用性（Availability）和分区容错性（Partition tolerance），而这三个特性不可能同时满足。
+
+一致性：同一时刻同一请求的不同实例返回..." />
+    <meta name="keywords" content="微服务" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1622808282544" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              CP与AP的取舍
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-05-28
+              </span>
+              <span>
+                3 min read
+              </span>
+              
+                <a href="https://yuncheng1998.github.io/tag/jLQkKauw0/" class="post-tag">
+                  # 微服务
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="cap理论">CAP理论</h1>
+<p>分布式系统设计要考虑三个核心要素：一致性（<em>Consistency</em>）、可用性（<em>Availability</em>）和分区容错性（<em>Partition tolerance</em>），而这三个特性不可能同时满足。</p>
+<ul>
+<li><strong>一致性</strong>：同一时刻同一请求的不同实例返回的结果相同。</li>
+<li><strong>可用性</strong>：所有读写请求在一定时间内得到正确的响应。</li>
+<li><strong>分区容错性</strong>：在网络异常情况下，系统仍能正常运作。</li>
+</ul>
+<p>由于分布式环境下网络的故障是常态，比如光缆被挖断、专线故障、网络波动、丢包、节点宕机等，所以设计时要考虑的是在满足P的前提下选择C还是A。</p>
+<p>以分布式缓存系统为例，如果要保证一致性（C），就要求一个节点写入数据后必须再将数据写入到另一个节点后才能返回成功，当发生网络异常两个服务节点无法相互通讯，为保证一致性必须抛出异常进而牺牲了可用性（A）。如果要保证可用性（A），就要求两个节点数据同步前也必须可用，这就必须牺牲一致性（C）导致在一段时间内两个服务节点所查询到的数据可能不同。</p>
+<h1 id="base理论">Base理论</h1>
+<p>Base是基本可用（<em>Basically Available</em>）、软状态（<em>Soft State</em>）和最终一致性（<em>Eventual consistency</em>）三个短语的简写。</p>
+<p>大量的工程实践的经验表明可用性很重要，一致性也很重要，但可以容许一定的时差，只要保证在一定时间内达到一致即可，这也就是<strong>最终一致性</strong>。因为要实现强一致性的成本很高，尤其是存在很多数据副本的情况下，区块链的PoW及其衍生算法的共识机制是概率强一致性（<em>Probabilistic Strong Consistency</em>），要求大多数节点都接受了这笔交易再真正接受它，这就导致交易的确认严重滞后。</p>
+<p>Base方案允许系统在一段时间内存在数据不一致性，存在软状态，但在规定的时间后数据会最终一致性。这样做的好处在于满足可用性的同时也在一定程度上符合一致性的要求。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#cap%E7%90%86%E8%AE%BA">CAP理论</a></li>
+<li><a href="#base%E7%90%86%E8%AE%BA">Base理论</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/lcHc6iPLj/">
+              <h3 class="post-title">
+                Kafka入门（三）消费者
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

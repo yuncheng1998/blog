@@ -1,0 +1,233 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kafka入门（一）基本概念 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1622808282544">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Kafka入门（一）基本概念 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="什么是MQ
+消息引擎系统是一组规范。企业利用这组规范在不同系统之间传递语义准确的消息，实现松耦合的异步式数据传递。
+为什么使用MQ
+削峰填谷和松耦合
+削峰填谷指缓冲上下游瞬时突发流量，使其更平滑。特别是对于发送能力很强的上游系统，如果没有消..." />
+    <meta name="keywords" content="Kafka" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1622808282544" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Kafka入门（一）基本概念
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-05-14
+              </span>
+              <span>
+                6 min read
+              </span>
+              
+                <a href="https://yuncheng1998.github.io/tag/2i32UO3oV/" class="post-tag">
+                  # Kafka
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="什么是mq">什么是MQ</h1>
+<p>消息引擎系统是一组规范。企业利用这组规范在不同系统之间传递语义准确的消息，实现松耦合的异步式数据传递。</p>
+<h1 id="为什么使用mq">为什么使用MQ</h1>
+<p>削峰填谷和松耦合</p>
+<p>削峰填谷指<strong>缓冲上下游瞬时突发流量</strong>，使其更平滑。特别是对于发送能力很强的上游系统，如果没有消息引擎的保护，下游系统可能会直接被压垮导致全链路服务雪崩。通过消息引擎，可以有效地对抗上游的流量冲击，将上游的峰填满到谷中，避免流量震荡。消息引擎系统的另一好处在于<strong>发送方和接收方的松耦合</strong>，减少了系统间不必要的交互。</p>
+<h1 id="kafka术语">Kafka术语</h1>
+<p><strong>消息</strong>：<em>Kafka</em> 中的数据单元，也被称为记录，可以把它看作数据库表中某一行的记录。</p>
+<p><strong>批次 <em>Batch</em></strong>：为提高效率， 消息会<strong>分批次</strong>写入 <em>Kafka</em>，批次就代指的是一组消息。</p>
+<p><strong>主题 <em>Topic</em></strong>：Topic是发布订阅的对象，可以为每个业务、每个应用甚至是每类数据都创建专属的主题。</p>
+<p><strong>分区 <em>Partition</em></strong>：<em>Topic</em> 可以被分为若干个分区 <em>（partition）</em> ，一个分区只属于一个主题。同主题的分区会部署在多个机器上，实现 <em>kafka</em> 的<strong>伸缩性</strong>。单一主题中的分区有序，但是<strong>无法保证主题中所有的分区有序</strong>。</p>
+<p><strong>客户端 <em>Clients</em></strong>：生产者和消费者的统称。可以同时运行多个生产者和消费者实例，这些实例不断地向集群中的多个主题生产和消费消息。</p>
+<p><strong>生产者 <em>Producer</em></strong>：向主题发布消息的客户端应用程序，通常持续不断地向一个或多个主题发送消息。</p>
+<p><strong>消费者 <em>Consumer</em></strong>：订阅这些主题消息的客户端应用程序。和生产者类似，消费者也能够同时订阅多个主题的消息。</p>
+<p><strong>消费者群组 <em>Consumer Group</em></strong>：由一个或多个消费者组成的群体。</p>
+<p><strong>偏移量 <em>Consumer Offset</em></strong> ：是一种元数据，一个不断递增的整数值，用来记录消费者发生重平衡时的位置，以便用来恢复数据。</p>
+<p><strong>服务端 <em>Broker</em></strong>：<em>Kafka</em>的服务器端，负责接收和处理客户端发送过来的请求，以及对消息进行持久化。常见的做法是将不同的<em>Broker</em> 分散运行在不同的机器上，如果某台机器宕机，上面运行的所有<em>Broker</em> 进程都挂掉了，其他机器上的<em>Broker</em> 也依然能够对外提供服务。这是<em>Kafka</em>提供高可用的手段之一。</p>
+<p><strong>集群 <em>cluster</em></strong>：由一个或多个 <em>Broker</em> 组成，每个集群都有一个 <em>Broker</em> 同时充当了集群控制器的角色（自动从集群中选举出来）。</p>
+<p><strong>副本 <em>Replica</em></strong>：消息的备份叫做副本，副本的数量是可以配置的，<em>Kafka</em> 定义两类副本：领导者副本*（Leader Replica）<em>和追随者副本</em>（Follower Replica）*，前者对外提供服务，后者被动跟随。</p>
+<p><strong>重平衡 <em>Rebalance</em></strong>：消费者组内某个消费者实例挂掉后，其他消费者实例自动重新分配订阅主题分区的过程。是消费者端实现高可用的重要手段。</p>
+<h1 id="kafka的特性">Kafka的特性</h1>
+<ol>
+<li>高吞吐、低延迟：收发消息非常快，每秒可以处理几十万条消息，最低延迟只有几毫秒。</li>
+<li>高伸缩性：每个主题包含多个分区，主题中的分区可以分布在不同的主机中。</li>
+<li>持久性、可靠性：允许数据的持久化存储到磁盘，并支持数据备份防止数据丢失。</li>
+<li>容错性：允许集群中的节点宕机，集群仍能够正常工作。</li>
+<li>高并发：支持数千个客户端同时读写。</li>
+</ol>
+<h1 id="kafka-的使用场景">Kafka 的使用场景</h1>
+<p>活动跟踪：Kafka 可以用来跟踪用户行为，比如我们经常回去淘宝购物，你打开淘宝的那一刻，你的登陆信息，登陆次数都会作为消息传输到 Kafka ，当你浏览购物的时候，你的浏览信息，你的搜索指数，你的购物爱好都会作为一个个消息传递给 Kafka ，这样就可以生成报告，可以做智能推荐，购买喜好等。</p>
+<p>传递消息：Kafka 另外一个基本用途是传递消息，应用程序向用户发送通知就是通过传递消息来实现的，这些应用组件可以生成消息，而不需要关心消息的格式，也不需要关心消息是如何发送的。</p>
+<p>度量指标：Kafka也经常用来记录运营监控数据。包括收集各种分布式应用的数据，生产各种操作的集中反馈，比如报警和报告。</p>
+<p>日志记录：Kafka 的基本概念来源于提交日志，比如我们可以把数据库的更新发送到 Kafka 上，用来记录数据库的更新时间，通过kafka以统一接口服务的方式开放给各种consumer，例如hadoop、Hbase、Solr等。</p>
+<p>流式处理：流式处理是有一个能够提供多种应用程序的领域。</p>
+<p>限流削峰：Kafka 多用于互联网领域某一时刻请求特别多的情况下，可以把请求写入Kafka 中，避免直接请求后端程序导致服务崩溃。</p>
+<h1 id="kafka-的消息队列">Kafka 的消息队列</h1>
+<p>点对点模式：一个生产者对应一个消费者<br>
+<img src="https://yuncheng1998.github.io/post-images/1620970642605.png" alt="" loading="lazy"></p>
+<p>发布订阅模式：一个/多个生产者对应多个消费者<br>
+<img src="https://yuncheng1998.github.io/post-images/1620970659080.png" alt="" loading="lazy"></p>
+<h1 id="kafka-系统架构">Kafka 系统架构</h1>
+<p>一个典型的 Kafka 集群中包含若干Producer，若干broker，若干Consumer Group，以及一个Zookeeper集群。Kafka通过Zookeeper管理集群配置，选举leader，以及在Consumer Group发生变化时进行rebalance。Producer使用push模式将消息发布到broker，Consumer使用pull模式从broker订阅并消费消息。<br>
+<img src="https://yuncheng1998.github.io/post-images/1620970691187.png" alt="" loading="lazy"></p>
+<h1 id="核心-api">核心 API</h1>
+<p>有四个核心API：</p>
+<p>Producer API：支持应用程序向一个或多个主题上发送消息记录。</p>
+<p>Consumer API：支持应用程序订阅一个或多个主题并处理生成的记录流。</p>
+<p>Streams API：支持应用程序作为流处理器，从一个或多个主题中消费输入流并为其生成输出流，有效的将输入流转换为输出流。</p>
+<p>Connector API，将<em>Kafka</em> 主题连接到生产者和消费者。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E4%BB%80%E4%B9%88%E6%98%AFmq">什么是MQ</a></li>
+<li><a href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BD%BF%E7%94%A8mq">为什么使用MQ</a></li>
+<li><a href="#kafka%E6%9C%AF%E8%AF%AD">Kafka术语</a></li>
+<li><a href="#kafka%E7%9A%84%E7%89%B9%E6%80%A7">Kafka的特性</a></li>
+<li><a href="#kafka-%E7%9A%84%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF">Kafka 的使用场景</a></li>
+<li><a href="#kafka-%E7%9A%84%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97">Kafka 的消息队列</a></li>
+<li><a href="#kafka-%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84">Kafka 系统架构</a></li>
+<li><a href="#%E6%A0%B8%E5%BF%83-api">核心 API</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/V9E4IhAbX/">
+              <h3 class="post-title">
+                深入理解 Spark SQL 的 Catalyst Optimizer
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,322 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>延时队列 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1622808282544">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="延时队列 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="dockone.io/article/10139
+当应用要求操作事件是顺序的，并且事件由同一个终端设备发送，通过设备ID计算Hash到同一个节点服务处理，这之中不存在时钟一致性问题，但由于事件发送是异步的，所以接收可能乱序，再比如在大数据系..." />
+    <meta name="keywords" content="微服务" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1622808282544" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              延时队列
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-06-01
+              </span>
+              <span>
+                9 min read
+              </span>
+              
+                <a href="https://yuncheng1998.github.io/tag/jLQkKauw0/" class="post-tag">
+                  # 微服务
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <p>dockone.io/article/10139</p>
+<p>当应用要求操作事件是顺序的，并且事件由同一个终端设备发送，通过设备<em>ID</em>计算<em>Hash</em>到同一个节点服务处理，这之中不存在时钟一致性问题，但由于事件发送是异步的，所以接收可能乱序，再比如在大数据系统中分析<em>OAuth</em>关系，<em>OAuth</em>表记录的是<em>A</em>应用的<em>X</em>用户与<em>B</em>应用的<em>Y</em>用户的关联（如果<em>B</em>应用没有对应的用户则<em>Y</em>用户为新增记录），但用户表、应用表和<em>OAuth</em>表都是分开采集的，即不能保证分析<em>OAuth</em>表时用户表对应的用户就一定已经存在。对于这类需求比较通用的解决方案是使用延迟队列。</p>
+<p>什么是延时队列？顾名思义：首先它要具有队列的特性，再给它附加一个延迟消费队列消息的功能，也就是说可以指定队列中的消息在哪个时间点被消费。</p>
+<h1 id="delayqueue"><em>DelayQueue</em></h1>
+<p><em>DelayQueue</em>是一个<em>BlockingQueue</em>（无界阻塞）队列，它封装了一个使用完全二叉堆排序元素的<em>PriorityQueue</em>（优先队列），在添加元素时，使用<em>Delay</em>（延迟时间）作为排序条件，延迟最小的元素会优先放在队首。我们可以队列中的元素只有到了<em>Delay</em>时间才允许从队列中取出，从而得到延时队列。<br>
+<img src="https://yuncheng1998.github.io/post-images/1622514280644.png" alt="" loading="lazy"></p>
+<pre><code class="language-java">@Data
+public class Order implements Delayed {
+
+  private final long timestamp;
+
+  private final String name;
+
+  public Order(String name, long timestamp, TimeUnit unit) {
+    this.timestamp = System.currentTimeMillis() + (timestamp &gt; 0 ? unit.toMillis(timestamp) : 0);
+    this.name = name;
+  }
+
+  /**
+   * 返回剩余的延迟
+   * poll方法根据该方法判断，只有延迟&lt;0才出队
+   */
+  @Override
+  public long getDelay(TimeUnit unit) {
+    return timestamp - System.currentTimeMillis();
+  }
+
+  /**
+   * 决定堆排序
+   */
+  @Override
+  public int compareTo(Delayed o) {
+    Order Order = (Order) o;
+    long diff = this.timestamp - Order.timestamp;
+    if (diff &lt;= 0) {
+      return -1;
+    } else {
+      return 1;
+    }
+  }
+}
+</code></pre>
+<p><em>DelayQueue</em>的<em>put</em>方法内部使用了<em>ReentrantLock</em>锁进行线程同步，因此是线程安全的。<em>DelayQueue</em>还提供了两种出队的方法<em>poll()<em>和</em>take()</em> ， <em>poll()<em>为非阻塞获取，没有到期的元素直接返回</em>null</em>；*take()*阻塞方式获取，没有到期的元素线程将会等待。</p>
+<pre><code class="language-java">public static void main(String[] args) throws InterruptedException {
+    Order order1 = new Order(&quot;订单1&quot;, 5, TimeUnit.SECONDS);
+    Order order2 = new Order(&quot;订单2&quot;, 10, TimeUnit.SECONDS);
+    Order order3 = new Order(&quot;订单3&quot;, 15, TimeUnit.SECONDS);
+    DelayQueue&lt;Order&gt; delayQueue = new DelayQueue&lt;&gt;();
+    delayQueue.put(order1);
+    delayQueue.put(order3);
+    delayQueue.put(order2);
+
+    System.out.println(&quot;订单延迟队列开始时间:&quot; + new DateTime().toString(&quot;HH:mm:ss&quot;));
+    while (delayQueue.size() != 0) {
+      // 取队列头部元素是否过期
+      Order task = delayQueue.poll();
+      if (task != null) {
+        System.out.format(&quot;%s被取消, 时间:{%s}\n&quot;, task.getName(), new DateTime().toString(&quot;HH:mm:ss&quot;));
+      }
+      Thread.sleep(1000);
+    }
+}
+</code></pre>
+<p>结果</p>
+<blockquote>
+<p>订单1被取消, 时间:{15:49:38}<br>
+订单2被取消, 时间:{15:49:43}<br>
+订单3被取消, 时间:{15:49:49}</p>
+</blockquote>
+<h1 id="quartz-定时任务"><em>Quartz</em> 定时任务</h1>
+<p><em>Quartz</em>一款非常经典任务调度框架，在<em>Redis</em>、<em>RabbitMQ</em>还未广泛应用时，超时未支付取消订单功能都是由定时任务实现的。定时任务它有一定的周期性，可能很多单子已经超时，但还没到达触发执行的时间点，那么就会造成订单处理的不够及时。</p>
+<h1 id="redis-zset"><em>Redis Zset</em></h1>
+<p>利用<em>Redis</em>的<em>Zset</em>可以实现延迟队列的效果，通过设置<em>Score</em>属性为集合中的成员进行从小到大的排序。</p>
+<pre><code class="language-scala">// ----------- 延迟消息写入逻辑 -----------
+// 保存消息内容，kind是消息类型，如订单到期、OAuth延迟处理等，id是消息的记录Id
+redis.hset(&quot;delay:body:&quot;+timerTaskReq.kind, timerTaskReq.id, toJsonString(timerTaskReq))
+// 删除之前的延迟时间（如果存在的话）
+redis.zrem(&quot;delay:queue:&quot; + timerTaskReq.kind, timerTaskReq.id)
+// 添加新的延迟时间，timerTaskReq.execMs为期望执行（到期）的时间，这里用这个时间做为评分
+redis.zadd(&quot;delay:queue:&quot; + timerTaskReq.kind, timerTaskReq.execMs, timerTaskReq.id)
+// ----------------------------------------
+
+// -------- 延迟消息获取及发送逻辑 --------
+// kinds为所有的消息类型
+kinds.map{
+    kind -&gt;
+    // 获取过期的消息Id，即评分为0到当前时间戳
+    var expireTaskIds = redis.zrangebyscore(&quot;delay:queue:&quot; + kind, 0, currentTimeMs)
+    // 获取对应的消息内容
+    var expireTasks = redis.hmget(&quot;delay:body:&quot; + kind, expireTaskIds)
+    // 删除过期的消息Id
+    redis.zremMany(&quot;delay:queue:&quot; + kind, expireTaskIds)
+    // 删除过期的消息内容
+    redis.hdelMany(&quot;delay:body:&quot; + kind, expireTaskIds)
+    // 发送消息
+    sendTask(expireTasks)
+}
+</code></pre>
+<p>利用<em>Redis</em>的<em>key</em>过期回调事件：开启监听<em>key</em>是否过期的事件，一旦<em>key</em>过期会触发一个<em>callback</em>事件。但不能应用其完成延迟队列，因为<em>Redis</em>只在过期键被删除的时候通知，而不是键的生存时间变为<em>0</em>的时候立马通知。过期键的删除是由一个后台任务执行，为不影响关键业务，后台任务被严格限制，默认为一秒执行<em>10</em>次，一次最多<em>250</em>ms，可通过<em>hz</em>参数调整，但当过期键比例很高时仍然会出现大量的通知的延迟。</p>
+<h1 id="rabbitmq-延时队列"><em>RabbitMQ</em> 延时队列</h1>
+<p><em>RabbitMQ</em> 存在两个属性： *TTL（Time To Live）*和 <em>DLX（Dead Letter Exchange）</em>。</p>
+<p><em>TTL</em>指消息存活的时间，<em>RabbitMQ</em>通过<em>x-message-tt</em>参数来设置指定队列（队列中所有消息都具有相同的过期时间）或消息（某一条消息设置过期时间）上消息的存活时间，它的值是一个非负整数，单位为微秒。如果同时设置队列和队列中消息的<em>TTL</em>，则以较小的值为准。超过TTL的消息则成为<em>Dead Letter</em>（死信）。</p>
+<p>死信可以重新路由到另一个<em>Exchange</em>（交换机），让消息重新被消费。通过设置<em>x-dead-letter-exchange</em>（<em>Dead Letter</em>重新路的交换机）和<em>x-dead-letter-routing-key</em>（转发的队列）来实现。<br>
+<img src="https://yuncheng1998.github.io/post-images/1622514315383.png" alt="" loading="lazy"></p>
+<p>发送消息时指定消息延迟的时间</p>
+<pre><code class="language-java">public void send(String delayTimes) {
+    amqpTemplate.convertAndSend(&quot;order.pay.exchange&quot;, &quot;order.pay.queue&quot;, &quot;延迟数据&quot;, message -&gt; {
+        // 设置延迟毫秒值
+        message.getMessageProperties().setExpiration(String.valueOf(delayTimes));
+        return message;
+    });
+} 
+</code></pre>
+<p>设置延迟队列出现死信后的转发规则。</p>
+<pre><code class="language-java">@Bean(name = &quot;order.delay.queue&quot;)
+public Queue getMessageQueue() {
+    return QueueBuilder
+            .durable(RabbitConstant.DEAD_LETTER_QUEUE)
+            // 配置到期后转发的交换
+            .withArgument(&quot;x-dead-letter-exchange&quot;, &quot;order.close.exchange&quot;)
+            // 配置到期后转发的路由键
+            .withArgument(&quot;x-dead-letter-routing-key&quot;, &quot;order.close.queue&quot;)
+            .build();
+} 
+</code></pre>
+<h1 id="时间轮">时间轮</h1>
+<p>https://www.cnblogs.com/luozhiyun/p/12075326.html</p>
+<p>时间轮能够高效地利用线程资源来进行批量化调度，将任务绑定到同一个的调度器上面，使用这个调度器来进行任务的管理、触发以及运行。时间轮的结构如下所示<br>
+<img src="https://yuncheng1998.github.io/post-images/1622514245143.png" alt="" loading="lazy"></p>
+<p>左侧是一个存储定时任务的环形队列，底层采用数组实现，数组中的元素是一个存放定时任务的环形的双向链表，节点封装了真正的定时任务（<em>TimerTask</em>）。时间轮由多个时间格组成，每个时间格代表当前时间轮的基本时间跨度（<em>tickDuration</em>）。时间轮的时间格个数是固定的，可用 <em>wheel.length</em> 来表示。时间轮的表盘指针（<em>tick</em>）表示时间轮当前指针指向的<em>bucket</em>，此时处理对于列表中的所有任务。</p>
+<h2 id="时间轮运行逻辑">时间轮运行逻辑</h2>
+<p>时间轮在启动时记录当前启动的时间<em>startTime</em>，在添加任务时首先计算延迟时间（<em>deadline</em>），比如一个任务的延迟时间为<em>24ms</em>，任务将放在：当前的时间（<em>currentTime</em>）+<em>24ms</em>-<em>startTime</em> 所在的<em>bucket</em>的队列中。</p>
+<p>时间轮运行后，会遍历<em>tick</em>指向的<em>TimerTask</em>列表，计算如下参数：</p>
+<ol>
+<li><strong><em>TimerTask</em>的总共延迟的次数</strong>：将每个任务的延迟时间（<em>deadline</em>）/<em>tickDuration</em> 计算出<em>tick</em>需要总共跳动的次数。</li>
+<li><strong>时间轮<em>round</em>次数</strong>：(tick走的总次数-当前tick数量) / 时间格个数。比如<em>tickDuration</em>为<em>1ms</em>，时间格个数为<em>20</em>个，那么时间轮走一圈需要<em>20ms</em>，如果要添加进一个延时为<em>24ms</em>的数据，如果当前的tick为0，那么计算出的轮数为1，当指针运行第一圈时将<em>round</em>减一，运行第二圈才可以将轮数<em>round</em>减为0并会运行。</li>
+<li>任务需要放置到时间轮的槽位，放入到槽位链表最后。</li>
+</ol>
+<p>参考：<a href="https://www.cnblogs.com/luozhiyun/p/12075326.html">时间轮算法（TimingWheel）是如何实现的？</a></p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#delayqueue"><em>DelayQueue</em></a></li>
+<li><a href="#quartz-%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1"><em>Quartz</em> 定时任务</a></li>
+<li><a href="#redis-zset"><em>Redis Zset</em></a></li>
+<li><a href="#rabbitmq-%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97"><em>RabbitMQ</em> 延时队列</a></li>
+<li><a href="#%E6%97%B6%E9%97%B4%E8%BD%AE">时间轮</a>
+<ul>
+<li><a href="#%E6%97%B6%E9%97%B4%E8%BD%AE%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91">时间轮运行逻辑</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/7xRdbGS0J/">
+              <h3 class="post-title">
+                顺序处理
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

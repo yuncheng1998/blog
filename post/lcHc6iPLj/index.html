@@ -1,0 +1,294 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kafka入门（三）消费者 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1622808282544">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Kafka入门（三）消费者 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="应用程序使用KafkaConsumer 订阅主题并接收这些主题的消息，然后把消息保存起来。
+如果生产者对该主题的写入速度很快，单个消费者跟不上消息生成的速度，这时就需要多个消费者共同参与消费，对消息进行分流处理。消费者从属于消费者群组。一个..." />
+    <meta name="keywords" content="Kafka" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1622808282544" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Kafka入门（三）消费者
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-05-18
+              </span>
+              <span>
+                11 min read
+              </span>
+              
+                <a href="https://yuncheng1998.github.io/tag/2i32UO3oV/" class="post-tag">
+                  # Kafka
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <p>应用程序使用<em>KafkaConsumer</em> 订阅主题并接收这些主题的消息，然后把消息保存起来。</p>
+<p>如果生产者对该主题的写入速度很快，单个消费者跟不上消息生成的速度，这时就需要多个消费者共同参与消费，对消息进行分流处理。消费者从属于消费者群组。<strong>一个群组中的消费者订阅的都是相同的主题</strong>，每个消费者接收主题一部分分区的消息。</p>
+<p>向群组中增加消费者是<strong>横向伸缩消费能力</strong>的主要方式，创建主题时使用比较多的分区数可以在消费负载高的情况下增加消费者来提升性能。消费者的数量如果大于分区数多，那么会有消费者是空闲的，没有任何帮助。</p>
+<p><em>Kafka</em> 一个很重要的特性是：只需写入一次消息，就可以支持任意多的应用读取这个消息。假如新增了一个有两个消费者的消费组，那么就演变为下图这样。<br>
+<img src="https://yuncheng1998.github.io/post-images/1621323205486.png" alt="" loading="lazy"></p>
+<p>此时两个消费组都能收到<em>T1</em> 主题的全量消息，在逻辑意义上来说它们属于不同的应用。</p>
+<p>总结：如果应用需要读取全量消息，那么请为该应用设置一个消费组；如果该应用消费能力不足，那么可以在这个消费组里增加消费者。</p>
+<h1 id="消费者组和分区重平衡">消费者组和分区重平衡</h1>
+<h2 id="消费者组是什么">消费者组是什么</h2>
+<p>消费者组*（Consumer Group）<em>是由一个或多个消费者实例</em>（Consumer Instance）<em>组成的群组，具有可扩展性和可容错性。组内的消费者共享一个消费者组ID</em>（Group ID）*，对一个主题进行订阅和消费，同一组中的消费者只能消费一个分区的消息，多余的消费者会闲置，派不上用场。</p>
+<p>两种消费方式</p>
+<ul>
+<li>点对点的消费方式：一个消费者群组消费一个主题中的消息。</li>
+<li>发布-订阅模式：一个主题中的消息被多个消费者群组共同消费。</li>
+</ul>
+<h2 id="消费者重平衡">消费者重平衡</h2>
+<p>重平衡：这种把分区的所有权通过一个消费者转到其他消费者的行为。</p>
+<figure data-type="image" tabindex="1"><img src="https://yuncheng1998.github.io/post-images/1621323266224.png" alt="" loading="lazy"></figure>
+<p>当新增或减少消费者时，且消费者的数量小于分区数量时，就会触发重平衡。</p>
+<p>优点：为消费者群组带来了<strong>高可用性</strong>和<strong>伸缩性</strong>，用户可以放心的添加消费者或移除消费者。</p>
+<p>缺点：在重平衡期间，消费者无法读取消息，造成整个消费者组在重平衡的期间都不可用。当分区被重新分配给新消费者时，消息当前的读取状态会丢失，它有可能还需要去刷新缓存，在它重新恢复状态之前会拖慢应用程序。</p>
+<h1 id="创建消费者">创建消费者</h1>
+<h2 id="订阅主题">订阅主题</h2>
+<p><em>subscribe()</em> 方法接受一个主题列表作为参数，使用起来比较简单</p>
+<pre><code class="language-java">Properties properties = new Properties();
+properties.put(&quot;bootstrap.server&quot;,&quot;192.168.1.9:9092&quot;);     properties.put(&quot;key.serializer&quot;,&quot;org.apache.kafka.common.serialization.StringSerializer&quot;);   properties.put(&quot;value.serializer&quot;,&quot;org.apache.kafka.common.serialization.StringSerializer&quot;);
+KafkaConsumer&lt;String,String&gt; consumer = new KafkaConsumer&lt;&gt;(properties);
+// 订阅主题，参数是一个正则表达式
+consumer.subscribe(Arrays.asList(&quot;customerTopic&quot;));
+</code></pre>
+<h2 id="轮询">轮询</h2>
+<p><em>Kafka</em> 支持订阅/发布模式的，生产者发送数据给<em>Broker</em>，消费者采用轮询的方式定期去<em>Broker</em> 中进行数据的检索</p>
+<pre><code class="language-java">try {
+  // 轮询
+  while (true) {
+    // 循环请求数据（心跳）
+    // records包含记录所属主题、分区、消息在分区中的偏移量以及键值对
+    ConsumerRecords&lt;String, String&gt; records = consumer.poll(Duration.ofSeconds(100));
+    // 逐条处理每条记录
+    for (ConsumerRecord&lt;String, String&gt; record : records) {
+      log.debug(record.topic() + record.partition() + record.offset() + record.key() + record.value());
+      // 处理record
+      // ...
+    }
+  }
+} finally {
+  // 使用close()方法关闭消费者，会立即触发一次重平衡，而不是等待群组协调器发现它不再发送心跳并认定它已经死亡。
+  consumer.close();
+}
+</code></pre>
+<p><strong>线程安全性</strong></p>
+<p>在同一个群组无法让一个线程运行多个消费者，也无法让多个线程安全共享一个消费者。按照规则，一个消费者使用一个线程，如果一个消费者群组中多个消费者都要运行，必须让每个消费者在自己的线程中运行，可以使用<em>Java</em> 中的<em>ExecutorService</em> 启动多个消费者进行进行处理。</p>
+<h1 id="参数配置">参数配置</h1>
+<p><em><strong>fetch.min.bytes</strong></em></p>
+<p>设置消费者从服务器获取记录的最小字节数。<em>broker</em> 在收到消费者的数据请求时，如果可用的数据量小于<em>fetch.min.bytes</em> 指定的大小，会等到有足够的可用数据时才把它返回给消费者。这样在主题使用频率低时不需要处理消息，降低消费者和<em>broker</em> 的工作负载。如果没有很多可用数据，但消费者的 CPU 使用率很高，那么就需要把该属性的值设得比默认值大。如果消费者的数量比较多，把该属性的值调大可以降低 broker 的工作负载。</p>
+<p><em><strong>fetch.max.wait.ms</strong></em></p>
+<p>设置消息从<em>broker</em>发送到<em>Consumer</em> 的最长时间，默认<em>500ms</em>。当要打包消息的大小不满足<em>fetch.min.bytes</em> 时，则等待<em>fetch.max.wait.ms</em> 之后，不管满足不满足，将这个批次的消息发送给消费者。如果要降低潜在的延迟，就可以把参数值设置的小一些。如果<em>fetch.max.wait.ms</em> 被设置为 <em>100ms</em>，<em>fetch.min.bytes</em> 的值设置为<em>1MB</em>，那么<em>Kafka</em> 在收到消费者请求后，要么返回<em>1MB</em> 的数据，要么在<em>100ms</em> 后返回所有可用的数据。</p>
+<p><em><strong>max.partition.fetch.bytes</strong></em></p>
+<p>设置服务器从每个分区里返回给消费者的最大字节数，默认值为<em>1MB</em>。<em>KafkaConsumer.poll()</em> 方法从每个分区获得的记录不超过 <em>max.partition.fetch.bytes</em> 指定的字节。在默认值下，如果某主题有20个分区和5个消费者，那么每个消费者需要至少4MB的可用内存来接收记录（防止某个消费者崩溃，剩下的消费者处理更多分区）。另外该值需要大于<em>broker</em> 能够接收的最大消息的字节数*（max.message.size）*，否则消费者可能无法读取这些消息，导致消费者一直挂起重试。</p>
+<p>在设置该属性需要考虑消费者处理数据的时间。消费者需要频繁的调用<em>poll()</em> 方法来避免会话过期和发生分区再平衡，如果返回的数据太多，消费者处理时间长，可能无法及时进行下一个轮询来避免会话过期。这时需要调大值或者延长会话过期时间。</p>
+<p><em><strong>session.timeout.ms</strong></em></p>
+<p>设置消费者在被认为死亡之前可以与服务器断开连接的时间，默认是 <em>3s</em>。认定为死亡后，协调器就会触发重平衡。把它的分区分配给消费者群组中的其它消费者。把值设置的比默认值小，可以更快地检测和恢复崩溃的节点，不过长时间的轮询或垃圾收集可能导致非预期的重平衡。把该属性的值设置得大一些，可以减少意外的重平衡，不过检测节点崩溃需要更长的时间。</p>
+<p><em><strong>heartbeat.interval.ms</strong></em></p>
+<p>设置<em>poll()</em> 方法向群组协调器发送心跳的频率，一般和<em>session.timeout.ms</em>同时修改，<em>heartbeat.interval.ms</em>必须比<em>session.timeout.ms</em> 小，一般为后者的三分之一。</p>
+<p><em><strong>auto.offset.reset</strong></em></p>
+<p>设置消费者在读取一个没有偏移量的分区或者偏移量无效的情况下的该如何处理。它的默认值是<em>latest</em>：在偏移量无效的情况下，消费者将从最新的记录开始读取数据。另一个值是<em>earliest</em>：在偏移量无效的情况下，消费者将从起始位置处开始读取分区的记录。</p>
+<p><em><strong>enable.auto.commit</strong></em></p>
+<p>设置消费者是否自动提交偏移量，默认值是 <em>true</em>，为了尽量避免出现重复数据和数据丢失，可以设置为 <em>false</em>，由自己控制何时提交偏移量。如果把它设置为 true，还可以通过 <strong>auto.commit.interval.ms</strong> 属性来控制提交的频率</p>
+<p><em><strong>partition.assignment.strategy</strong></em></p>
+<p>我们知道，分区会分配给群组中的消费者。<code>PartitionAssignor</code> 会根据给定的消费者和主题，决定哪些分区应该被分配给哪个消费者，Kafka 有两个默认的分配策略<code>Range</code> 和 <code>RoundRobin</code></p>
+<p><em><strong>client.id</strong></em></p>
+<p>该属性可以是任意字符串，broker 用他来标识从客户端发送过来的消息，通常被用在日志、度量指标和配额中</p>
+<p><em><strong>max.poll.records</strong></em></p>
+<p>设置单次调用 *call()*方法能够返回的记录数量，控制在轮询中需要处理的数据量。</p>
+<p><em><strong>receive.buffer.bytes 和 send.buffer.bytes</strong></em></p>
+<p>设置<em>socket</em> 在读写数据时用到的 <em>TCP</em> 缓冲区大小。如果它们被设置为 -1，就使用操作系统默认值。如果生产者或消费者与 <em>broker</em> 处于不同的数据中心内，由于跨数据中心的网络一般都有比较高的延迟和比较低的带宽，因此可以适当增大这些值。</p>
+<h1 id="偏移量">偏移量</h1>
+<p>消费者在每次调<em>poll()</em> 方法进行定时轮询的时候，会返回由生产者写入<em>Kafka</em> 但是还没有被消费者消费的记录，因此我们需要追踪哪些记录是被群组里的哪个消费者读取的。</p>
+<p>消费者会向一个叫*_consumer_offset* 的特殊主题中发送消息，这个主题保存每次所发送消息中的分区偏移量，用于消费者触发重平衡后记录偏移使用的。当触发重平衡后，每个消费者可能会分到新的分区，这个主题就是让消费者能够继续处理消息。</p>
+<ol>
+<li>如果提交的偏移量小于客户端最后一次处理的偏移量，那么位于两个偏移量之间的消息就会被重复处理。</li>
+<li>如果提交的偏移量大于最后一次消费时的偏移量，那么处于两个偏移量中间的消息将会丢失</li>
+</ol>
+<h2 id="提交偏移量的方式">提交偏移量的方式</h2>
+<h3 id="自动提交">自动提交</h3>
+<p><em>enable.auto.commit=true</em>时，消费者会自动把从<em>poll()</em> 方法轮询到的最大偏移量提交上去。提交时间间隔由<em>auto.commit.interval.ms</em> 控制，默认是 5s。自动提交是在轮询中进行的，消费者在每次轮询中会检查是否提交该偏移量了，如果是，那么就会提交从上一次轮询中返回的偏移量。</p>
+<h3 id="同步提交">同步提交</h3>
+<p><em>auto.commit.offset=false</em> 时可以自行设置应用程序提交偏移量的时间。使用<em>commitSync()</em> 会提交由<em>poll()</em> 方法返回的最新偏移量，提交成功后马上返回，失败就抛出异常。处理完所有记录后要确保调用了<em>commitSync(</em>)，否则还是会有丢失消息的风险，如果发生了重平衡，从最近一批消息到发生重平衡之间的所有消息都将被重复处理。</p>
+<h3 id="异步提交">异步提交</h3>
+<p>与同步提交<em>commitSync()</em> 最大的区别在于异步提交不会进行重试。</p>
+<h3 id="同步和异步组合提交">同步和异步组合提交</h3>
+<p>一般情况下，提交失败是因为临时问题导致的，后续自动重试提交会成功。但如果在关闭消费者或重平衡前的最后一次提交，就要确保提交成功。因此，在消费者关闭之前一般会组合使用<em>commitAsync</em>和<em>commitSync</em>提交偏移量。</p>
+<h3 id="提交特定的偏移量">提交特定的偏移量</h3>
+<p>消费者API允许调用 <em>commitSync()</em> 和 <em>commitAsync()</em> 方法时传入希望提交的 <em>partition</em> 和 <em>offset</em> 的 <em>map</em>，即提交特定的偏移量。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E6%B6%88%E8%B4%B9%E8%80%85%E7%BB%84%E5%92%8C%E5%88%86%E5%8C%BA%E9%87%8D%E5%B9%B3%E8%A1%A1">消费者组和分区重平衡</a>
+<ul>
+<li><a href="#%E6%B6%88%E8%B4%B9%E8%80%85%E7%BB%84%E6%98%AF%E4%BB%80%E4%B9%88">消费者组是什么</a></li>
+<li><a href="#%E6%B6%88%E8%B4%B9%E8%80%85%E9%87%8D%E5%B9%B3%E8%A1%A1">消费者重平衡</a></li>
+</ul>
+</li>
+<li><a href="#%E5%88%9B%E5%BB%BA%E6%B6%88%E8%B4%B9%E8%80%85">创建消费者</a>
+<ul>
+<li><a href="#%E8%AE%A2%E9%98%85%E4%B8%BB%E9%A2%98">订阅主题</a></li>
+<li><a href="#%E8%BD%AE%E8%AF%A2">轮询</a></li>
+</ul>
+</li>
+<li><a href="#%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE">参数配置</a></li>
+<li><a href="#%E5%81%8F%E7%A7%BB%E9%87%8F">偏移量</a>
+<ul>
+<li><a href="#%E6%8F%90%E4%BA%A4%E5%81%8F%E7%A7%BB%E9%87%8F%E7%9A%84%E6%96%B9%E5%BC%8F">提交偏移量的方式</a>
+<ul>
+<li><a href="#%E8%87%AA%E5%8A%A8%E6%8F%90%E4%BA%A4">自动提交</a></li>
+<li><a href="#%E5%90%8C%E6%AD%A5%E6%8F%90%E4%BA%A4">同步提交</a></li>
+<li><a href="#%E5%BC%82%E6%AD%A5%E6%8F%90%E4%BA%A4">异步提交</a></li>
+<li><a href="#%E5%90%8C%E6%AD%A5%E5%92%8C%E5%BC%82%E6%AD%A5%E7%BB%84%E5%90%88%E6%8F%90%E4%BA%A4">同步和异步组合提交</a></li>
+<li><a href="#%E6%8F%90%E4%BA%A4%E7%89%B9%E5%AE%9A%E7%9A%84%E5%81%8F%E7%A7%BB%E9%87%8F">提交特定的偏移量</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/Vy1JO1w_f/">
+              <h3 class="post-title">
+                Kafka入门（二）生产者
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

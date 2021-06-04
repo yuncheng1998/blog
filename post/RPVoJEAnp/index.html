@@ -1,0 +1,198 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>幂等 | 云程的BLOG</title>
+<link rel="shortcut icon" href="https://yuncheng1998.github.io/favicon.ico?v=1622808282544">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yuncheng1998.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="幂等 | 云程的BLOG - Atom Feed" href="https://yuncheng1998.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-144214379-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-144214379-1');
+</script>
+
+
+    <meta name="description" content="何为幂等
+在程序中如果相同条件下多次请求对资源的影响表现一致则称请求为幂等请求，对应的接口为幂等接口。
+在分布式环境下强调幂等是由于对通信链路的不信任，请求可能由于网络问题而出错进而需要做重试，如果接口没有做请求去重就可能导致重复处理引发数..." />
+    <meta name="keywords" content="微服务" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yuncheng1998.github.io">
+  <img class="avatar" src="https://yuncheng1998.github.io/images/avatar.png?v=1622808282544" alt="">
+  </a>
+  <h1 class="site-title">
+    云程的BLOG
+  </h1>
+  <p class="site-description">
+    潜龙勿用
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              幂等
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-05-28
+              </span>
+              <span>
+                4 min read
+              </span>
+              
+                <a href="https://yuncheng1998.github.io/tag/jLQkKauw0/" class="post-tag">
+                  # 微服务
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="何为幂等">何为幂等</h1>
+<p>在程序中如果相同条件下多次请求对资源的影响表现一致则称请求为幂等请求，对应的接口为幂等接口。</p>
+<p>在分布式环境下强调幂等是由于对通信链路的不信任，请求可能由于网络问题而出错进而需要做重试，如果接口没有做请求去重就可能导致重复处理引发数据错误，所以在分布式系统中接口的幂等性非常重要。</p>
+<h1 id="幂等的解决方案">幂等的解决方案</h1>
+<p>数据库主键或唯一约束：实现简单，但通用性欠缺，仅能应用于依赖数据库的业务，并且性能上需要权衡。</p>
+<p>分布式锁：一般适用于需要长时间处理的任务，如数据导出、复杂计算等，在处理期间防止重复请求，由于这些操作本身就要求串行处理，所以加锁对性能地影响有限（锁粒度为请求条件）。</p>
+<p>有限状态机：很多情况下请求对象都是带状态的，并且状态的跃迁是单向的，如订单的状态多为 <em>已下单-待付款-已付款-待发货-已发货-待签收</em> ，那么对于发货请求只能是针对已下单，待付款的订单，对其状态进行判断即可实现去重。</p>
+<h2 id="通用解决方案">通用解决方案</h2>
+<p>通用的做法是<strong>请求执行业务前先判断请求是否存在</strong>，如果存在则返回错误，否则写入请求并执行业务处理，处理完成后更新请求的状态并返回业务处理结果，如果业务处理错误可以选择删除对应的请求以便进行重试。该流程要求请求必须有可区分是否是重试的标识，并且对业务处理的前置判断和后置更新最好在框架层面实现以对业务操作透明化，做到最小化的业务逻辑侵入。</p>
+<p>我们可以借助Redis实现（如果要记录的资源量很大时可以考虑使用BloomFilter，注意精度问题），要求请求方做一定的策略，用Redis记录请求Token，请求Token是请求方为同一请求（包含重试）生成唯一凭证用于判断是否是重复请求。</p>
+<p>主流的MQ实现在 <code>autocommit=true</code> 时天然实现了幂等，但考虑业务处理可能出错的情况我们一般会将autocommit设置成false，在业务处理成功后再提交，这时就需要使用上述幂等方案了：在接收到消息时写入请求Token以实现去重判断（Token可为Topic+Offset）提交后删除Token，整体上可以做到对业务透明。</p>
+<h2 id="幂等的传递性">幂等的传递性</h2>
+<p>当幂等的业务操作只有部分成功时，应该如何处理？最直接的方法是将多个步骤用事务包裹，要么全部成功，要么全部失败，失败后删除请求<em>Token</em>允许重试。但微服务化后很有可能涉及到对不同服务的调用，此时我们只有两个选择：</p>
+<p>1）引入分布式事务，分布式事务相对较重，如非必须建议慎用。</p>
+<p>2）要求被调用的接口也实现幂等，这种做法相对优雅，也比较推荐。</p>
+<p>因此幂等是有传递性的，它要求我们请求对应的接口及其接口调用的子孙接口都必须幂等，这也是幂等在微服务下实施的难点，所以使用一套对业务透明的通用幂等方案非常有必要。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E4%BD%95%E4%B8%BA%E5%B9%82%E7%AD%89">何为幂等</a></li>
+<li><a href="#%E5%B9%82%E7%AD%89%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88">幂等的解决方案</a>
+<ul>
+<li><a href="#%E9%80%9A%E7%94%A8%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88">通用解决方案</a></li>
+<li><a href="#%E5%B9%82%E7%AD%89%E7%9A%84%E4%BC%A0%E9%80%92%E6%80%A7">幂等的传递性</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yuncheng1998.github.io/post/bzWkeZxM-/">
+              <h3 class="post-title">
+                CP与AP的取舍
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://yuncheng1998.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
